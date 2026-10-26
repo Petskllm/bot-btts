@@ -1,20 +1,24 @@
-# bot_btts.py
-# Bot BTTS Oui — API-Football + Telegram + GitHub Actions
-
 import os
 import time
-import sqlite3
-import requests
-import pytz
+import math
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-# ====================== CONFIG ======================
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+import requests
+
+
+# ================= CONFIGURATION =================
+
+TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 API_KEY = os.getenv("API_KEY")
 
-API_HOST = "v3.football.api-sports.io"
-HEADERS = {"x-apisports-key": API_KEY}
+BASE_URL = "https://v3.football.api-sports.io"
+PARIS = ZoneInfo("Europe/Paris")
+
+MIN_SCORE = 65
+MAX_ENVOIS = 10
+MAX_API_CALLS = 85
 
 LEAGUES = {
     39: "Premier League",
@@ -31,397 +35,712 @@ LEAGUES = {
     128: "Ligue 1 Argentine",
 }
 
-MIN_SCORE = 65
-MAX_ENVOIS = 10
-MAX_ANALYSES = 20
+SESSION = requests.Session()
+CACHE = {}
+ERRORS = []
+API_CALLS = 0
+API_BLOCKED = False
 
-PARIS_TZ = pytz.timezone("Europe/Paris")
 
+# ================= TELEGRAM =================
 
-# ====================== BASE DE DONNÉES ======================
-def init_db():
-    conn = sqlite3.connect("predictions.db")
-    c = conn.cursor()
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS predictions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT,
-            match TEXT,
-            league TEXT,
-            score REAL,
-            result TEXT DEFAULT NULL
+def send_message(text):
+    if not TOKEN or not CHAT_ID:
+        raise RuntimeError(
+            "Secret TELEGRAM_TOKEN ou CHAT_ID absent."
         )
-    """)
-    conn.commit()
-    conn.close()
+
+    chunks = []
+    current = ""
+
+    for line in text.splitlines(keepends=True):
+        if len(current) + len(line) > 3500:
+            if current:
+                chunks.append(current)
+            current = ""
+
+        while len(line) > 3500:
+            chunks.append(line[:3500])
+            line = line[3500:]
+
+        current += line
+
+    if current:
+        chunks.append(current)
+
+    for chunk in chunks:
+        try:
+            response = requests.post(
+                f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+                json={
+                    "chat_id": CHAT_ID,
+                    "text": chunk,
+                },
+                timeout=25,
+            )
+        except requests.RequestException:
+            raise RuntimeError(
+                "Erreur réseau pendant l'envoi Telegram."
+            ) from None
+
+        if not response.ok:
+            raise RuntimeError(
+                f"Erreur Telegram : HTTP {response.status_code}"
+            )
+
+        if not response.json().get("ok"):
+            raise RuntimeError("Message refusé par Telegram.")
 
 
-def save_prediction(date, match, league, score):
-    conn = sqlite3.connect("predictions.db")
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO predictions (date, match, league, score) VALUES (?, ?, ?, ?)",
-        (date, match, league, score)
-    )
-    conn.commit()
-    conn.close()
+# ================= API =================
+
+def add_error(message):
+    message = str(message)
+
+    for secret in (API_KEY, TOKEN):
+        if secret:
+            message = message.replace(secret, "[MASQUÉ]")
+
+    message = message[:450]
+
+    if message not in ERRORS:
+        ERRORS.append(message)
+
+    print(f"DIAGNOSTIC : {message}", flush=True)
 
 
-# ====================== API ======================
 def api_get(endpoint, params=None):
-    url = f"https://{API_HOST}/{endpoint}"
+    global API_CALLS, API_BLOCKED
+
+    params = params or {}
+    key = (endpoint, tuple(sorted(params.items())))
+
+    if key in CACHE:
+        return CACHE[key]
+
+    if API_BLOCKED:
+        return None
+
+    if API_CALLS >= MAX_API_CALLS:
+        add_error("Budget de requêtes de cette exécution atteint.")
+        return None
+
+    API_CALLS += 1
+
+    print(
+        f"API {API_CALLS}/{MAX_API_CALLS} : "
+        f"{endpoint} | {params}",
+        flush=True,
+    )
+
+    time.sleep(1.1)
+
     try:
-        r = requests.get(url, headers=HEADERS, params=params, timeout=15)
-        print(f"API {endpoint} → {r.status_code}")
+        response = SESSION.get(
+            f"{BASE_URL}/{endpoint}",
+            headers={"x-apisports-key": API_KEY},
+            params=params,
+            timeout=25,
+        )
+    except requests.RequestException:
+        add_error(f"{endpoint} : erreur réseau.")
+        return None
 
-        if r.status_code != 200:
-            print(f"Erreur API: {r.text[:250]}")
-            return []
+    if not response.ok:
+        add_error(
+            f"{endpoint} : HTTP {response.status_code} — "
+            f"{response.text[:250]}"
+        )
 
-        data = r.json()
-        response = data.get("response", [])
-        print(f"→ {len(response)} résultats")
-        return response
+        if response.status_code in {401, 403, 429}:
+            API_BLOCKED = True
 
-    except Exception as e:
-        print(f"Exception API {endpoint}: {e}")
-        return []
+        return None
+
+    try:
+        payload = response.json()
+    except ValueError:
+        add_error(f"{endpoint} : réponse JSON invalide.")
+        return None
+
+    if not isinstance(payload, dict):
+        add_error(f"{endpoint} : format de réponse invalide.")
+        return None
+
+    if payload.get("errors"):
+        errors = payload["errors"]
+        add_error(f"{endpoint} : {errors}")
+
+        error_text = str(errors).lower()
+
+        if any(term in error_text for term in (
+            "request limit",
+            "requests limit",
+            "rate limit",
+            "api key",
+            "token",
+        )):
+            API_BLOCKED = True
+
+        return None
+
+    data = payload.get("response")
+
+    if not isinstance(data, (list, dict)):
+        add_error(f"{endpoint} : champ response invalide.")
+        return None
+
+    CACHE[key] = data
+
+    print(
+        f"Résultats reçus : {len(data)}",
+        flush=True,
+    )
+
+    return data
 
 
-def get_current_season():
-    now = datetime.now(PARIS_TZ)
-    return now.year if now.month >= 7 else now.year - 1
+def diagnostics_text():
+    if not ERRORS:
+        return ""
+
+    return "\n\nDiagnostic API :\n" + "\n".join(
+        f"• {error}" for error in ERRORS[:3]
+    )
 
 
-def get_fixtures_today():
-    season = get_current_season()
-    today = datetime.now(PARIS_TZ).strftime("%Y-%m-%d")
+# ================= MATCHS =================
 
-    print(f"Recherche des matchs du {today} — saison {season}")
-    all_fixtures = []
+def kickoff_of(fixture):
+    raw = fixture["fixture"]["date"]
 
-    for league_id, league_name in LEAGUES.items():
-        data = api_get("fixtures", {
-            "league": league_id,
-            "season": season,
-            "date": today
-        })
+    return datetime.fromisoformat(
+        raw.replace("Z", "+00:00")
+    ).astimezone(PARIS)
 
-        print(f"{league_name}: {len(data)} matchs")
-        all_fixtures.extend(data)
-        time.sleep(0.4)
 
-    print(f"TOTAL MATCHS DU JOUR: {len(all_fixtures)}")
-    return all_fixtures[:MAX_ANALYSES]
+def get_today_fixtures():
+    today = datetime.now(PARIS).strftime("%Y-%m-%d")
+
+    data = api_get("fixtures", {
+        "date": today,
+        "timezone": "Europe/Paris",
+    })
+
+    if not isinstance(data, list):
+        return None, 0, 0
+
+    now = datetime.now(PARIS)
+    selected = []
+    league_matches = 0
+    seen = set()
+
+    for fixture in data:
+        try:
+            if fixture["league"]["id"] not in LEAGUES:
+                continue
+
+            league_matches += 1
+
+            if fixture["fixture"]["status"]["short"] != "NS":
+                continue
+
+            if kickoff_of(fixture) <= now:
+                continue
+
+            fixture_id = fixture["fixture"]["id"]
+
+            if fixture_id in seen:
+                continue
+
+            seen.add(fixture_id)
+            selected.append(fixture)
+
+        except (KeyError, TypeError, ValueError):
+            add_error("Un match incomplet a été ignoré.")
+
+    selected.sort(key=kickoff_of)
+
+    return selected, len(data), league_matches
 
 
 def get_team_stats(team_id, league_id, season):
     data = api_get("teams/statistics", {
         "team": team_id,
         "league": league_id,
-        "season": season
-    })
-    return data[0] if data else None
-
-
-def get_h2h(team1_id, team2_id):
-    return api_get("fixtures/headtohead", {
-        "h2h": f"{team1_id}-{team2_id}",
-        "last": 6
-    })
-
-
-def get_team_form(team_id, season):
-    data = api_get("fixtures", {
-        "team": team_id,
         "season": season,
-        "last": 5
     })
 
-    form = {
-        "matchs": 0,
-        "buts_marques": 0,
-        "buts_encaisses": 0,
-        "btts": 0
+    return data if isinstance(data, dict) and data else None
+
+
+def extract_rates(stats, side):
+    played = stats["fixtures"]["played"]
+    goals_for = stats["goals"]["for"]["total"]
+    goals_against = stats["goals"]["against"]["total"]
+
+    total_played = int(played.get("total") or 0)
+    side_played = int(played.get(side) or 0)
+
+    if total_played < 5:
+        return None
+
+    scope = side if side_played >= 4 else "total"
+    games = int(played.get(scope) or 0)
+
+    gf = goals_for.get(scope)
+    ga = goals_against.get(scope)
+
+    if games <= 0 or gf is None or ga is None:
+        return None
+
+    return {
+        "gf": float(gf) / games,
+        "ga": float(ga) / games,
+        "scope": scope,
     }
 
-    for match in data:
-        goals = match.get("goals", {})
-        home_goals = goals.get("home")
-        away_goals = goals.get("away")
 
-        if home_goals is None or away_goals is None:
+def get_recent_form(team_id):
+    data = api_get("fixtures", {
+        "team": team_id,
+        "last": 5,
+        "status": "FT",
+        "timezone": "Europe/Paris",
+    })
+
+    if not isinstance(data, list):
+        return None
+
+    matches = []
+
+    for match in data:
+        try:
+            if match["fixture"]["status"]["short"] != "FT":
+                continue
+
+            gh = match["goals"]["home"]
+            ga = match["goals"]["away"]
+
+            if gh is None or ga is None:
+                continue
+
+            home_id = match["teams"]["home"]["id"]
+            away_id = match["teams"]["away"]["id"]
+
+            if team_id == home_id:
+                gf, conceded = gh, ga
+            elif team_id == away_id:
+                gf, conceded = ga, gh
+            else:
+                continue
+
+            matches.append({
+                "gf": gf,
+                "ga": conceded,
+                "date": kickoff_of(match),
+            })
+
+        except (KeyError, TypeError, ValueError):
             continue
 
-        team_id_str = str(team_id)
-        home_id_str = str(match["teams"]["home"]["id"])
-        away_id_str = str(match["teams"]["away"]["id"])
+    matches.sort(key=lambda item: item["date"], reverse=True)
+    matches = matches[:5]
 
-        if team_id_str == home_id_str:
-            form["buts_marques"] += home_goals
-            form["buts_encaisses"] += away_goals
-        else:
-            form["buts_marques"] += away_goals
-            form["buts_encaisses"] += home_goals
+    if len(matches) < 3:
+        return None
 
-        if home_goals > 0 and away_goals > 0:
-            form["btts"] += 1
+    n = len(matches)
+    btts_count = sum(
+        match["gf"] > 0 and match["ga"] > 0
+        for match in matches
+    )
 
-        form["matchs"] += 1
+    return {
+        "n": n,
+        "gf": sum(match["gf"] for match in matches) / n,
+        "ga": sum(match["ga"] for match in matches) / n,
+        "btts": btts_count / n,
+        "btts_count": btts_count,
+        "last_date": matches[0]["date"],
+    }
 
-    return form
+
+def get_h2h_rate(home_id, away_id):
+    data = api_get("fixtures/headtohead", {
+        "h2h": f"{home_id}-{away_id}",
+        "last": 6,
+        "status": "FT",
+    })
+
+    if not isinstance(data, list):
+        return None
+
+    outcomes = []
+    now = datetime.now(PARIS)
+
+    for match in data:
+        try:
+            if match["fixture"]["status"]["short"] != "FT":
+                continue
+
+            age = (now - kickoff_of(match)).days
+
+            if age < 0 or age > 3 * 366:
+                continue
+
+            gh = match["goals"]["home"]
+            ga = match["goals"]["away"]
+
+            if gh is not None and ga is not None:
+                outcomes.append(gh > 0 and ga > 0)
+
+        except (KeyError, TypeError, ValueError):
+            continue
+
+    if len(outcomes) < 3:
+        return None
+
+    return sum(outcomes) / len(outcomes)
 
 
-def get_injuries(fixture_id):
-    return api_get("injuries", {
+# ================= INDICE STATISTIQUE =================
+
+def calculate_score(fixture):
+    home = fixture["teams"]["home"]
+    away = fixture["teams"]["away"]
+    league_id = fixture["league"]["id"]
+    season = fixture["league"]["season"]
+
+    home_stats = get_team_stats(
+        home["id"], league_id, season
+    )
+    away_stats = get_team_stats(
+        away["id"], league_id, season
+    )
+
+    if not home_stats or not away_stats:
+        return None
+
+    home_rates = extract_rates(home_stats, "home")
+    away_rates = extract_rates(away_stats, "away")
+
+    if not home_rates or not away_rates:
+        return None
+
+    home_form = get_recent_form(home["id"])
+    away_form = get_recent_form(away["id"])
+
+    if not home_form or not away_form:
+        return None
+
+    home_attack = (
+        0.70 * home_rates["gf"]
+        + 0.30 * home_form["gf"]
+    )
+    home_defence = (
+        0.70 * home_rates["ga"]
+        + 0.30 * home_form["ga"]
+    )
+    away_attack = (
+        0.70 * away_rates["gf"]
+        + 0.30 * away_form["gf"]
+    )
+    away_defence = (
+        0.70 * away_rates["ga"]
+        + 0.30 * away_form["ga"]
+    )
+
+    expected_home = (home_attack + away_defence) / 2
+    expected_away = (away_attack + home_defence) / 2
+
+    # Modèle simplifié : indice non calibré,
+    # à ne pas confondre avec une probabilité réelle.
+    base = (
+        (1 - math.exp(-expected_home))
+        * (1 - math.exp(-expected_away))
+        * 100
+    )
+
+    recent_rate = (
+        home_form["btts"] + away_form["btts"]
+    ) / 2
+
+    score = base + 10 * (recent_rate - 0.5)
+
+    if score >= MIN_SCORE - 2:
+        h2h_rate = get_h2h_rate(home["id"], away["id"])
+
+        if h2h_rate is not None:
+            score += 4 * (h2h_rate - 0.5)
+
+    score = round(max(0, min(100, score)), 1)
+
+    warnings = []
+
+    if (
+        home_rates["scope"] == "total"
+        or away_rates["scope"] == "total"
+    ):
+        warnings.append("recul domicile/extérieur limité")
+
+    kickoff = kickoff_of(fixture)
+
+    for form in (home_form, away_form):
+        rest_hours = (
+            kickoff - form["last_date"]
+        ).total_seconds() / 3600
+
+        if 0 < rest_hours < 72:
+            warnings.append("repos inférieur à 72 h")
+            break
+
+    return {
+        "id": fixture["fixture"]["id"],
+        "match": f"{home['name']} - {away['name']}",
+        "league": fixture["league"]["name"],
+        "kickoff": kickoff,
+        "score": score,
+        "reason": (
+            "BTTS sur les derniers matchs : "
+            f"{home['name']} "
+            f"{home_form['btts_count']}/{home_form['n']}, "
+            f"{away['name']} "
+            f"{away_form['btts_count']}/{away_form['n']}"
+        ),
+        "warnings": warnings,
+    }
+
+
+# ================= ABSENCES ET COMPOSITIONS =================
+
+def add_match_context(result):
+    fixture_id = result["id"]
+
+    injuries = api_get("injuries", {
         "fixture": fixture_id
     })
 
+    if injuries is None:
+        result["warnings"].append("absences non vérifiables")
 
-# ====================== CALCUL BTTS ======================
-def calculate_btts_score(fixture):
-    try:
-        home = fixture["teams"]["home"]
-        away = fixture["teams"]["away"]
-        league_id = fixture["league"]["id"]
-        season = fixture["league"]["season"]
-        fixture_id = fixture["fixture"]["id"]
+    elif not injuries:
+        result["warnings"].append(
+            "aucune absence remontée, sans garantie"
+        )
 
-        home_stats = get_team_stats(home["id"], league_id, season)
-        time.sleep(0.3)
+    elif isinstance(injuries, list):
+        players = {}
 
-        away_stats = get_team_stats(away["id"], league_id, season)
-        time.sleep(0.3)
+        for injury in injuries:
+            player = injury.get("player", {})
+            name = player.get("name")
 
-        if not home_stats or not away_stats:
-            return 0, "Données insuffisantes", ""
+            if name:
+                players[player.get("id") or name] = name
 
-        def extract(stats):
-            played = stats["fixtures"]["played"]["total"] or 1
-            gf = stats["goals"]["for"]["total"]["total"] or 0
-            ga = stats["goals"]["against"]["total"]["total"] or 0
-            return gf / played, ga / played, played
+        if players:
+            names = list(players.values())
+            label = ", ".join(names[:3])
 
-        home_gf, home_ga, home_played = extract(home_stats)
-        away_gf, away_ga, away_played = extract(away_stats)
+            if len(names) > 3:
+                label += f" +{len(names) - 3}"
 
-        score = 0
-        raisons = []
-        vigilances = []
-
-        # Potentiel de buts
-        expected_home = (home_gf + away_ga) / 2
-        expected_away = (away_gf + home_ga) / 2
-
-        if expected_home >= 1.35 and expected_away >= 1.35:
-            score += 30
-            raisons.append("Fort potentiel de buts des deux côtés")
-        elif expected_home >= 1.10 and expected_away >= 1.10:
-            score += 22
-            raisons.append("Bon potentiel de buts des deux côtés")
-        elif expected_home >= 0.90 and expected_away >= 0.90:
-            score += 12
+            result["warnings"].append(
+                f"absences signalées : {label}"
+            )
         else:
-            vigilances.append("Au moins une équipe marque peu")
+            result["warnings"].append(
+                "absences signalées à vérifier"
+            )
 
-        # Les deux équipes marquent régulièrement
-        if home_gf >= 1.0 and away_gf >= 1.0:
-            score += 20
-            raisons.append("Les deux équipes marquent régulièrement")
-        elif home_gf >= 0.8 and away_gf >= 0.8:
-            score += 10
+    lineups = api_get("fixtures/lineups", {
+        "fixture": fixture_id
+    })
+
+    if isinstance(lineups, list) and len(lineups) >= 2:
+        complete = all(
+            len(team.get("startXI", [])) == 11
+            for team in lineups[:2]
+        )
+
+        if complete:
+            result["warnings"].append(
+                "compositions disponibles, impact non calculé"
+            )
         else:
-            vigilances.append("Une attaque est un peu faible")
+            result["warnings"].append(
+                "compositions incomplètes"
+            )
+    else:
+        result["warnings"].append(
+            "compositions indisponibles"
+        )
 
-        # Défenses perméables
-        if home_ga >= 1.0 and away_ga >= 1.0:
-            score += 15
-            raisons.append("Les deux défenses encaissent régulièrement")
-        elif home_ga >= 0.8 and away_ga >= 0.8:
-            score += 8
-
-        # H2H
-        h2h = get_h2h(home["id"], away["id"])
-        time.sleep(0.3)
-
-        if h2h:
-            btts_h2h = 0
-            matchs_h2h = 0
-
-            for match in h2h:
-                goals = match.get("goals", {})
-                gh = goals.get("home")
-                ga = goals.get("away")
-
-                if gh is None or ga is None:
-                    continue
-
-                matchs_h2h += 1
-
-                if gh > 0 and ga > 0:
-                    btts_h2h += 1
-
-            if matchs_h2h >= 3:
-                pct = btts_h2h / matchs_h2h
-
-                if pct >= 0.65:
-                    score += 10
-                    raisons.append("H2H souvent BTTS")
-                elif pct >= 0.45:
-                    score += 5
-
-        # Forme récente : seulement si le match est déjà viable
-        if score >= 45:
-            home_form = get_team_form(home["id"], season)
-            time.sleep(0.3)
-
-            away_form = get_team_form(away["id"], season)
-            time.sleep(0.3)
-
-            if home_form["matchs"] >= 3 and away_form["matchs"] >= 3:
-                home_btts_rate = home_form["btts"] / home_form["matchs"]
-                away_btts_rate = away_form["btts"] / away_form["matchs"]
-                avg_btts_form = (home_btts_rate + away_btts_rate) / 2
-
-                if avg_btts_form >= 0.70:
-                    score += 15
-                    raisons.append("Forme récente très favorable au BTTS")
-                elif avg_btts_form >= 0.50:
-                    score += 8
-                elif avg_btts_form <= 0.25:
-                    score -= 5
-                    vigilances.append("Forme récente peu favorable au BTTS")
-
-        # Blessures
-        injuries = get_injuries(fixture_id)
-        time.sleep(0.3)
-
-        if injuries:
-            missing_home = 0
-            missing_away = 0
-
-            for injury in injuries:
-                team_id = injury.get("team", {}).get("id")
-
-                if team_id == home["id"]:
-                    missing_home += 1
-                elif team_id == away["id"]:
-                    missing_away += 1
-
-            if missing_home >= 4 or missing_away >= 4:
-                score -= 5
-                vigilances.append("Plusieurs absences importantes")
-
-        score = max(0, min(100, round(score)))
-
-        raison = raisons[0] if raisons else "Profil statistique correct pour le BTTS"
-        vigilance = " ; ".join(vigilances)
-
-        return score, raison, vigilance
-
-    except Exception as e:
-        print(f"Erreur calcul: {e}")
-        return 0, "Erreur de calcul", ""
+    # Aucun bonus ou malus inventé :
+    # le nombre d'absents ne mesure pas leur importance.
 
 
-# ====================== ANALYSE ======================
-def analyse_du_jour():
-    print(f"[{datetime.now(PARIS_TZ)}] Lancement du bot BTTS")
-    print(f"API_KEY présente: {'Oui' if API_KEY else 'NON'}")
+# ================= ANALYSE =================
 
-    fixtures = get_fixtures_today()
+def main():
+    if not TOKEN or not CHAT_ID:
+        raise RuntimeError(
+            "Ajoute les secrets TELEGRAM_TOKEN et CHAT_ID."
+        )
+
+    if not API_KEY:
+        send_message(
+            "Le secret GitHub API_KEY est absent. "
+            "Ajoute-le dans les paramètres du dépôt."
+        )
+        raise RuntimeError("API_KEY absent.")
+
+    today = datetime.now(PARIS).strftime("%d/%m/%Y")
+
+    fixtures, total, league_total = get_today_fixtures()
+
+    if fixtures is None:
+        send_message(
+            f"BTTS — {today}\n\n"
+            "Impossible de récupérer les matchs."
+            + diagnostics_text()
+        )
+        raise RuntimeError(
+            "Récupération des matchs impossible."
+        )
 
     if not fixtures:
         send_message(
-            "❌ Aucun match trouvé aujourd’hui.\n\n"
-            "Causes possibles :\n"
-            "• Clé API invalide\n"
-            "• Quota API atteint\n"
-            "• Aucun match dans les championnats sélectionnés"
+            f"⚽ BTTS — {today}\n\n"
+            f"Matchs retournés par l’API : {total}\n"
+            f"Dans les compétitions suivies : {league_total}\n"
+            "Aucun match à venir à analyser dans cette liste."
+            + diagnostics_text()
         )
         return
 
-    results = []
-    scores_debug = []
+    evaluated = []
+    insufficient = 0
+    attempted = 0
+
+    reserve = 2 * min(MAX_ENVOIS, len(fixtures))
 
     for fixture in fixtures:
-        score, raison, vigilance = calculate_btts_score(fixture)
+        if API_BLOCKED:
+            break
 
-        home = fixture["teams"]["home"]["name"]
-        away = fixture["teams"]["away"]["name"]
-        match_name = f"{home} - {away}"
+        if API_CALLS + 5 > MAX_API_CALLS - reserve:
+            add_error(
+                "Analyse partielle : budget réservé "
+                "aux absences et compositions."
+            )
+            break
 
-        scores_debug.append(f"{match_name}: {score}%")
+        attempted += 1
 
-        if score >= MIN_SCORE:
-            heure = datetime.fromisoformat(
-                fixture["fixture"]["date"].replace("Z", "+00:00")
-            ).astimezone(PARIS_TZ).strftime("%H:%M")
+        try:
+            result = calculate_score(fixture)
+        except (KeyError, TypeError, ValueError) as exc:
+            print(
+                f"Match ignoré : {type(exc).__name__}",
+                flush=True,
+            )
+            result = None
 
-            results.append({
-                "match": match_name,
-                "heure": heure,
-                "score": score,
-                "raison": raison,
-                "vigilance": vigilance,
-                "league": fixture["league"]["name"]
-            })
+        if result is None:
+            insufficient += 1
+            continue
 
-        time.sleep(0.2)
+        evaluated.append(result)
 
-    results = sorted(results, key=lambda x: x["score"], reverse=True)[:MAX_ENVOIS]
+        print(
+            f"{result['match']} : {result['score']}/100",
+            flush=True,
+        )
 
-    today = datetime.now(PARIS_TZ).strftime("%d/%m/%Y")
+    evaluated.sort(
+        key=lambda result: result["score"],
+        reverse=True,
+    )
+
+    results = [
+        result for result in evaluated
+        if result["score"] >= MIN_SCORE
+    ][:MAX_ENVOIS]
+
+    summary = (
+        f"À venir : {len(fixtures)} | "
+        f"analysés : {len(evaluated)} | "
+        f"données insuffisantes : {insufficient}"
+    )
+
+    if attempted < len(fixtures):
+        summary += (
+            f"\nNon traités : {len(fixtures) - attempted}"
+        )
 
     if not results:
-        debug = "\n".join(scores_debug[:15])
-        send_message(
-            f"⚽ Aucun BTTS ≥ {MIN_SCORE}% aujourd’hui.\n\n"
-            f"Scores calculés :\n{debug}"
+        message = (
+            f"⚽ BTTS OUI — {today}\n"
+            f"Aucun indice ≥ {MIN_SCORE}/100.\n\n"
+            f"{summary}"
         )
+
+        if evaluated:
+            message += (
+                "\n\nMeilleurs indices, NON sélectionnés :\n"
+            )
+            message += "\n".join(
+                f"• {result['match']} : "
+                f"{result['score']}/100"
+                for result in evaluated[:5]
+            )
+
+        message += diagnostics_text()
+        send_message(message)
         return
 
-    message = f"⚽ BTTS OUI — {today} — FILTRE {MIN_SCORE}%\n\n"
+    for result in results:
+        add_match_context(result)
 
-    for i, r in enumerate(results, 1):
-        message += f"{i}. {r['match']} — {r['heure']} — {r['score']}%\n"
-        message += f"✅ {r['raison']}\n"
+    message = (
+        f"⚽ BTTS OUI — {today}\n"
+        f"Filtre : indice ≥ {MIN_SCORE}/100\n\n"
+    )
 
-        if r["vigilance"]:
-            message += f"⚠️ {r['vigilance']}\n"
+    for index, result in enumerate(results, 1):
+        message += (
+            f"{index}. {result['match']}\n"
+            f"🏆 {result['league']} | "
+            f"{result['kickoff']:%H:%M} Paris | "
+            f"{result['score']}/100\n"
+            f"✅ {result['reason']}\n"
+        )
+
+        warnings = list(dict.fromkeys(result["warnings"]))
+
+        if warnings:
+            message += (
+                "⚠️ " + " ; ".join(warnings) + "\n"
+            )
 
         message += "\n"
 
-        save_prediction(
-            datetime.now(PARIS_TZ).strftime("%Y-%m-%d"),
-            r["match"],
-            r["league"],
-            r["score"]
-        )
+    message += (
+        summary
+        + "\n\nIndice statistique, pas une probabilité garantie."
+        + diagnostics_text()
+    )
 
-    send_message(message.strip())
-    print("Analyse terminée.")
+    send_message(message)
 
-
-# ====================== TELEGRAM ======================
-def send_message(text):
-    try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-
-        response = requests.post(url, json={
-            "chat_id": CHAT_ID,
-            "text": text
-        }, timeout=10)
-
-        print(f"Telegram: {response.status_code}")
-
-        if response.status_code != 200:
-            print(f"Erreur Telegram: {response.text}")
-
-    except Exception as e:
-        print(f"Erreur Telegram: {e}")
+    print(
+        f"Terminé : {API_CALLS} appels API, "
+        f"{len(results)} sélections envoyées.",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
-    init_db()
-    analyse_du_jour()
+    main()
