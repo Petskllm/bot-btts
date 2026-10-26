@@ -1,5 +1,5 @@
 # bot_btts.py
-# Version GitHub Actions - BTTS Oui (25 analyses / 10 envois max)
+# Version GitHub Actions - BTTS Oui (avec logs détaillés)
 
 import os
 import time
@@ -39,7 +39,6 @@ MIN_SCORE = 65
 
 PARIS_TZ = pytz.timezone("Europe/Paris")
 
-# ====================== BASE DE DONNÉES ======================
 def init_db():
     conn = sqlite3.connect("predictions.db")
     c = conn.cursor()
@@ -66,15 +65,18 @@ def save_prediction(date, match, league, score):
     conn.commit()
     conn.close()
 
-# ====================== API FOOTBALL ======================
 def api_get(endpoint, params=None):
     url = f"https://{API_HOST}/{endpoint}"
     try:
         r = requests.get(url, headers=HEADERS, params=params, timeout=15)
+        print(f"API {endpoint} → Status: {r.status_code}")
         if r.status_code == 200:
-            return r.json().get("response", [])
+            data = r.json()
+            response = data.get("response", [])
+            print(f"  → {len(response)} résultats")
+            return response
         else:
-            print(f"Erreur API {r.status_code}: {r.text}")
+            print(f"  → Erreur: {r.text[:300]}")
             return []
     except Exception as e:
         print(f"Exception API: {e}")
@@ -82,22 +84,27 @@ def api_get(endpoint, params=None):
 
 def get_current_season():
     now = datetime.now(PARIS_TZ)
-    return now.year if now.month >= 7 else now.year - 1
+    season = now.year if now.month >= 7 else now.year - 1
+    print(f"Saison utilisée: {season}")
+    return season
 
 def get_fixtures_today():
     today = datetime.now(PARIS_TZ).strftime("%Y-%m-%d")
+    print(f"Date recherchée: {today}")
     season = get_current_season()
     all_fixtures = []
 
-    for league_id in LEAGUES.keys():
+    for league_id, league_name in LEAGUES.items():
+        print(f"Recherche {league_name} (ID {league_id})...")
         data = api_get("fixtures", {
             "date": today,
             "league": league_id,
             "season": season
         })
         all_fixtures.extend(data)
-        time.sleep(0.4)
+        time.sleep(0.5)
 
+    print(f"Total matchs trouvés: {len(all_fixtures)}")
     return all_fixtures[:MAX_ANALYSES]
 
 def get_team_stats(team_id, league_id, season):
@@ -115,7 +122,6 @@ def get_h2h(team1_id, team2_id):
     })
     return data
 
-# ====================== CALCUL DU SCORE BTTS ======================
 def calculate_btts_score(fixture):
     try:
         teams = fixture["teams"]
@@ -197,9 +203,10 @@ def calculate_btts_score(fixture):
         print(f"Erreur calcul score: {e}")
         return 0, "Erreur de calcul", ""
 
-# ====================== ANALYSE DU JOUR ======================
 def analyse_du_jour():
     print(f"[{datetime.now(PARIS_TZ)}] Lancement de l'analyse...")
+    print(f"API_KEY présente: {'Oui' if API_KEY else 'NON !!!'}")
+    
     fixtures = get_fixtures_today()
 
     if not fixtures:
@@ -259,17 +266,14 @@ def send_message(text):
             "parse_mode": "HTML"
         }, timeout=10)
         
-        print(f"Status code: {response.status_code}")
-        print(f"Réponse Telegram: {response.text}")
-        
+        print(f"Status code Telegram: {response.status_code}")
         if response.status_code == 200:
             print("Message Telegram envoyé avec succès")
         else:
-            print("ÉCHEC de l'envoi")
+            print(f"ÉCHEC: {response.text}")
     except Exception as e:
         print(f"Erreur envoi Telegram: {e}")
 
-# ====================== MAIN ======================
 if __name__ == "__main__":
     init_db()
     analyse_du_jour()
