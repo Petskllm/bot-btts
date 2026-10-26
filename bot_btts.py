@@ -1,30 +1,23 @@
 # bot_btts.py
-# Bot Telegram BTTS Oui - Version gratuite optimisée (25 analyses / 10 envois max)
+# Version GitHub Actions - BTTS Oui (25 analyses / 10 envois max)
 
 import os
 import time
 import sqlite3
 import requests
-import schedule
 import pytz
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
-
-load_dotenv()
+from datetime import datetime
 
 # ====================== CONFIG ======================
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-API_KEY = os.getenv("API_FOOTBALL_KEY")
+CHAT_ID = os.getenv("CHAT_ID")
+API_KEY = os.getenv("API_KEY")
 
 API_HOST = "v3.football.api-sports.io"
 HEADERS = {
     "x-apisports-key": API_KEY
 }
 
-# Championnats prioritaires (meilleure qualité de données)
 LEAGUES = {
     39: "Premier League",
     140: "La Liga",
@@ -40,13 +33,13 @@ LEAGUES = {
     128: "Ligue 1 Argentine",
 }
 
-MAX_ANALYSES = 25          # Maximum de matchs analysés en profondeur
-MAX_ENVOIS = 10            # Maximum de matchs envoyés sur Telegram
+MAX_ANALYSES = 25
+MAX_ENVOIS = 10
 MIN_SCORE = 65
 
 PARIS_TZ = pytz.timezone("Europe/Paris")
 
-# ====================== BASE DE DONNÉES ======================
+# ====================== BASE DE DONNÉES (éphémère) ======================
 def init_db():
     conn = sqlite3.connect("predictions.db")
     c = conn.cursor()
@@ -73,19 +66,6 @@ def save_prediction(date, match, league, score):
     conn.commit()
     conn.close()
 
-def get_stats():
-    conn = sqlite3.connect("predictions.db")
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM predictions WHERE result IS NOT NULL")
-    total = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM predictions WHERE result = 'Oui'")
-    wins = c.fetchone()[0]
-    conn.close()
-    if total == 0:
-        return "Aucune prédiction avec résultat enregistré pour le moment."
-    taux = round((wins / total) * 100, 1)
-    return f"📊 Stats BTTS\nPrédictions vérifiées : {total}\nRéussites : {wins}\nTaux de réussite : {taux}%"
-
 # ====================== API FOOTBALL ======================
 def api_get(endpoint, params=None):
     url = f"https://{API_HOST}/{endpoint}"
@@ -100,20 +80,24 @@ def api_get(endpoint, params=None):
         print(f"Exception API: {e}")
         return []
 
+def get_current_season():
+    now = datetime.now(PARIS_TZ)
+    return now.year if now.month >= 7 else now.year - 1
+
 def get_fixtures_today():
     today = datetime.now(PARIS_TZ).strftime("%Y-%m-%d")
+    season = get_current_season()
     all_fixtures = []
 
     for league_id in LEAGUES.keys():
         data = api_get("fixtures", {
             "date": today,
             "league": league_id,
-            "season": datetime.now().year  # simplifié, à améliorer si besoin
+            "season": season
         })
         all_fixtures.extend(data)
-        time.sleep(0.4)  # petite pause pour respecter le rate limit
+        time.sleep(0.4)
 
-    # On limite à 25 matchs maximum
     return all_fixtures[:MAX_ANALYSES]
 
 def get_team_stats(team_id, league_id, season):
@@ -133,18 +117,13 @@ def get_h2h(team1_id, team2_id):
 
 # ====================== CALCUL DU SCORE BTTS ======================
 def calculate_btts_score(fixture):
-    """
-    Retourne (score, raison_principale, point_vigilance)
-    """
     try:
         teams = fixture["teams"]
         home = teams["home"]
         away = teams["away"]
         league_id = fixture["league"]["id"]
         season = fixture["league"]["season"]
-        fixture_id = fixture["fixture"]["id"]
 
-        # --- 1. Stats équipes ---
         home_stats = get_team_stats(home["id"], league_id, season)
         time.sleep(0.35)
         away_stats = get_team_stats(away["id"], league_id, season)
@@ -153,7 +132,6 @@ def calculate_btts_score(fixture):
         if not home_stats or not away_stats:
             return 0, "Données insuffisantes", ""
 
-        # Forme BTTS approximative via buts
         def extract_goals(stats):
             try:
                 played = stats["fixtures"]["played"]["total"] or 1
@@ -166,11 +144,9 @@ def calculate_btts_score(fixture):
         home_gf, home_ga = extract_goals(home_stats)
         away_gf, away_ga = extract_goals(away_stats)
 
-        # Score partiel
         score = 0
         raisons = []
 
-        # Critère 2 : buts marqués + encaissés (25 pts)
         avg_goals = (home_gf + home_ga + away_gf + away_ga) / 2
         if avg_goals >= 3.0:
             score += 25
@@ -181,8 +157,6 @@ def calculate_btts_score(fixture):
         elif avg_goals >= 2.1:
             score += 10
 
-        # Critère 1 & 3 : approximation BTTS / clean sheets via moyenne
-        # (API free ne donne pas toujours le % BTTS exact facilement)
         btts_proxy = min(home_gf, away_gf) + min(home_ga, away_ga)
         if btts_proxy >= 2.4:
             score += 28
@@ -192,7 +166,6 @@ def calculate_btts_score(fixture):
         elif btts_proxy >= 1.5:
             score += 8
 
-        # Critère 4 : H2H
         h2h = get_h2h(home["id"], away["id"])
         time.sleep(0.35)
         if h2h:
@@ -210,11 +183,7 @@ def calculate_btts_score(fixture):
                 elif pct >= 0.45:
                     score += 5
 
-        # Critère 7 : contexte simple
-        # (on reste léger pour économiser les requêtes)
-        score += 5  # base contexte
-
-        # Limite 100
+        score += 5
         score = min(score, 100)
 
         raison_principale = raisons[0] if raisons else "Statistiques offensives correctes"
@@ -254,7 +223,6 @@ def analyse_du_jour():
                 "league": league
             })
 
-    # Tri + limite 10
     results = sorted(results, key=lambda x: x["score"], reverse=True)[:MAX_ENVOIS]
 
     today = datetime.now(PARIS_TZ).strftime("%d/%m/%Y")
@@ -272,7 +240,6 @@ def analyse_du_jour():
             message += f"⚠️ {r['vigilance']}\n"
         message += "\n"
 
-        # Sauvegarde
         save_prediction(
             datetime.now(PARIS_TZ).strftime("%Y-%m-%d"),
             r["match"],
@@ -291,59 +258,11 @@ def send_message(text):
             "text": text,
             "parse_mode": "HTML"
         }, timeout=10)
+        print("Message Telegram envoyé avec succès")
     except Exception as e:
         print(f"Erreur envoi Telegram: {e}")
-
-# ====================== COMMANDES TELEGRAM ======================
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Bot BTTS Oui actif.\n\n"
-        "Commandes :\n"
-        "/test → lance une analyse maintenant\n"
-        "/status → vérifie que le bot tourne\n"
-        "/stats → taux de réussite"
-    )
-
-async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Analyse en cours... (peut prendre 1-2 minutes)")
-    analyse_du_jour()
-
-async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✅ Bot en ligne et fonctionnel.")
-
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(get_stats())
-
-# ====================== PLANIFICATION ======================
-def run_scheduler():
-    schedule.every().day.at("10:00").do(analyse_du_jour)
-
-    while True:
-        schedule.run_pending()
-        time.sleep(30)
 
 # ====================== MAIN ======================
 if __name__ == "__main__":
     init_db()
-
-    # Lancement du bot Telegram
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("test", test))
-    app.add_handler(CommandHandler("status", status))
-    app.add_handler(CommandHandler("stats", stats))
-
-    print("Bot démarré. Envoi automatique tous les jours à 10h00 (Paris).")
-    
-    # On lance le scheduler dans un thread séparé serait mieux,
-    # mais pour simplicité débutant on lance d'abord le polling
-    # et on utilise un job plus tard si besoin.
-    
-    # Version simple : on démarre le polling + on planifie via schedule dans un autre processus
-    # Pour un débutant, le plus simple est de lancer le bot et d'utiliser un cron ou de garder schedule
-    
-    import threading
-    t = threading.Thread(target=run_scheduler, daemon=True)
-    t.start()
-
-    app.run_polling()
+    analyse_du_jour()
