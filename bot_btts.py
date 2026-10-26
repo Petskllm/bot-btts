@@ -1,7 +1,7 @@
 import os
 import time
 import math
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
@@ -11,28 +11,29 @@ import requests
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("API_KEY")  # clé football-data.org
 
-BASE_URL = "https://v3.football.api-sports.io"
+BASE_URL = "https://api.football-data.org/v4"
 PARIS = ZoneInfo("Europe/Paris")
 
 MIN_SCORE = 65
 MAX_ENVOIS = 10
-MAX_API_CALLS = 85
+MAX_API_CALLS = 60
 
+# Plan gratuit football-data.org : 10 requêtes par minute.
+MIN_INTERVAL = 6.5
+
+# Compétitions du plan gratuit (code football-data.org)
 LEAGUES = {
-    39: "Premier League",
-    140: "La Liga",
-    135: "Serie A",
-    78: "Bundesliga",
-    61: "Ligue 1",
-    2: "Champions League",
-    3: "Europa League",
-    94: "Primeira Liga",
-    88: "Eredivisie",
-    203: "Süper Lig",
-    71: "Serie A Brésil",
-    128: "Ligue 1 Argentine",
+    "PL": "Premier League",
+    "PD": "La Liga",
+    "SA": "Serie A",
+    "BL1": "Bundesliga",
+    "FL1": "Ligue 1",
+    "CL": "Champions League",
+    "PPL": "Primeira Liga",
+    "DED": "Eredivisie",
+    "BSA": "Serie A Brésil",
 }
 
 SESSION = requests.Session()
@@ -40,6 +41,7 @@ CACHE = {}
 ERRORS = []
 API_CALLS = 0
 API_BLOCKED = False
+LAST_CALL = 0.0
 
 
 # ================= TELEGRAM =================
@@ -110,7 +112,7 @@ def add_error(message):
 
 
 def api_get(endpoint, params=None):
-    global API_CALLS, API_BLOCKED
+    global API_CALLS, API_BLOCKED, LAST_CALL
 
     params = params or {}
     key = (endpoint, tuple(sorted(params.items())))
@@ -125,26 +127,46 @@ def api_get(endpoint, params=None):
         add_error("Budget de requêtes de cette exécution atteint.")
         return None
 
-    API_CALLS += 1
+    response = None
 
-    print(
-        f"API {API_CALLS}/{MAX_API_CALLS} : "
-        f"{endpoint} | {params}",
-        flush=True,
-    )
+    for attempt in (1, 2):
+        # Respecte la limite de 10 requêtes par minute.
+        wait = MIN_INTERVAL - (time.time() - LAST_CALL)
 
-    time.sleep(1.1)
+        if wait > 0:
+            time.sleep(wait)
 
-    try:
-        response = SESSION.get(
-            f"{BASE_URL}/{endpoint}",
-            headers={"x-apisports-key": API_KEY},
-            params=params,
-            timeout=25,
+        API_CALLS += 1
+
+        print(
+            f"API {API_CALLS}/{MAX_API_CALLS} : "
+            f"{endpoint} | {params}",
+            flush=True,
         )
-    except requests.RequestException:
-        add_error(f"{endpoint} : erreur réseau.")
-        return None
+
+        LAST_CALL = time.time()
+
+        try:
+            response = SESSION.get(
+                f"{BASE_URL}/{endpoint}",
+                headers={"X-Auth-Token": API_KEY},
+                params=params,
+                timeout=25,
+            )
+        except requests.RequestException:
+            add_error(f"{endpoint} : erreur réseau.")
+            return None
+
+        if response.status_code == 429 and attempt == 1:
+            print(
+                "Limite atteinte, pause de 60 s puis nouvel essai.",
+                flush=True,
+            )
+            time.sleep(60)
+            LAST_CALL = time.time()
+            continue
+
+        break
 
     if not response.ok:
         add_error(
@@ -152,7 +174,10 @@ def api_get(endpoint, params=None):
             f"{response.text[:250]}"
         )
 
-        if response.status_code in {401, 403, 429}:
+        if (
+            response.status_code in {401, 429}
+            or "token" in response.text.lower()
+        ):
             API_BLOCKED = True
 
         return None
@@ -167,37 +192,11 @@ def api_get(endpoint, params=None):
         add_error(f"{endpoint} : format de réponse invalide.")
         return None
 
-    if payload.get("errors"):
-        errors = payload["errors"]
-        add_error(f"{endpoint} : {errors}")
+    CACHE[key] = payload
 
-        error_text = str(errors).lower()
+    print("Réponse reçue.", flush=True)
 
-        if any(term in error_text for term in (
-            "request limit",
-            "requests limit",
-            "rate limit",
-            "api key",
-            "token",
-        )):
-            API_BLOCKED = True
-
-        return None
-
-    data = payload.get("response")
-
-    if not isinstance(data, (list, dict)):
-        add_error(f"{endpoint} : champ response invalide.")
-        return None
-
-    CACHE[key] = data
-
-    print(
-        f"Résultats reçus : {len(data)}",
-        flush=True,
-    )
-
-    return data
+    return payload
 
 
 def diagnostics_text():
@@ -211,8 +210,8 @@ def diagnostics_text():
 
 # ================= MATCHS =================
 
-def kickoff_of(fixture):
-    raw = fixture["fixture"]["date"]
+def kickoff_of(match):
+    raw = match["utcDate"]
 
     return datetime.fromisoformat(
         raw.replace("Z", "+00:00")
@@ -220,35 +219,42 @@ def kickoff_of(fixture):
 
 
 def get_today_fixtures():
-    today = datetime.now(PARIS).strftime("%Y-%m-%d")
+    now = datetime.now(PARIS)
+    today = now.date()
 
-    data = api_get("fixtures", {
-        "date": today,
-        "timezone": "Europe/Paris",
+    data = api_get("matches", {
+        "dateFrom": today.isoformat(),
+        "dateTo": (today + timedelta(days=1)).isoformat(),
     })
 
-    if not isinstance(data, list):
+    matches = data.get("matches") if isinstance(data, dict) else None
+
+    if not isinstance(matches, list):
         return None, 0, 0
 
-    now = datetime.now(PARIS)
     selected = []
     league_matches = 0
     seen = set()
 
-    for fixture in data:
+    for fixture in matches:
         try:
-            if fixture["league"]["id"] not in LEAGUES:
+            if fixture["competition"]["code"] not in LEAGUES:
+                continue
+
+            kickoff = kickoff_of(fixture)
+
+            if kickoff.date() != today:
                 continue
 
             league_matches += 1
 
-            if fixture["fixture"]["status"]["short"] != "NS":
+            if fixture["status"] not in {"TIMED", "SCHEDULED"}:
                 continue
 
-            if kickoff_of(fixture) <= now:
+            if kickoff <= now:
                 continue
 
-            fixture_id = fixture["fixture"]["id"]
+            fixture_id = fixture["id"]
 
             if fixture_id in seen:
                 continue
@@ -261,72 +267,90 @@ def get_today_fixtures():
 
     selected.sort(key=kickoff_of)
 
-    return selected, len(data), league_matches
+    return selected, len(matches), league_matches
 
 
-def get_team_stats(team_id, league_id, season):
-    data = api_get("teams/statistics", {
-        "team": team_id,
-        "league": league_id,
-        "season": season,
-    })
+def get_standings(code):
+    """Classements TOTAL / HOME / AWAY d'une compétition."""
+    data = api_get(f"competitions/{code}/standings")
 
-    return data if isinstance(data, dict) and data else None
-
-
-def extract_rates(stats, side):
-    played = stats["fixtures"]["played"]
-    goals_for = stats["goals"]["for"]["total"]
-    goals_against = stats["goals"]["against"]["total"]
-
-    total_played = int(played.get("total") or 0)
-    side_played = int(played.get(side) or 0)
-
-    if total_played < 5:
+    if not isinstance(data, dict):
         return None
 
-    scope = side if side_played >= 4 else "total"
-    games = int(played.get(scope) or 0)
+    result = {}
 
-    gf = goals_for.get(scope)
-    ga = goals_against.get(scope)
+    for block in data.get("standings") or []:
+        kind = block.get("type")
 
-    if games <= 0 or gf is None or ga is None:
+        for row in block.get("table") or []:
+            try:
+                team_id = row["team"]["id"]
+
+                result.setdefault(kind, {})[team_id] = {
+                    "played": int(row.get("playedGames") or 0),
+                    "gf": int(row.get("goalsFor") or 0),
+                    "ga": int(row.get("goalsAgainst") or 0),
+                }
+            except (KeyError, TypeError, ValueError):
+                continue
+
+    return result or None
+
+
+def extract_rates(standings, team_id, side):
+    total = standings.get("TOTAL", {}).get(team_id)
+
+    if not total or total["played"] < 5:
+        return None
+
+    part = standings.get(side.upper(), {}).get(team_id)
+
+    if part and part["played"] >= 4:
+        scope = side
+        row = part
+    else:
+        scope = "total"
+        row = total
+
+    if row["played"] <= 0:
         return None
 
     return {
-        "gf": float(gf) / games,
-        "ga": float(ga) / games,
+        "gf": row["gf"] / row["played"],
+        "ga": row["ga"] / row["played"],
         "scope": scope,
     }
 
 
 def get_recent_form(team_id):
-    data = api_get("fixtures", {
-        "team": team_id,
-        "last": 5,
-        "status": "FT",
-        "timezone": "Europe/Paris",
+    data = api_get(f"teams/{team_id}/matches", {
+        "status": "FINISHED",
     })
 
-    if not isinstance(data, list):
+    raw_matches = data.get("matches") if isinstance(data, dict) else None
+
+    if not isinstance(raw_matches, list):
         return None
 
+    now = datetime.now(PARIS)
     matches = []
 
-    for match in data:
+    for match in raw_matches:
         try:
-            if match["fixture"]["status"]["short"] != "FT":
-                continue
-
-            gh = match["goals"]["home"]
-            ga = match["goals"]["away"]
+            full_time = match["score"]["fullTime"]
+            gh = full_time.get("home")
+            ga = full_time.get("away")
 
             if gh is None or ga is None:
                 continue
 
-            home_id = match["teams"]["home"]["id"]
-            away_id = match["teams"]["away"]["id"]
+            date = kickoff_of(match)
+
+            if date > now:
+                continue
+
+            home_id = match["homeTeam"]["id"]
+            away_id = match["awayTeam"]["id"]
 
             if team_id == home_id:
                 gf, conceded = gh, ga
@@ -338,10 +362,10 @@ def get_recent_form(team_id):
             matches.append({
                 "gf": gf,
                 "ga": conceded,
-                "date": kickoff_of(match),
+                "date": date,
             })
 
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, TypeError, ValueError, AttributeError):
             continue
 
     matches.sort(key=lambda item: item["date"], reverse=True)
@@ -366,22 +390,22 @@ def get_recent_form(team_id):
     }
 
 
-def get_h2h_rate(home_id, away_id):
-    data = api_get("fixtures/headtohead", {
-        "h2h": f"{home_id}-{away_id}",
-        "last": 6,
-        "status": "FT",
+def get_h2h_rate(match_id):
+    data = api_get(f"matches/{match_id}/head2head", {
+        "limit": 6,
     })
 
-    if not isinstance(data, list):
+    raw_matches = data.get("matches") if isinstance(data, dict) else None
+
+    if not isinstance(raw_matches, list):
         return None
 
     outcomes = []
     now = datetime.now(PARIS)
 
-    for match in data:
+    for match in raw_matches:
         try:
-            if match["fixture"]["status"]["short"] != "FT":
+            if match.get("status") != "FINISHED":
                 continue
 
             age = (now - kickoff_of(match)).days
@@ -389,13 +413,14 @@ def get_h2h_rate(home_id, away_id):
             if age < 0 or age > 3 * 366:
                 continue
 
-            gh = match["goals"]["home"]
-            ga = match["goals"]["away"]
+            full_time = match["score"]["fullTime"]
+            gh = full_time.get("home")
+            ga = full_time.get("away")
 
             if gh is not None and ga is not None:
                 outcomes.append(gh > 0 and ga > 0)
 
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, TypeError, ValueError, AttributeError):
             continue
 
     if len(outcomes) < 3:
@@ -407,23 +432,17 @@ def get_h2h_rate(home_id, away_id):
 # ================= INDICE STATISTIQUE =================
 
 def calculate_score(fixture):
-    home = fixture["teams"]["home"]
-    away = fixture["teams"]["away"]
-    league_id = fixture["league"]["id"]
-    season = fixture["league"]["season"]
+    home = fixture["homeTeam"]
+    away = fixture["awayTeam"]
+    code = fixture["competition"]["code"]
 
-    home_stats = get_team_stats(
-        home["id"], league_id, season
-    )
-    away_stats = get_team_stats(
-        away["id"], league_id, season
-    )
+    standings = get_standings(code)
 
-    if not home_stats or not away_stats:
+    if not standings:
         return None
 
-    home_rates = extract_rates(home_stats, "home")
-    away_rates = extract_rates(away_stats, "away")
+    home_rates = extract_rates(standings, home["id"], "home")
+    away_rates = extract_rates(standings, away["id"], "away")
 
     if not home_rates or not away_rates:
         return None
@@ -469,7 +488,7 @@ def calculate_score(fixture):
     score = base + 10 * (recent_rate - 0.5)
 
     if score >= MIN_SCORE - 2:
-        h2h_rate = get_h2h_rate(home["id"], away["id"])
+        h2h_rate = get_h2h_rate(fixture["id"])
 
         if h2h_rate is not None:
             score += 4 * (h2h_rate - 0.5)
@@ -495,90 +514,24 @@ def calculate_score(fixture):
             warnings.append("repos inférieur à 72 h")
             break
 
+    home_name = home.get("shortName") or home.get("name")
+    away_name = away.get("shortName") or away.get("name")
+
     return {
-        "id": fixture["fixture"]["id"],
-        "match": f"{home['name']} - {away['name']}",
-        "league": fixture["league"]["name"],
+        "id": fixture["id"],
+        "match": f"{home_name} - {away_name}",
+        "league": fixture["competition"]["name"],
         "kickoff": kickoff,
         "score": score,
         "reason": (
             "BTTS sur les derniers matchs : "
-            f"{home['name']} "
+            f"{home_name} "
             f"{home_form['btts_count']}/{home_form['n']}, "
-            f"{away['name']} "
+            f"{away_name} "
             f"{away_form['btts_count']}/{away_form['n']}"
         ),
         "warnings": warnings,
     }
-
-
-# ================= ABSENCES ET COMPOSITIONS =================
-
-def add_match_context(result):
-    fixture_id = result["id"]
-
-    injuries = api_get("injuries", {
-        "fixture": fixture_id
-    })
-
-    if injuries is None:
-        result["warnings"].append("absences non vérifiables")
-
-    elif not injuries:
-        result["warnings"].append(
-            "aucune absence remontée, sans garantie"
-        )
-
-    elif isinstance(injuries, list):
-        players = {}
-
-        for injury in injuries:
-            player = injury.get("player", {})
-            name = player.get("name")
-
-            if name:
-                players[player.get("id") or name] = name
-
-        if players:
-            names = list(players.values())
-            label = ", ".join(names[:3])
-
-            if len(names) > 3:
-                label += f" +{len(names) - 3}"
-
-            result["warnings"].append(
-                f"absences signalées : {label}"
-            )
-        else:
-            result["warnings"].append(
-                "absences signalées à vérifier"
-            )
-
-    lineups = api_get("fixtures/lineups", {
-        "fixture": fixture_id
-    })
-
-    if isinstance(lineups, list) and len(lineups) >= 2:
-        complete = all(
-            len(team.get("startXI", [])) == 11
-            for team in lineups[:2]
-        )
-
-        if complete:
-            result["warnings"].append(
-                "compositions disponibles, impact non calculé"
-            )
-        else:
-            result["warnings"].append(
-                "compositions incomplètes"
-            )
-    else:
-        result["warnings"].append(
-            "compositions indisponibles"
-        )
-
-    # Aucun bonus ou malus inventé :
-    # le nombre d'absents ne mesure pas leur importance.
 
 
 # ================= ANALYSE =================
@@ -624,16 +577,14 @@ def main():
     insufficient = 0
     attempted = 0
 
-    reserve = 2 * min(MAX_ENVOIS, len(fixtures))
-
     for fixture in fixtures:
         if API_BLOCKED:
             break
 
-        if API_CALLS + 5 > MAX_API_CALLS - reserve:
+        # Un match peut demander jusqu'à 3 requêtes.
+        if API_CALLS + 4 > MAX_API_CALLS:
             add_error(
-                "Analyse partielle : budget réservé "
-                "aux absences et compositions."
+                "Analyse partielle : budget de requêtes atteint."
             )
             break
 
@@ -701,9 +652,6 @@ def main():
         send_message(message)
         return
 
-    for result in results:
-        add_match_context(result)
-
     message = (
         f"⚽ BTTS OUI — {today}\n"
         f"Filtre : indice ≥ {MIN_SCORE}/100\n\n"
@@ -729,7 +677,9 @@ def main():
 
     message += (
         summary
-        + "\n\nIndice statistique, pas une probabilité garantie."
+        + "\n\nAbsences et compositions : non fournies par "
+        "football-data.org, à vérifier avant de jouer."
+        + "\nIndice statistique, pas une probabilité garantie."
         + diagnostics_text()
     )
 
