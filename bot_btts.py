@@ -39,7 +39,7 @@ MIN_SCORE = 65
 
 PARIS_TZ = pytz.timezone("Europe/Paris")
 
-# ====================== BASE DE DONNÉES (éphémère) ======================
+# ====================== BASE DE DONNÉES ======================
 def init_db():
     conn = sqlite3.connect("predictions.db")
     c = conn.cursor()
@@ -253,12 +253,19 @@ def analyse_du_jour():
 def send_message(text):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        requests.post(url, json={
+        response = requests.post(url, json={
             "chat_id": CHAT_ID,
             "text": text,
             "parse_mode": "HTML"
         }, timeout=10)
-        print("Message Telegram envoyé avec succès")
+        
+        print(f"Status code: {response.status_code}")
+        print(f"Réponse Telegram: {response.text}")
+        
+        if response.status_code == 200:
+            print("Message Telegram envoyé avec succès")
+        else:
+            print("ÉCHEC de l'envoi")
     except Exception as e:
         print(f"Erreur envoi Telegram: {e}")
 
