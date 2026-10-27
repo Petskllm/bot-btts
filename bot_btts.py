@@ -75,7 +75,7 @@ PROB_MIN = 0.01
 PROB_MAX = 0.99
 
 SESSION = requests.Session()
-SESSION.headers.update({"User-Agent": "football-stat-bot/6.0"})
+SESSION.headers.update({"User-Agent": "football-stat-bot/6.1"})
 
 CACHE = {}
 ERRORS = []
@@ -111,9 +111,11 @@ def send_message(text):
                 current = ""
             chunks.append(line[:3500])
             line = line[3500:]
+
         if len(current) + len(line) > 3500:
             chunks.append(current)
             current = ""
+
         current += line
 
     if current:
@@ -194,6 +196,7 @@ def api_get(endpoint, params=None):
 
         if LAST_CALL is not None:
             wait = MIN_INTERVAL - (time.monotonic() - LAST_CALL)
+
             if wait > 0:
                 time.sleep(wait)
 
@@ -766,31 +769,33 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
     )
 
     market_display = {
-        "home_over_05": lambda item: (
-            f"⚽️ {item['home']} marque : {item['percent']} %"
+        "home_over_05": lambda item, percent: (
+            f"⚽️ {item['home']} marque : {percent} %"
         ),
-        "away_over_05": lambda item: (
-            f"⚽️ {item['away']} marque : {item['percent']} %"
+        "away_over_05": lambda item, percent: (
+            f"⚽️ {item['away']} marque : {percent} %"
         ),
-        "btts": lambda item: f"🔥 BTTS : {item['percent']} %",
-        "over_15": lambda item: f"🥅 Over 1,5 : {item['percent']} %",
+        "btts": lambda item, percent: f"🔥 BTTS : {percent} %",
+        "over_15": lambda item, percent: f"🥅 Over 1,5 : {percent} %",
     }
 
     matches = {}
     total_picks = 0
 
     for market in market_order:
-        for item in candidates.get(market, []):
-            match_id = item.get("id", item["match"])
+        for candidate in candidates.get(market, []):
+            match_id = candidate.get("id", candidate["match"])
 
             if match_id not in matches:
                 matches[match_id] = {
-                    "item": item,
+                    "item": candidate,
                     "markets": [],
                 }
 
+            # CORRECTION : on garde le pourcentage du marché courant,
+            # pas celui du premier candidat du match.
             matches[match_id]["markets"].append(
-                (market, item["percent"])
+                (market, candidate["percent"])
             )
             total_picks += 1
 
@@ -823,7 +828,7 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
             lines.append("")
 
             for market, percent in entry["markets"]:
-                lines.append(market_display[market](item))
+                lines.append(market_display[market](item, percent))
 
                 details = item.get("details", {}).get(market, {})
                 home_stat = details.get("home", "N/A")
