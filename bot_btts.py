@@ -61,17 +61,21 @@ DEFAULT_GOALS = 1.35
 MAX_STALE_DAYS = 60
 SHORT_REST_HOURS = 72
 
-# Mélange du modèle BTTS actuel
+# Mélange du modèle BTTS
 W_POISSON = 0.40
 W_RATES = 0.35
 W_HISTORY = 0.25
+
+# Mélange du modèle Over 1,5
+W_OVER_POISSON = 0.60
+W_OVER_HISTORY = 0.40
 
 # Probabilités plafonnées pour éviter une confiance artificielle
 PROB_MIN = 0.01
 PROB_MAX = 0.99
 
 SESSION = requests.Session()
-SESSION.headers.update({"User-Agent": "football-stat-bot/5.0"})
+SESSION.headers.update({"User-Agent": "football-stat-bot/6.0"})
 
 CACHE = {}
 ERRORS = []
@@ -99,6 +103,7 @@ def send_message(text):
 
     chunks = []
     current = ""
+
     for line in text.splitlines(keepends=True):
         while len(line) > 3500:
             if current:
@@ -110,6 +115,7 @@ def send_message(text):
             chunks.append(current)
             current = ""
         current += line
+
     if current:
         chunks.append(current)
 
@@ -119,10 +125,12 @@ def send_message(text):
             json={"chat_id": CHAT_ID, "text": chunk},
             timeout=REQUEST_TIMEOUT,
         )
+
         try:
             payload = response.json()
         except ValueError:
             payload = {}
+
         if not response.ok or not payload.get("ok"):
             raise RuntimeError(
                 f"Erreur Telegram : HTTP {response.status_code}"
@@ -133,25 +141,32 @@ def send_message(text):
 
 def add_error(message):
     message = str(message)
+
     for secret in (API_KEY, TOKEN):
         if secret:
             message = message.replace(secret, "[MASQUÉ]")
+
     message = message[:200]
+
     if message not in ERRORS:
         ERRORS.append(message)
+
     print(f"DIAGNOSTIC : {message}", flush=True)
 
 
 def note_failure():
     global CONSECUTIVE_FAILS, API_BLOCKED
     CONSECUTIVE_FAILS += 1
+
     if CONSECUTIVE_FAILS >= MAX_CONSECUTIVE_FAILS:
         API_BLOCKED = True
         add_error("Trop d'échecs consécutifs : analyse arrêtée.")
 
 
 def diagnostics_text():
-    return ("\n\n🛠️ Diagnostic : " + " ; ".join(ERRORS[:2])) if ERRORS else ""
+    return (
+        "\n\n🛠️ Diagnostic : " + " ; ".join(ERRORS[:2])
+    ) if ERRORS else ""
 
 
 # ---------------- API ----------------
@@ -161,10 +176,13 @@ def api_get(endpoint, params=None):
 
     params = params or {}
     cache_key = (endpoint, tuple(sorted(params.items())))
+
     if cache_key in CACHE:
         return CACHE[cache_key]
+
     if API_BLOCKED:
         return None
+
     if not API_KEY:
         add_error("Secret API_KEY absent.")
         return None
@@ -192,27 +210,32 @@ def api_get(endpoint, params=None):
             )
         except requests.RequestException as exc:
             add_error(f"{endpoint} : erreur réseau ({type(exc).__name__}).")
+
             if attempt < MAX_RETRIES:
                 time.sleep(min(2 ** attempt, 8))
                 continue
+
             note_failure()
             return None
 
         if response.status_code == 429:
             if attempt < MAX_RETRIES:
                 retry_after = response.headers.get("Retry-After", "")
+
                 try:
                     pause = max(60, int(retry_after))
                 except (TypeError, ValueError):
                     pause = 60
+
                 add_error(f"{endpoint} : quota atteint, pause {pause} s.")
                 time.sleep(pause)
                 continue
+
             add_error(f"{endpoint} : quota API dépassé.")
             API_BLOCKED = True
             return None
 
-        if response.status_code in (401,):
+        if response.status_code == 401:
             add_error("Clé API refusée (401).")
             API_BLOCKED = True
             return None
@@ -237,6 +260,7 @@ def api_get(endpoint, params=None):
         CONSECUTIVE_FAILS = 0
         CACHE[cache_key] = payload
         return payload
+
     return None
 
 
@@ -244,50 +268,62 @@ def api_get(endpoint, params=None):
 
 def kickoff_of(match):
     raw = match["utcDate"]
-    return datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(PARIS)
+    return datetime.fromisoformat(
+        raw.replace("Z", "+00:00")
+    ).astimezone(PARIS)
 
 
 def get_today_fixtures():
     now = datetime.now(PARIS)
     today = now.date()
-    # Interroger jusqu'à demain évite de perdre des matchs proches de minuit
-    # UTC ; le filtre final conserve uniquement la date locale de Paris.
+
     data = api_get("matches", {
         "dateFrom": today.isoformat(),
         "dateTo": (today + timedelta(days=1)).isoformat(),
     })
+
     matches = data.get("matches") if isinstance(data, dict) else None
+
     if not isinstance(matches, list):
         return None, 0
 
     selected = []
     seen = set()
     observed_codes = set()
+
     for fixture in matches:
         try:
             code = fixture["competition"]["code"]
             observed_codes.add(code)
+
             if code not in LEAGUES:
                 continue
+
             kickoff = kickoff_of(fixture)
+
             if kickoff.date() != today:
                 continue
+
             if fixture.get("status") not in {"TIMED", "SCHEDULED"}:
                 continue
+
             if kickoff <= now:
                 continue
+
             fixture_id = fixture["id"]
+
             if fixture_id in seen:
                 continue
+
             seen.add(fixture_id)
             selected.append(fixture)
+
         except (KeyError, TypeError, ValueError):
             continue
+
     selected.sort(key=kickoff_of)
 
     if not selected:
-        # Diagnostic utile : distingue "aucun match" de "compétitions
-        # non couvertes par LEAGUES" ou "aucun match à venir".
         if not matches:
             add_error(
                 "L'API n'a retourné aucun match pour la période interrogée "
@@ -312,25 +348,28 @@ def get_today_fixtures():
 
 def get_league_prior(code):
     key = ("prior", code)
+
     if key in CACHE:
         return CACHE[key]
 
     prior = DEFAULT_GOALS
     data = api_get(f"competitions/{code}/standings")
+
     if isinstance(data, dict):
         goals = 0
         played = 0
+
         for block in data.get("standings") or []:
             if block.get("type") != "TOTAL":
                 continue
+
             for row in block.get("table") or []:
                 try:
                     goals += int(row.get("goalsFor") or 0)
                     played += int(row.get("playedGames") or 0)
                 except (TypeError, ValueError):
                     continue
-        # Somme des buts marqués / somme des matchs joués = moyenne
-        # de buts par équipe et par match, car chaque équipe a ses matchs.
+
         if played >= 20:
             prior = goals / played
 
@@ -342,50 +381,70 @@ def get_league_prior(code):
 def regular_goals(match):
     score = match.get("score") or {}
     regular = score.get("regularTime") or {}
+
     if regular.get("home") is not None and regular.get("away") is not None:
         return int(regular["home"]), int(regular["away"])
+
     if score.get("duration") in ("EXTRA_TIME", "PENALTY_SHOOTOUT"):
         return None
+
     full = score.get("fullTime") or {}
+
     if full.get("home") is not None and full.get("away") is not None:
         return int(full["home"]), int(full["away"])
+
     return None
 
 
 def get_team_history(team_id):
     now = datetime.now(PARIS)
+
     data = api_get(f"teams/{team_id}/matches", {
         "status": "FINISHED",
         "dateFrom": (now.date() - timedelta(days=HISTORY_DAYS)).isoformat(),
         "dateTo": now.date().isoformat(),
         "limit": 100,
     })
+
     raw_matches = data.get("matches") if isinstance(data, dict) else None
+
     if not isinstance(raw_matches, list):
         return None
 
     unique = {}
+
     for match in raw_matches:
         try:
             if match.get("status") != "FINISHED":
                 continue
+
             goals = regular_goals(match)
+
             if goals is None:
                 continue
+
             date = kickoff_of(match)
+
             if date > now:
                 continue
+
             home_id = match["homeTeam"]["id"]
             away_id = match["awayTeam"]["id"]
+
             if team_id == home_id:
                 venue, gf, ga = "home", goals[0], goals[1]
             elif team_id == away_id:
                 venue, gf, ga = "away", goals[1], goals[0]
             else:
                 continue
+
             unique[match["id"]] = {
-                "gf": gf, "ga": ga, "date": date, "venue": venue
+                "gf": gf,
+                "ga": ga,
+                "date": date,
+                "venue": venue,
             }
+
         except (KeyError, TypeError, ValueError, AttributeError):
             continue
 
@@ -404,7 +463,10 @@ def weighted_stats(matches):
     total = sum(weights)
 
     def average(function):
-        return sum(w * function(m) for w, m in zip(weights, matches)) / total
+        return sum(
+            w * function(m)
+            for w, m in zip(weights, matches)
+        ) / total
 
     return {
         "n": len(matches),
@@ -412,28 +474,39 @@ def weighted_stats(matches):
         "ga": average(lambda m: m["ga"]),
         "scored": average(lambda m: 1.0 if m["gf"] > 0 else 0.0),
         "conceded": average(lambda m: 1.0 if m["ga"] > 0 else 0.0),
-        "btts": average(lambda m: 1.0 if m["gf"] > 0 and m["ga"] > 0 else 0.0),
+        "btts": average(
+            lambda m: 1.0 if m["gf"] > 0 and m["ga"] > 0 else 0.0
+        ),
     }
 
 
 def build_profile(history, venue, prior):
     recent = history[:OVERALL_N]
+
     if len(recent) < MIN_OVERALL:
         return None
 
     overall = weighted_stats(recent)
-    same_venue = [m for m in history if m["venue"] == venue][:VENUE_N]
+    same_venue = [
+        m for m in history if m["venue"] == venue
+    ][:VENUE_N]
 
     if same_venue:
         local = weighted_stats(same_venue)
         blended = {
-            key: shrink(local[key], local["n"], overall[key], VENUE_SHRINK)
+            key: shrink(
+                local[key],
+                local["n"],
+                overall[key],
+                VENUE_SHRINK,
+            )
             for key in METRICS
         }
     else:
         blended = {key: overall[key] for key in METRICS}
 
     prior_scored = 1.0 - math.exp(-prior)
+
     references = {
         "gf": prior,
         "ga": prior,
@@ -441,16 +514,37 @@ def build_profile(history, venue, prior):
         "conceded": prior_scored,
         "btts": prior_scored ** 2,
     }
+
     profile = {
-        key: shrink(blended[key], overall["n"], references[key], PRIOR_SHRINK)
+        key: shrink(
+            blended[key],
+            overall["n"],
+            references[key],
+            PRIOR_SHRINK,
+        )
         for key in METRICS
     }
+
     profile.update({
         "n": overall["n"],
         "n_venue": len(same_venue),
-        "btts_count": sum(1 for m in recent if m["gf"] > 0 and m["ga"] > 0),
+        "btts_count": sum(
+            1 for m in recent
+            if m["gf"] > 0 and m["ga"] > 0
+        ),
+        "scored_count": sum(
+            1 for m in recent if m["gf"] > 0
+        ),
+        "conceded_count": sum(
+            1 for m in recent if m["ga"] > 0
+        ),
+        "over15_count": sum(
+            1 for m in recent
+            if m["gf"] + m["ga"] >= 2
+        ),
         "last_date": history[0]["date"],
     })
+
     return profile
 
 
@@ -459,15 +553,18 @@ def clamp_probability(p):
 
 
 def poisson_markets(lambda_home, lambda_away):
-    """Probabilités théoriques sous hypothèse de Poisson indépendante."""
     p_home_scores = 1.0 - math.exp(-lambda_home)
     p_away_scores = 1.0 - math.exp(-lambda_away)
     total = lambda_home + lambda_away
+
     p_over_15 = 1.0 - math.exp(-total) * (1.0 + total)
+
     return {
         "home_over_05": clamp_probability(p_home_scores),
         "away_over_05": clamp_probability(p_away_scores),
-        "btts_poisson": clamp_probability(p_home_scores * p_away_scores),
+        "btts_poisson": clamp_probability(
+            p_home_scores * p_away_scores
+        ),
         "over_15": clamp_probability(p_over_15),
     }
 
@@ -484,33 +581,42 @@ def analyse_fixture(fixture):
     prior = get_league_prior(code)
     home_history = get_team_history(home_team["id"])
     away_history = get_team_history(away_team["id"])
+
     if not home_history or not away_history:
         return None
 
     home = build_profile(home_history, "home", prior)
     away = build_profile(away_history, "away", prior)
+
     if not home or not away:
         return None
 
     kickoff = kickoff_of(fixture)
+
     for profile in (home, away):
         if (kickoff - profile["last_date"]).days > MAX_STALE_DAYS:
             return None
 
-    # Attentes de buts : moyenne de l'attaque d'une équipe et de la
-    # défense adverse. Plafond de sécurité pour éviter les extrêmes.
-    lambda_home = max(0.2, min(3.5, (home["gf"] + away["ga"]) / 2))
-    lambda_away = max(0.2, min(3.5, (away["gf"] + home["ga"]) / 2))
+    lambda_home = max(
+        0.2,
+        min(3.5, (home["gf"] + away["ga"]) / 2),
+    )
+    lambda_away = max(
+        0.2,
+        min(3.5, (away["gf"] + home["ga"]) / 2),
+    )
+
     poisson = poisson_markets(lambda_home, lambda_away)
 
-    # BTTS conserve l'idée du modèle original : Poisson + fréquences
-    # observées + historique BTTS. Ce mélange doit être validé en backtest.
+    # BTTS : Poisson + fréquences observées + historique BTTS
     p_rates = (
         (home["scored"] + away["conceded"]) / 2
     ) * (
         (away["scored"] + home["conceded"]) / 2
     )
+
     p_history = (home["btts"] + away["btts"]) / 2
+
     p_btts = (
         W_POISSON * poisson["btts_poisson"]
         + W_RATES * p_rates
@@ -518,18 +624,42 @@ def analyse_fixture(fixture):
     )
     p_btts = clamp_probability(p_btts)
 
-    home_name = home_team.get("shortName") or home_team.get("name") or "Domicile"
-    away_name = away_team.get("shortName") or away_team.get("name") or "Extérieur"
+    # Over 1,5 : Poisson + fréquence réelle de matchs à 2+ buts
+    p_over_history = (
+        home["over15_count"] + away["over15_count"]
+    ) / (home["n"] + away["n"])
+
+    p_over_15 = (
+        W_OVER_POISSON * poisson["over_15"]
+        + W_OVER_HISTORY * p_over_history
+    )
+    p_over_15 = clamp_probability(p_over_15)
+
+    home_name = (
+        home_team.get("shortName")
+        or home_team.get("name")
+        or "Domicile"
+    )
+    away_name = (
+        away_team.get("shortName")
+        or away_team.get("name")
+        or "Extérieur"
+    )
     league = LEAGUES.get(code, competition.get("name") or code)
 
     warnings = []
+
     for name, profile in ((home_name, home), (away_name, away)):
-        rest_hours = (kickoff - profile["last_date"]).total_seconds() / 3600
+        rest_hours = (
+            kickoff - profile["last_date"]
+        ).total_seconds() / 3600
+
         if 0 < rest_hours < SHORT_REST_HOURS:
             warnings.append(f"repos court : {name}")
 
     if min(home["n"], away["n"]) < GOOD_SAMPLE:
         warnings.append("échantillon limité")
+
     if min(home["n_venue"], away["n_venue"]) < MIN_VENUE:
         warnings.append("peu de matchs domicile/extérieur")
 
@@ -537,7 +667,26 @@ def analyse_fixture(fixture):
         "home_over_05": poisson["home_over_05"],
         "away_over_05": poisson["away_over_05"],
         "btts": p_btts,
-        "over_15": poisson["over_15"],
+        "over_15": p_over_15,
+    }
+
+    details = {
+        "btts": {
+            "home": f"{home['btts_count']}/{home['n']}",
+            "away": f"{away['btts_count']}/{away['n']}",
+        },
+        "home_over_05": {
+            "home": f"{home['scored_count']}/{home['n']}",
+            "away": f"{away['conceded_count']}/{away['n']}",
+        },
+        "away_over_05": {
+            "home": f"{away['scored_count']}/{away['n']}",
+            "away": f"{home['conceded_count']}/{home['n']}",
+        },
+        "over_15": {
+            "home": f"{home['over15_count']}/{home['n']}",
+            "away": f"{away['over15_count']}/{away['n']}",
+        },
     }
 
     return {
@@ -548,13 +697,14 @@ def analyse_fixture(fixture):
         "league": league,
         "kickoff": kickoff,
         "markets": markets,
+        "details": details,
         "warnings": warnings,
         "sample": f"{home['n']} matchs récents par équipe",
         "lambdas": (lambda_home, lambda_away),
     }
 
 
-# ---------------- SÉLECTION ET MESSAGE ----------------
+# ---------------- SÉLECTION ----------------
 
 def build_candidates(fixtures):
     candidates = {key: [] for key in MARKET_LABELS}
@@ -562,25 +712,30 @@ def build_candidates(fixtures):
     partial = False
 
     for fixture in fixtures:
-        # Une analyse demande habituellement 3 appels : prior + 2 historiques.
-        # L'appel de prior peut être en cache, donc cette vérification est prudente.
         if API_BLOCKED or API_CALLS + 3 > MAX_API_CALLS:
             partial = True
             break
+
         try:
             result = analyse_fixture(fixture)
-        except (KeyError, TypeError, ValueError, ZeroDivisionError, OverflowError) as exc:
+        except (
+            KeyError,
+            TypeError,
+            ValueError,
+            ZeroDivisionError,
+            OverflowError,
+        ) as exc:
             add_error(f"Analyse impossible ({type(exc).__name__}).")
             result = None
 
         if not result:
             continue
+
         analysed += 1
 
         for market, probability in result["markets"].items():
             percent = int(round(probability * 100))
-            # Seuil strict sur probabilité estimée ET avertissements de données :
-            # les petits échantillons sont affichés avec avertissement, pas masqués.
+
             if percent >= MIN_PERCENT:
                 candidates[market].append({
                     **result,
@@ -589,30 +744,54 @@ def build_candidates(fixtures):
                 })
 
     for market in candidates:
-        candidates[market].sort(key=lambda x: x["percent"], reverse=True)
-        candidates[market] = candidates[market][:MAX_SELECTIONS_PER_MARKET]
+        candidates[market].sort(
+            key=lambda x: x["percent"],
+            reverse=True,
+        )
+        candidates[market] = candidates[market][
+            :MAX_SELECTIONS_PER_MARKET
+        ]
 
     return candidates, analysed, partial
 
 
+# ---------------- MESSAGE TELEGRAM ----------------
+
 def build_message(today, candidates, analysed, total_fixtures, partial):
-    # Format Telegram compact : un bloc par match, uniquement les marchés >= seuil.
-    market_order = ("home_over_05", "away_over_05", "btts", "over_15")
+    market_order = (
+        "home_over_05",
+        "away_over_05",
+        "btts",
+        "over_15",
+    )
+
     market_display = {
-        "home_over_05": lambda item: f"⚽ {item['home']} marque au moins 1 but",
-        "away_over_05": lambda item: f"⚽ {item['away']} marque au moins 1 but",
-        "btts": lambda item: "🤝 Les deux équipes marquent",
-        "over_15": lambda item: "🥅 Au moins 2 buts dans le match",
+        "home_over_05": lambda item: (
+            f"⚽️ {item['home']} marque : {item['percent']} %"
+        ),
+        "away_over_05": lambda item: (
+            f"⚽️ {item['away']} marque : {item['percent']} %"
+        ),
+        "btts": lambda item: f"🔥 BTTS : {item['percent']} %",
+        "over_15": lambda item: f"🥅 Over 1,5 : {item['percent']} %",
     }
 
     matches = {}
     total_picks = 0
+
     for market in market_order:
         for item in candidates.get(market, []):
             match_id = item.get("id", item["match"])
+
             if match_id not in matches:
-                matches[match_id] = {"item": item, "markets": []}
-            matches[match_id]["markets"].append((market, item["percent"]))
+                matches[match_id] = {
+                    "item": item,
+                    "markets": [],
+                }
+
+            matches[match_id]["markets"].append(
+                (market, item["percent"])
+            )
             total_picks += 1
 
     lines = [
@@ -622,23 +801,62 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
     ]
 
     if not matches:
-        lines.append(f"Aucun pronostic n’atteint {MIN_PERCENT} % aujourd’hui.")
+        lines.append(
+            f"Aucun pronostic n’atteint {MIN_PERCENT} % aujourd’hui."
+        )
     else:
-        ordered = sorted(matches.values(), key=lambda entry: entry["item"]["kickoff"])
+        index = 0
+        ordered = sorted(
+            matches.values(),
+            key=lambda entry: entry["item"]["kickoff"],
+        )
+
         for entry in ordered:
             item = entry["item"]
-            lines.append(f"🇮🇹 {item['match']}" if item["league"] == "Serie A" else f"⚽ {item['match']}")
+            index += 1
+
+            number = NUMBERS[(index - 1) % len(NUMBERS)]
+            kickoff = item["kickoff"].strftime("%H:%M")
+
+            lines.append(f"{number} {item['match']}")
+            lines.append(f"🏆 {item['league']} · 🕘 {kickoff}")
             lines.append("")
 
             for market, percent in entry["markets"]:
-                lines.append(f"{market_display[market](item)} — {percent} %")
+                lines.append(market_display[market](item))
 
-            lines.append("")
+                details = item.get("details", {}).get(market, {})
+                home_stat = details.get("home", "N/A")
+                away_stat = details.get("away", "N/A")
+
+                lines.append(
+                    f"📊 Derniers matchs : {home_stat} et {away_stat}"
+                )
+
+                lambda_home, lambda_away = item.get(
+                    "lambdas", (0, 0)
+                )
+
+                lines.append(
+                    f"⚽️ But attendu : "
+                    f"{lambda_home:.2f} - {lambda_away:.2f}"
+                )
+                lines.append("")
+
+        if index > len(NUMBERS):
+            lines.append("⚠️ Plus de 10 matchs : numérotation répétée.")
 
     lines.append(f"📊 {total_picks} pronostics · {len(matches)} matchs")
+
     if partial:
-        lines.append("⚠️ Analyse partielle : limite d’appels API atteinte.")
-    lines.append("ℹ️ Pourcentages estimés par le modèle, sans garantie.")
+        lines.append(
+            "⚠️ Analyse partielle : limite d’appels API atteinte."
+        )
+
+    lines.append(
+        "ℹ️ Pourcentages estimés par le modèle, sans garantie."
+    )
+
     return "\n".join(lines) + diagnostics_text()
 
 
@@ -646,9 +864,14 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
 
 def main():
     if not TOKEN or not CHAT_ID:
-        raise RuntimeError("Ajoute les secrets TELEGRAM_TOKEN et CHAT_ID.")
+        raise RuntimeError(
+            "Ajoute les secrets TELEGRAM_TOKEN et CHAT_ID."
+        )
+
     if not API_KEY:
-        send_message("Bot football : secret GitHub API_KEY absent.")
+        send_message(
+            "Bot football : secret GitHub API_KEY absent."
+        )
         raise RuntimeError("API_KEY absent.")
 
     today = datetime.now(PARIS).strftime("%d/%m/%Y")
@@ -671,11 +894,20 @@ def main():
         return
 
     candidates, analysed, partial = build_candidates(fixtures)
+
     send_message(
-        build_message(today, candidates, analysed, len(fixtures), partial)
+        build_message(
+            today,
+            candidates,
+            analysed,
+            len(fixtures),
+            partial,
+        )
     )
+
     print(
-        f"Terminé : {API_CALLS} appels API, {analysed} matchs analysés.",
+        f"Terminé : {API_CALLS} appels API, "
+        f"{analysed} matchs analysés.",
         flush=True,
     )
 
@@ -684,5 +916,8 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        print(f"ERREUR FATALE : {type(exc).__name__}", flush=True)
+        print(
+            f"ERREUR FATALE : {type(exc).__name__}",
+            flush=True,
+        )
         raise
