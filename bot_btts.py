@@ -596,13 +596,13 @@ def build_candidates(fixtures):
 
 
 def build_message(today, candidates, analysed, total_fixtures, partial):
-    # Regroupe les marchés retenus sous un seul bloc par match.
+    # Format Telegram compact : un bloc par match, uniquement les marchés >= seuil.
     market_order = ("home_over_05", "away_over_05", "btts", "over_15")
     market_display = {
-        "home_over_05": lambda item: f"🏠 {item['home']} marque 1+ but",
-        "away_over_05": lambda item: f"✈️ {item['away']} marque 1+ but",
+        "home_over_05": lambda item: f"⚽ {item['home']} marque au moins 1 but",
+        "away_over_05": lambda item: f"⚽ {item['away']} marque au moins 1 but",
         "btts": lambda item: "🤝 Les deux équipes marquent",
-        "over_15": lambda item: "⚽ Plus de 1,5 but",
+        "over_15": lambda item: "🥅 Au moins 2 buts dans le match",
     }
 
     matches = {}
@@ -611,48 +611,35 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
         for item in candidates.get(market, []):
             match_id = item.get("id", item["match"])
             if match_id not in matches:
-                matches[match_id] = {
-                    "item": item,
-                    "markets": [],
-                }
+                matches[match_id] = {"item": item, "markets": []}
             matches[match_id]["markets"].append((market, item["percent"]))
             total_picks += 1
 
     lines = [
-        f"⚽ PRONOSTICS FOOTBALL — {today}",
-        f"🎯 Seuil minimum : {MIN_PERCENT} %",
+        "⚽ PRONOSTICS DU JOUR",
+        f"📅 {today}",
         "",
     ]
 
     if not matches:
-        lines.append(f"😴 Aucun pronostic ne dépasse {MIN_PERCENT} % aujourd’hui.")
+        lines.append(f"Aucun pronostic n’atteint {MIN_PERCENT} % aujourd’hui.")
     else:
-        # Affiche les matchs dans l'ordre du coup d'envoi.
-        ordered = sorted(
-            matches.values(),
-            key=lambda entry: entry["item"]["kickoff"]
-        )
+        ordered = sorted(matches.values(), key=lambda entry: entry["item"]["kickoff"])
         for entry in ordered:
             item = entry["item"]
-            warnings = " · ⚠️ " + ", ".join(item["warnings"]) if item["warnings"] else ""
-            lines.append(f"⚽ {item['match']}")
-            lines.append(f"🏆 {item['league']} · 🕒 {item['kickoff']:%H:%M}{warnings}")
-
-            # Ne montre que les marchés qui ont passé le seuil.
-            for market, percent in entry["markets"]:
-                lines.append(f"  {market_display[market](item)} — {percent} %")
-
-            lines.append(
-                f"📊 Buts attendus : {item['lambdas'][0]:.2f} - "
-                f"{item['lambdas'][1]:.2f}"
-            )
+            lines.append(f"🇮🇹 {item['match']}" if item["league"] == "Serie A" else f"⚽ {item['match']}")
             lines.append("")
 
-    lines.append(f"📈 {analysed}/{total_fixtures} matchs analysés · {total_picks} pronostics retenus")
+            for market, percent in entry["markets"]:
+                lines.append(f"{market_display[market](item)} — {percent} %")
+
+            lines.append("")
+
+    lines.append(f"📊 {total_picks} pronostics · {len(matches)} matchs")
     if partial:
-        lines.append("⏳ Analyse partielle : limite d'appels API atteinte.")
-    lines.append("ℹ️ Estimations statistiques, non garanties. Les marchés d’un même match peuvent être liés.")
-    return "\\n".join(lines) + diagnostics_text()
+        lines.append("⚠️ Analyse partielle : limite d’appels API atteinte.")
+    lines.append("ℹ️ Pourcentages estimés par le modèle, sans garantie.")
+    return "\n".join(lines) + diagnostics_text()
 
 
 # ---------------- EXÉCUTION ----------------
