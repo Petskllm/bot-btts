@@ -250,9 +250,11 @@ def kickoff_of(match):
 def get_today_fixtures():
     now = datetime.now(PARIS)
     today = now.date()
+    # Interroger jusqu'à demain évite de perdre des matchs proches de minuit
+    # UTC ; le filtre final conserve uniquement la date locale de Paris.
     data = api_get("matches", {
         "dateFrom": today.isoformat(),
-        "dateTo": today.isoformat(),
+        "dateTo": (today + timedelta(days=1)).isoformat(),
     })
     matches = data.get("matches") if isinstance(data, dict) else None
     if not isinstance(matches, list):
@@ -260,9 +262,11 @@ def get_today_fixtures():
 
     selected = []
     seen = set()
+    observed_codes = set()
     for fixture in matches:
         try:
             code = fixture["competition"]["code"]
+            observed_codes.add(code)
             if code not in LEAGUES:
                 continue
             kickoff = kickoff_of(fixture)
@@ -280,6 +284,27 @@ def get_today_fixtures():
         except (KeyError, TypeError, ValueError):
             continue
     selected.sort(key=kickoff_of)
+
+    if not selected:
+        # Diagnostic utile : distingue "aucun match" de "compétitions
+        # non couvertes par LEAGUES" ou "aucun match à venir".
+        if not matches:
+            add_error(
+                "L'API n'a retourné aucun match pour la période interrogée "
+                f"({today.isoformat()} à {(today + timedelta(days=1)).isoformat()})."
+            )
+        elif not observed_codes.intersection(LEAGUES):
+            add_error(
+                "Des matchs existent dans la réponse, mais aucun ne correspond "
+                "aux codes de compétitions configurés. Codes reçus : "
+                + ", ".join(sorted(observed_codes)[:12])
+            )
+        else:
+            add_error(
+                "Matchs reçus, mais aucun match à venir aujourd'hui à Paris "
+                "dans les compétitions configurées."
+            )
+
     return selected, len(matches)
 
 
