@@ -13,7 +13,7 @@ import requests
 #
 # IMPORTANT :
 # - Les probabilités sont des estimations de modèle, pas des garanties.
-# - Le seuil de 65 % n'est pas une preuve de calibration.
+# - Le seuil de 70 % n'est pas une preuve de calibration.
 # - Tester le modèle sur des matchs historiques avant toute utilisation
 #   pour des décisions financières.
 # ============================================================
@@ -27,8 +27,10 @@ API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://api.football-data.org/v4"
 PARIS = ZoneInfo("Europe/Paris")
 
-MIN_PERCENT = 65
-MAX_SELECTIONS_PER_MARKET = 10
+MIN_PERCENT = 70
+MAX_MATCHES = 10
+MAX_MARKETS_PER_MATCH = 2
+
 MAX_API_CALLS = 60
 MIN_INTERVAL = 6.5
 MAX_RETRIES = 2
@@ -75,7 +77,7 @@ PROB_MIN = 0.01
 PROB_MAX = 0.99
 
 SESSION = requests.Session()
-SESSION.headers.update({"User-Agent": "football-stat-bot/6.1"})
+SESSION.headers.update({"User-Agent": "football-stat-bot/7.0"})
 
 CACHE = {}
 ERRORS = []
@@ -746,15 +748,6 @@ def build_candidates(fixtures):
                     "percent": percent,
                 })
 
-    for market in candidates:
-        candidates[market].sort(
-            key=lambda x: x["percent"],
-            reverse=True,
-        )
-        candidates[market] = candidates[market][
-            :MAX_SELECTIONS_PER_MARKET
-        ]
-
     return candidates, analysed, partial
 
 
@@ -780,7 +773,6 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
     }
 
     matches = {}
-    total_picks = 0
 
     for market in market_order:
         for candidate in candidates.get(market, []):
@@ -790,14 +782,38 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
                 matches[match_id] = {
                     "item": candidate,
                     "markets": [],
+                    "best_percent": 0,
                 }
 
-            # CORRECTION : on garde le pourcentage du marché courant,
-            # pas celui du premier candidat du match.
-            matches[match_id]["markets"].append(
-                (market, candidate["percent"])
+            percent = candidate["percent"]
+            matches[match_id]["markets"].append((market, percent))
+            matches[match_id]["best_percent"] = max(
+                matches[match_id]["best_percent"],
+                percent,
             )
-            total_picks += 1
+
+    # Maximum 2 meilleurs marchés par match
+    for match_id in matches:
+        markets = matches[match_id]["markets"]
+        markets.sort(key=lambda x: x[1], reverse=True)
+        matches[match_id]["markets"] = markets[:MAX_MARKETS_PER_MATCH]
+
+    # Maximum 10 matchs, classés par meilleure probabilité
+    ordered_all = sorted(
+        matches.values(),
+        key=lambda entry: (
+            entry["best_percent"],
+            entry["item"]["kickoff"],
+        ),
+        reverse=True,
+    )
+
+    selected_matches = ordered_all[:MAX_MATCHES]
+
+    # Remettre les matchs dans l’ordre chronologique
+    selected_matches.sort(
+        key=lambda entry: entry["item"]["kickoff"]
+    )
 
     lines = [
         "⚽ PRONOSTICS DU JOUR",
@@ -805,18 +821,14 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
         "",
     ]
 
-    if not matches:
+    if not selected_matches:
         lines.append(
             f"Aucun pronostic n’atteint {MIN_PERCENT} % aujourd’hui."
         )
     else:
         index = 0
-        ordered = sorted(
-            matches.values(),
-            key=lambda entry: entry["item"]["kickoff"],
-        )
 
-        for entry in ordered:
+        for entry in selected_matches:
             item = entry["item"]
             index += 1
 
@@ -851,7 +863,14 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
         if index > len(NUMBERS):
             lines.append("⚠️ Plus de 10 matchs : numérotation répétée.")
 
-    lines.append(f"📊 {total_picks} pronostics · {len(matches)} matchs")
+    displayed_picks = sum(
+        len(entry["markets"]) for entry in selected_matches
+    )
+
+    lines.append(
+        f"📊 {displayed_picks} pronostics · "
+        f"{len(selected_matches)} matchs"
+    )
 
     if partial:
         lines.append(
