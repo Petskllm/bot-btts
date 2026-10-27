@@ -596,51 +596,63 @@ def build_candidates(fixtures):
 
 
 def build_message(today, candidates, analysed, total_fixtures, partial):
+    # Regroupe les marchés retenus sous un seul bloc par match.
+    market_order = ("home_over_05", "away_over_05", "btts", "over_15")
+    market_display = {
+        "home_over_05": lambda item: f"🏠 {item['home']} marque 1+ but",
+        "away_over_05": lambda item: f"✈️ {item['away']} marque 1+ but",
+        "btts": lambda item: "🤝 Les deux équipes marquent",
+        "over_15": lambda item: "⚽ Plus de 1,5 but",
+    }
+
+    matches = {}
+    total_picks = 0
+    for market in market_order:
+        for item in candidates.get(market, []):
+            match_id = item.get("id", item["match"])
+            if match_id not in matches:
+                matches[match_id] = {
+                    "item": item,
+                    "markets": [],
+                }
+            matches[match_id]["markets"].append((market, item["percent"]))
+            total_picks += 1
+
     lines = [
-        f"⚽ ANALYSE FOOTBALL — {today}",
-        f"🎯 Seuil statistique affiché : {MIN_PERCENT} %",
-        "📌 Estimations de modèle, non garanties.",
+        f"⚽ PRONOSTICS FOOTBALL — {today}",
+        f"🎯 Seuil minimum : {MIN_PERCENT} %",
         "",
     ]
 
-    total_picks = 0
-    for market, label in MARKET_LABELS.items():
-        picks = candidates.get(market, [])
-        lines.append(f"━━ {label.upper()} ━━")
-        if not picks:
-            lines.append(f"Aucun match ne passe le seuil de {MIN_PERCENT} %.")
+    if not matches:
+        lines.append(f"😴 Aucun pronostic ne dépasse {MIN_PERCENT} % aujourd’hui.")
+    else:
+        # Affiche les matchs dans l'ordre du coup d'envoi.
+        ordered = sorted(
+            matches.values(),
+            key=lambda entry: entry["item"]["kickoff"]
+        )
+        for entry in ordered:
+            item = entry["item"]
+            warnings = " · ⚠️ " + ", ".join(item["warnings"]) if item["warnings"] else ""
+            lines.append(f"⚽ {item['match']}")
+            lines.append(f"🏆 {item['league']} · 🕒 {item['kickoff']:%H:%M}{warnings}")
+
+            # Ne montre que les marchés qui ont passé le seuil.
+            for market, percent in entry["markets"]:
+                lines.append(f"  {market_display[market](item)} — {percent} %")
+
+            lines.append(
+                f"📊 Buts attendus : {item['lambdas'][0]:.2f} - "
+                f"{item['lambdas'][1]:.2f}"
+            )
             lines.append("")
-            continue
 
-        for item in picks:
-            total_picks += 1
-            warnings = " ⚠️ " + ", ".join(item["warnings"]) if item["warnings"] else ""
-            lines.append(
-                f"• {item['match']} — {item['percent']} %"
-            )
-            lines.append(
-                f"  🏆 {item['league']} · 🕒 {item['kickoff']:%H:%M}"
-            )
-            lines.append(
-                f"  📈 Buts attendus modèle : "
-                f"{item['lambdas'][0]:.2f} - {item['lambdas'][1]:.2f}"
-            )
-            lines.append(f"  📊 {item['sample']}{warnings}")
-        lines.append("")
-
-    lines.append(f"📈 {analysed}/{total_fixtures} matchs analysés")
-    lines.append(f"🎯 {total_picks} sélections affichées tous marchés confondus")
+    lines.append(f"📈 {analysed}/{total_fixtures} matchs analysés · {total_picks} pronostics retenus")
     if partial:
         lines.append("⏳ Analyse partielle : limite d'appels API atteinte.")
-    lines.append(
-        "ℹ️ Le seuil de 65 % est un filtre de modèle, pas une probabilité "
-        "calibrée tant qu'un backtest chronologique ne l'a pas confirmé."
-    )
-    lines.append(
-        "ℹ️ Les marchés d'un même match sont corrélés : ne pas les traiter "
-        "comme des événements indépendants."
-    )
-    return "\n".join(lines) + diagnostics_text()
+    lines.append("ℹ️ Estimations statistiques, non garanties. Les marchés d’un même match peuvent être liés.")
+    return "\\n".join(lines) + diagnostics_text()
 
 
 # ---------------- EXÉCUTION ----------------
