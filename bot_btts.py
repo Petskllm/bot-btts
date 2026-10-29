@@ -150,7 +150,7 @@ def api_get(endpoint):
         return None
 
     if not API_KEY:
-        add_error("API_KEY absent.")
+        add_error("API_KEY absente.")
         return None
 
     for attempt in range(MAX_RETRIES + 1):
@@ -237,9 +237,16 @@ def get_today_fixtures():
     payload = api_get(f"fixtures/date/{today}")
 
     if not payload:
-        return [], 0
+        return [], 0, []
 
     fixtures = payload.get("data") or []
+
+    league_names = sorted({
+        str(fixture.get("league_name") or "INCONNU")
+        for fixture in fixtures
+    })
+
+    print("LIGUES REÇUES :", league_names, flush=True)
 
     selected = []
 
@@ -273,7 +280,6 @@ def get_today_fixtures():
             continue
 
     selected.sort(key=lambda x: parse_kickoff(x))
-
     selected = selected[:CANDIDATE_MATCHES]
 
     print(
@@ -282,7 +288,7 @@ def get_today_fixtures():
         flush=True,
     )
 
-    return selected, len(fixtures)
+    return selected, len(fixtures), league_names
 
 
 # ---------------- CLASSEMENT ET FORME ----------------
@@ -683,13 +689,15 @@ def main():
 
     today = datetime.now(PARIS).strftime("%d/%m/%Y")
 
-    fixtures, total = get_today_fixtures()
+    fixtures, total, league_names = get_today_fixtures()
 
     if not fixtures:
         send_message(
             f"⚽ Analyse football — {today}\n\n"
             "😴 Aucun match à venir trouvé dans les championnats suivis.\n\n"
-            f"Matchs reçus de SportAPI : {total}"
+            f"Matchs reçus de SportAPI : {total}\n\n"
+            "🏆 Ligues reçues :\n"
+            + "\n".join(league_names[:40])
             + diagnostics_text()
         )
         return
