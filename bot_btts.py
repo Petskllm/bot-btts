@@ -1,5 +1,6 @@
 import math
 import os
+import re
 import time
 from collections import Counter
 from datetime import datetime, timezone
@@ -23,8 +24,19 @@ import requests
 # - BTTS Oui ;
 # - plus de 1,5 but.
 #
-# Filtre obligatoire : 70 à 80 % inclus, AVANT arrondi.
+# Filtre obligatoire : 72 à 85 % inclus, AVANT arrondi
+# (réglable avec MIN_PROB et MAX_PROB ci-dessous).
 # Maximum : 15 matchs, 2 marchés par match.
+#
+# Version 5.2 :
+# - 429 : pause puis nouvel essai (au lieu de tout bloquer) ;
+# - 403 / 404 isolés : ressource ignorée, sans tout bloquer ;
+# - ordre d'analyse : ligues prioritaires, puis horaire, avec un
+#   plafond par ligue (une ligue géante n'épuise plus le budget) ;
+# - équipes de jeunes / réserves exclues (option) ;
+# - léger lissage du modèle vers la moyenne (petits échantillons) ;
+# - section "au-dessus du plafond" séparée, pour comparer les
+#   tranches dans ton bilan (option SHOW_ABOVE_MAX).
 #
 # Telegram : pronostics + horaires + buts projetés.
 # Diagnostics détaillés : logs GitHub uniquement.
@@ -42,11 +54,45 @@ API_KEY = os.getenv("API_KEY", "").strip()
 BASE_URL = "https://sportapi.ai/api"
 PARIS = ZoneInfo("Europe/Paris")
 
-MIN_PROB = 0.70
-MAX_PROB = 0.80
+MIN_PROB = 0.72
+MAX_PROB = 0.85
 
 MAX_MATCHES = 15
 MAX_MARKETS = 2
+
+# Suivi : affiche à part les marchés au-dessus de MAX_PROB, pour
+# comparer la réussite des tranches (False pour désactiver).
+SHOW_ABOVE_MAX = False
+MAX_ABOVE = 8
+
+# Identifiants de ligues à analyser en premier (texte), par exemple
+# {"135", "39"}. Les identifiants sont listés dans les logs GitHub
+# ("LIGUES DU JOUR"). Vide : ordre automatique.
+PRIORITY_LEAGUE_IDS = set()
+
+# Nombre maximum de matchs analysés par ligue (hors ligues
+# prioritaires) : un championnat compte au plus ~10 matchs par jour.
+MAX_PER_LEAGUE = 12
+
+# Exclut les équipes de jeunes (U15-U23, Youth, Primavera...) et
+# les équipes réserves : peu de données fiables.
+EXCLUDE_YOUTH = True
+YOUTH_PATTERN = re.compile(
+    r"\bU[- ]?(1[5-9]|2[0-3])\b|\byouth\b|\bjuniors?\b"
+    r"|\bprimavera\b|\breserves?\b|\bamateurs?\b|\bII$",
+    re.IGNORECASE,
+)
+
+# Lissage vers la moyenne (petits échantillons). Valeur choisie
+# par simulation : à 4, les pourcentages annoncés collent le mieux
+# à la réalité simulée (sans lissage, ils sont trop optimistes).
+PRIOR_K = 4.0
+PRIORS = {
+    "gf": 1.35,
+    "ga": 1.35,
+    "btts": 0.52,
+    "over15": 0.75,
+}
 
 HISTORY_N = 10
 MIN_HISTORY = 6
@@ -60,10 +106,14 @@ MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
 
+MAX_RETRIES = 2
+RETRY_PAUSE = 60
+MAX_CONSECUTIVE_FAILS = 8
+
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/5.1",
+    "User-Agent": "football-history-bot/5.2",
 })
 
 CACHE = {}
@@ -76,6 +126,7 @@ CALLS = 0
 LAST_CALL = None
 BLOCKED = False
 PARTIAL = False
+FAILS = 0
 STARTED = time.monotonic()
 
 
@@ -161,63 +212,114 @@ def send_message(text):
 
 # ---------------- API ----------------
 
+def failed(endpoint):
+    """Échec d'une ressource : on l'ignore, sans tout bloquer.
+
+    Après plusieurs échecs d'affilée, on arrête pour ne pas gaspiller
+    le budget (clé invalide, service en panne...).
+    """
+    global FAILS, BLOCKED
+
+    CACHE[endpoint] = None
+    FAILS += 1
+
+    if FAILS >= MAX_CONSECUTIVE_FAILS:
+        BLOCKED = True
+        error("Trop d'echecs d'affilee : analyse arretee.")
+
+    return None
+
+
+def retry_pause(response):
+    try:
+        return max(RETRY_PAUSE, int(response.headers.get("Retry-After", "")))
+    except (TypeError, ValueError):
+        return RETRY_PAUSE
+
+
 def api_get(endpoint):
-    global CALLS, LAST_CALL, BLOCKED
+    global CALLS, LAST_CALL, BLOCKED, FAILS
 
     if endpoint in CACHE:
         return CACHE[endpoint]
 
-    if not budget_available():
-        return None
+    for attempt in range(MAX_RETRIES + 1):
+        if not budget_available():
+            return None
 
-    if LAST_CALL is not None:
-        wait = MIN_INTERVAL - (time.monotonic() - LAST_CALL)
-        if wait > 0:
-            time.sleep(wait)
+        if LAST_CALL is not None:
+            wait = MIN_INTERVAL - (time.monotonic() - LAST_CALL)
+            if wait > 0:
+                time.sleep(wait)
 
-    LAST_CALL = time.monotonic()
-    CALLS += 1
+        LAST_CALL = time.monotonic()
+        CALLS += 1
 
-    print(
-        f"API {CALLS}/{MAX_API_CALLS} : {endpoint}",
-        flush=True,
-    )
-
-    try:
-        response = SESSION.get(
-            f"{BASE_URL}/{endpoint}",
-            timeout=TIMEOUT,
+        print(
+            f"API {CALLS}/{MAX_API_CALLS} : {endpoint}",
+            flush=True,
         )
-    except requests.RequestException:
-        error(f"{endpoint} : erreur reseau.")
-        CACHE[endpoint] = None
-        return None
 
-    if response.status_code in (401, 403, 429):
-        BLOCKED = True
+        try:
+            response = SESSION.get(
+                f"{BASE_URL}/{endpoint}",
+                timeout=TIMEOUT,
+            )
+        except requests.RequestException:
+            error(f"{endpoint} : erreur reseau.")
 
-    if not response.ok:
-        error(f"{endpoint} : HTTP {response.status_code}.")
-        CACHE[endpoint] = None
-        return None
+            if attempt < MAX_RETRIES:
+                time.sleep(2 * (attempt + 1))
+                continue
 
-    try:
-        payload = response.json()
-    except ValueError:
-        error(f"{endpoint} : JSON invalide.")
-        CACHE[endpoint] = None
-        return None
+            return failed(endpoint)
 
-    if (
-        not isinstance(payload, dict)
-        or payload.get("success") is False
-    ):
-        error(f"{endpoint} : reponse invalide.")
-        CACHE[endpoint] = None
-        return None
+        if response.status_code == 429:
+            pause = retry_pause(response)
+            elapsed = time.monotonic() - STARTED
 
-    CACHE[endpoint] = payload
-    return payload
+            if attempt < MAX_RETRIES and elapsed + pause < MAX_RUNTIME_SECONDS:
+                error(f"{endpoint} : limite atteinte, pause {pause} s.")
+                time.sleep(pause)
+                continue
+
+            error(f"{endpoint} : limite de requetes depassee.")
+            BLOCKED = True
+            return None
+
+        if response.status_code == 401:
+            error("Cle API refusee (401).")
+            BLOCKED = True
+            return None
+
+        if response.status_code >= 500 and attempt < MAX_RETRIES:
+            error(f"{endpoint} : HTTP {response.status_code}, nouvel essai.")
+            time.sleep(2 * (attempt + 1))
+            continue
+
+        if not response.ok:
+            # 403 / 404 / autres : ressource ignorée, le reste continue.
+            error(f"{endpoint} : HTTP {response.status_code}.")
+            return failed(endpoint)
+
+        try:
+            payload = response.json()
+        except ValueError:
+            error(f"{endpoint} : JSON invalide.")
+            return failed(endpoint)
+
+        if (
+            not isinstance(payload, dict)
+            or payload.get("success") is False
+        ):
+            error(f"{endpoint} : reponse invalide.")
+            return failed(endpoint)
+
+        FAILS = 0
+        CACHE[endpoint] = payload
+        return payload
+
+    return None
 
 
 def get_list(payload, key="data"):
@@ -322,6 +424,82 @@ def date_of(match):
 def short_name(value):
     name = " ".join(str(value or "Equipe").split())
     return name if len(name) <= 25 else name[:24] + "…"
+
+
+def is_youth(fixture):
+    return any(
+        YOUTH_PATTERN.search(str(fixture.get(field) or ""))
+        for field in ("home_team", "away_team")
+    )
+
+
+def league_label(fixture):
+    for key in ("league_name", "league", "competition"):
+        value = fixture.get(key)
+
+        if isinstance(value, dict):
+            value = value.get("name")
+
+        if isinstance(value, str) and value.strip():
+            return short_name(value)
+
+    return None
+
+
+def prioritise(fixtures):
+    """Ligues prioritaires d'abord, puis horaire, avec un plafond par ligue.
+
+    Le plafond empêche une "ligue" géante (groupes, coupes régionales...)
+    de consommer tout le budget de requêtes.
+    """
+    counts = Counter(str(f.get("league_id")) for f in fixtures)
+
+    print("\nLIGUES DU JOUR (id : matchs : exemple) :", flush=True)
+
+    shown = set()
+
+    for fixture in sorted(
+        fixtures,
+        key=lambda f: -counts[str(f.get("league_id"))],
+    ):
+        league = str(fixture.get("league_id"))
+
+        if league in shown or len(shown) >= 25:
+            continue
+
+        shown.add(league)
+
+        print(
+            f"  {league} : {counts[league]} : "
+            f"{fixture.get('home_team')} - {fixture.get('away_team')}",
+            flush=True,
+        )
+
+    ordered = sorted(
+        fixtures,
+        key=lambda f: (
+            0 if str(f.get("league_id")) in PRIORITY_LEAGUE_IDS else 1,
+            kickoff_of(f),
+        ),
+    )
+
+    kept = []
+    taken = Counter()
+
+    for fixture in ordered:
+        league = str(fixture.get("league_id"))
+
+        if (
+            league not in PRIORITY_LEAGUE_IDS
+            and taken[league] >= MAX_PER_LEAGUE
+        ):
+            REASONS["Plafond par ligue atteint"] += 1
+            continue
+
+        taken[league] += 1
+        kept.append(fixture)
+
+    return kept
 
 
 def boolean(value):
@@ -714,31 +892,21 @@ def profile(history, venue, today):
         for metric in overall
     }
 
-    result["n"] = len(recent)
+    n = len(recent)
+
+    # Lissage léger vers la moyenne : limite l'effet d'une courte série.
+    for metric, prior in PRIORS.items():
+        result[metric] = (
+            result[metric] * n + prior * PRIOR_K
+        ) / (n + PRIOR_K)
+
+    result["n"] = n
     result["venue_n"] = len(local_matches)
 
     return result
 
 
-def analyse(fixture, today):
-    home_history = team_history(
-        fixture["home_id"],
-        fixture["league_id"],
-        today,
-    )
-
-    away_history = team_history(
-        fixture["away_id"],
-        fixture["league_id"],
-        today,
-    )
-
-    home = profile(home_history, "home", today)
-    away = profile(away_history, "away", today)
-
-    if home is None or away is None:
-        return None
-
+def estimate(home, away):
     lambda_home = (home["gf"] + away["ga"]) / 2
     lambda_away = (away["gf"] + home["ga"]) / 2
 
@@ -761,12 +929,47 @@ def analyse(fixture, today):
         ),
     }
 
+    return lambda_home, lambda_away, probabilities
+
+
+def analyse(fixture, today):
+    home_history = team_history(
+        fixture["home_id"],
+        fixture["league_id"],
+        today,
+    )
+
+    away_history = team_history(
+        fixture["away_id"],
+        fixture["league_id"],
+        today,
+    )
+
+    home = profile(home_history, "home", today)
+    away = profile(away_history, "away", today)
+
+    if home is None or away is None:
+        return None
+
+    lambda_home, lambda_away, probabilities = estimate(home, away)
+
     # Seuils appliqués sur les valeurs réelles avant arrondi.
     picks = sorted(
         (
             (market, probability)
             for market, probability in probabilities.items()
             if MIN_PROB <= probability <= MAX_PROB
+        ),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:MAX_MARKETS]
+
+    # Suivi : marchés au-dessus du plafond (affichés à part).
+    above = sorted(
+        (
+            (market, probability)
+            for market, probability in probabilities.items()
+            if probability > MAX_PROB
         ),
         key=lambda item: item[1],
         reverse=True,
@@ -790,6 +993,7 @@ def analyse(fixture, today):
     return {
         "fixture": fixture,
         "picks": picks,
+        "above": above,
         "best": picks[0][1] if picks else 0,
         "lambda_home": lambda_home,
         "lambda_away": lambda_away,
@@ -798,7 +1002,19 @@ def analyse(fixture, today):
 
 # ---------------- MESSAGE COMPACT ----------------
 
-def build_message(selected, partial):
+def market_labels(fixture):
+    home = short_name(fixture.get("home_team"))
+    away = short_name(fixture.get("away_team"))
+
+    return {
+        "home": f"{home} +0,5 but",
+        "away": f"{away} +0,5 but",
+        "btts": "BTTS Oui",
+        "over15": "Plus de 1,5 but",
+    }
+
+
+def build_message(selected, above, partial, analysed, total):
     lines = [
         "⚽ PRONOSTICS DU JOUR",
         datetime.now(PARIS).strftime("📅 %d/%m/%Y"),
@@ -816,12 +1032,12 @@ def build_message(selected, partial):
             f"{index}. {home} — {away} · {kickoff}"
         )
 
-        labels = {
-            "home": f"{home} +0,5 but",
-            "away": f"{away} +0,5 but",
-            "btts": "BTTS Oui",
-            "over15": "Plus de 1,5 but",
-        }
+        league = league_label(fixture)
+
+        if league:
+            lines.append(f"🏆 {league}")
+
+        labels = market_labels(fixture)
 
         for market, probability in result["picks"]:
             lines.append(
@@ -840,10 +1056,32 @@ def build_message(selected, partial):
 
     if not selected:
         lines.extend([
-            "Aucun marché estimé entre 70 et 80 %",
+            f"Aucun marché estimé entre {MIN_PROB:.0%} et {MAX_PROB:.0%}",
             "avec un historique suffisant.",
             "",
         ])
+
+    if above:
+        lines.append(
+            f"🔎 Au-dessus de {MAX_PROB:.0%} (suivi, hors filtre) :"
+        )
+
+        for result in above:
+            fixture = result["fixture"]
+            home = short_name(fixture.get("home_team"))
+            away = short_name(fixture.get("away_team"))
+            kickoff = kickoff_of(fixture).strftime("%H:%M")
+            labels = market_labels(fixture)
+            market, probability = result["above"][0]
+
+            lines.append(
+                f"• {home} — {away} · {kickoff} · "
+                f"{labels[market]} : {probability:.0%}"
+            )
+
+        lines.append("")
+
+    lines.append(f"📈 {analysed}/{total} matchs analysés")
 
     if partial:
         lines.append("⚠️ Analyse partielle.")
@@ -921,6 +1159,10 @@ def main():
             REASONS["Identifiants absents"] += 1
             continue
 
+        if EXCLUDE_YOUTH and is_youth(fixture):
+            REASONS["Equipes de jeunes ou reserves exclues"] += 1
+            continue
+
         identifier = fixture.get("id")
 
         if identifier is None:
@@ -936,9 +1178,17 @@ def main():
         seen.add(identifier)
         eligible.append(fixture)
 
-    eligible.sort(key=kickoff_of)
+    if fixtures and isinstance(fixtures[0], dict):
+        print(
+            "CHAMPS D'UN MATCH :",
+            list(fixtures[0].keys()),
+            flush=True,
+        )
+
+    eligible = prioritise(eligible)
 
     results = []
+    above_results = []
     analysed = 0
     examined = 0
 
@@ -975,10 +1225,15 @@ def main():
 
         analysed += 1
 
+        if result["above"]:
+            above_results.append(result)
+
         if result["picks"]:
             results.append(result)
         else:
-            REASONS["Aucun marche entre 70 et 80 %"] += 1
+            REASONS[
+                f"Aucun marche entre {MIN_PROB:.0%} et {MAX_PROB:.0%}"
+            ] += 1
 
     # Si une limite est atteinte pendant la dernière analyse,
     # le diagnostic doit aussi le signaler.
@@ -1002,6 +1257,18 @@ def main():
 
     selected = still_upcoming[:MAX_MATCHES]
 
+    above_selected = []
+
+    if SHOW_ABOVE_MAX:
+        above_selected = sorted(
+            (
+                result
+                for result in above_results
+                if kickoff_of(result["fixture"]) > publication_time
+            ),
+            key=lambda result: -result["above"][0][1],
+        )[:MAX_ABOVE]
+
     print("\n===== BILAN FINAL =====", flush=True)
     print("MATCHS RECUS :", len(fixtures), flush=True)
     print("MATCHS A VENIR :", len(eligible), flush=True)
@@ -1014,7 +1281,13 @@ def main():
     print("ERREURS :", ERRORS, flush=True)
 
     send_message(
-        build_message(selected, PARTIAL)
+        build_message(
+            selected,
+            above_selected,
+            PARTIAL,
+            analysed,
+            len(eligible),
+        )
     )
 
 
