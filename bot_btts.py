@@ -10,16 +10,15 @@ import requests
 # ============================================================
 # BOT FOOTBALL — SPORTAPI
 #
-# - Tous les pays : aucune liste de championnats.
-# - Tous les matchs du jour encore à venir sont examinés,
-#   dans la limite du budget API.
-# - Statistiques du classement + forme récente si exploitable.
-# - Marchés : équipe marque, BTTS, Over 1,5.
-# - Seuil réel obligatoire : 70 % avant arrondi.
-# - Maximum 15 matchs distincts, 2 marchés par match.
-# - Objectif 10 minimum seulement si les critères le permettent.
+# Tous les pays, matchs du jour encore à venir.
+# Marchés : équipe marque / BTTS / Over 1,5.
+# Seuil obligatoire : 70 % avant arrondi.
+# Maximum : 15 matchs, 2 marchés par match.
 #
-# Modèle simple non calibré. Aucun pari n'est garanti.
+# Telegram : pronostics + horaires + buts projetés seulement.
+# Diagnostics : logs GitHub.
+#
+# Modèle simple non calibré, sans garantie de résultat.
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -30,7 +29,6 @@ BASE_URL = "https://sportapi.ai/api"
 PARIS = ZoneInfo("Europe/Paris")
 
 MIN_PROBABILITY = 0.70
-MIN_TARGET_MATCHES = 10
 MAX_MATCHES = 15
 MAX_MARKETS_PER_MATCH = 2
 
@@ -45,7 +43,7 @@ TIMEOUT = 25
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-world-bot/4.1",
+    "User-Agent": "football-world-bot/4.2",
 })
 
 CACHE = {}
@@ -55,7 +53,7 @@ LAST_CALL = None
 BLOCKED = False
 
 
-# ---------------- SECURITE ET TELEGRAM ----------------
+# ---------------- SECURITE / LOGS ----------------
 
 def safe(value):
     text = str(value)
@@ -75,17 +73,40 @@ def add_error(message):
         ERRORS.append(message)
 
 
+# ---------------- TELEGRAM ----------------
+
 def send_message(text):
     if not TOKEN or not CHAT_ID:
         raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
 
-    for start in range(0, len(text), 3000):
+    # Découpage de secours sur les lignes.
+    chunks = []
+    current = ""
+
+    for line in text.splitlines(keepends=True):
+        while len(line) > 3000:
+            if current:
+                chunks.append(current)
+                current = ""
+            chunks.append(line[:3000])
+            line = line[3000:]
+
+        if len(current) + len(line) > 3000:
+            chunks.append(current)
+            current = ""
+
+        current += line
+
+    if current:
+        chunks.append(current)
+
+    for chunk in chunks:
         try:
             response = requests.post(
                 f"https://api.telegram.org/bot{TOKEN}/sendMessage",
                 json={
                     "chat_id": CHAT_ID,
-                    "text": text[start:start + 3000],
+                    "text": chunk,
                 },
                 timeout=TIMEOUT,
             )
@@ -269,6 +290,15 @@ def parse_bool(value):
     return None
 
 
+def short_name(value, limit=26):
+    name = " ".join(str(value or "Equipe").split())
+
+    if len(name) > limit:
+        return name[:limit - 1] + "…"
+
+    return name
+
+
 # ---------------- PROFILS STATISTIQUES ----------------
 
 def build_profile(row, today):
@@ -349,8 +379,6 @@ def build_profile(row, today):
 
             age = (today - match_date).days
 
-            # Date seule : exclusion des résultats du jour
-            # pour ne pas utiliser un résultat à heure inconnue.
             if not 0 < age <= MAX_FORM_AGE_DAYS:
                 continue
 
@@ -451,7 +479,7 @@ def analyse_match(fixture, rows, today):
         "over15": p_over15,
     }
 
-    # Filtre appliqué AVANT tout arrondi d'affichage.
+    # Seuil réel : 70 % minimum avant arrondi.
     picks = sorted(
         (
             (market, probability)
@@ -464,14 +492,71 @@ def analyse_match(fixture, rows, today):
 
     return {
         "fixture": fixture,
-        "home": home,
-        "away": away,
         "picks": picks,
         "best": picks[0][1] if picks else 0,
         "form_used": form_used,
         "lambda_home": lambda_home,
         "lambda_away": lambda_away,
     }, None
+
+
+# ---------------- MESSAGE COMPACT ----------------
+
+def build_message(selected, publication_time, partial):
+    lines = [
+        "⚽ PRONOSTICS DU JOUR",
+        publication_time.strftime("📅 %d/%m/%Y"),
+        "",
+    ]
+
+    for rank, result in enumerate(selected, 1):
+        fixture = result["fixture"]
+
+        home_name = short_name(fixture.get("home_team"))
+        away_name = short_name(fixture.get("away_team"))
+        kickoff = kickoff_of(fixture).strftime("%H:%M")
+
+        lines.append(
+            f"{rank}. {home_name} — {away_name} · {kickoff}"
+        )
+
+        for market, probability in result["picks"]:
+            if market == "home":
+                label = f"{home_name} marque"
+            elif market == "away":
+                label = f"{away_name} marque"
+            elif market == "btts":
+                label = "BTTS Oui"
+            else:
+                label = "Plus de 1,5 but"
+
+            lines.append(
+                f"• {label} : {probability:.0%}"
+            )
+
+        projected = (
+            f"{result['lambda_home']:.2f} — "
+            f"{result['lambda_away']:.2f}"
+        ).replace(".", ",")
+
+        lines.append(f"⚽ Buts projetés : {projected}")
+        lines.append("")
+
+    if not selected:
+        lines.extend([
+            "Aucun pronostic à 70 % minimum",
+            "avec les statistiques disponibles.",
+            "",
+        ])
+
+    if partial:
+        lines.append("⚠️ Analyse partielle.")
+
+    lines.append(
+        "ℹ️ Estimations du modèle, sans garantie. Heures de Paris."
+    )
+
+    return "\n".join(lines)
 
 
 # ---------------- EXECUTION ----------------
@@ -502,9 +587,8 @@ def main():
             flush=True,
         )
         send_message(
-            "❌ Impossible de lire les matchs SportAPI.\n\n"
-            + "\n".join(ERRORS[:4])
-            + "\nConsulte les logs GitHub."
+            "⚠️ Analyse indisponible : "
+            "impossible de lire les matchs SportAPI."
         )
         return
 
@@ -564,22 +648,13 @@ def main():
 
     eligible.sort(key=kickoff_of)
 
-    print(
-        f"MATCHS RECUS : {len(fixtures)} ; "
-        f"A VENIR : {len(eligible)}",
-        flush=True,
-    )
-
     standings_cache = {}
     results = []
     processed = 0
     analysed = 0
-    form_count = 0
     partial = False
 
     for fixture in eligible:
-        # Ne pas publier un match ayant commencé
-        # pendant l'exécution du bot.
         if kickoff_of(fixture) <= datetime.now(PARIS):
             reasons["Match commence pendant le lancement"] += 1
             processed += 1
@@ -656,7 +731,6 @@ def main():
             continue
 
         analysed += 1
-        form_count += int(result["form_used"])
 
         if not result["picks"]:
             reasons["Aucun marche a 70 % minimum"] += 1
@@ -664,7 +738,6 @@ def main():
 
         results.append(result)
 
-    # Dernière vérification des horaires avant publication.
     publication_time = datetime.now(PARIS)
     still_upcoming = []
 
@@ -674,8 +747,6 @@ def main():
         else:
             reasons["Selection commencee avant publication"] += 1
 
-    # Classement par meilleure estimation NON arrondie.
-    # A égalité : deuxième estimation, puis horaire.
     still_upcoming.sort(
         key=lambda result: (
             -result["best"],
@@ -686,129 +757,26 @@ def main():
 
     selected = still_upcoming[:MAX_MATCHES]
 
-    lines = [
-        "⚽ SELECTION FOOTBALL — TOUS PAYS",
-        publication_time.strftime(
-            "📅 %d/%m/%Y · %H:%M Paris"
-        ),
-        "",
-        f"📥 Matchs recus du jour : {len(fixtures)}",
-        f"🌍 Matchs a venir au lancement : {len(eligible)}",
-        f"🔎 Matchs examines : {processed}",
-        f"📊 Matchs avec stats exploitables : {analysed}",
-        f"📈 Dont forme recente utilisee : {form_count}",
-        f"✅ Matchs admissibles a 70 % minimum : {len(still_upcoming)}",
-        f"📤 Matchs selectionnes : {len(selected)}/15",
-        "",
-        "Seuil obligatoire : 70 % avant arrondi.",
-        "Classement par meilleure estimation du modele.",
-        "",
-    ]
-
-    for rank, result in enumerate(selected, 1):
-        fixture = result["fixture"]
-
-        home_name = str(
-            fixture.get("home_team") or "Domicile"
-        )
-        away_name = str(
-            fixture.get("away_team") or "Exterieur"
-        )
-
-        labels = {
-            "home": f"{home_name} marque",
-            "away": f"{away_name} marque",
-            "btts": "BTTS — Oui",
-            "over15": "Plus de 1,5 but",
-        }
-
-        lines.extend([
-            f"#{rank} {home_name} — {away_name}",
-            f"🏆 {fixture.get('league_name') or 'Competition'}",
-            f"🕘 {kickoff_of(fixture).strftime('%H:%M')} Paris",
-        ])
-
-        for market, probability in result["picks"]:
-            lines.append(
-                f"• {labels[market]} : "
-                f"estimation {probability:.0%}"
-            )
-
-        lines.append(
-            "📊 Classement : "
-            f"{result['home']['played']} / "
-            f"{result['away']['played']} matchs renseignes"
-        )
-
-        if result["form_used"]:
-            lines.append(
-                "📈 Forme utilisee : "
-                f"{result['home']['recent_n']} / "
-                f"{result['away']['recent_n']} matchs"
-            )
-        else:
-            lines.append(
-                "📈 Moyennes du classement uniquement"
-            )
-
-        lines.extend([
-            (
-                "⚽ Moyennes projetees du modele : "
-                f"{result['lambda_home']:.2f} — "
-                f"{result['lambda_away']:.2f}"
-            ),
-            "",
-        ])
-
-    if len(selected) < MIN_TARGET_MATCHES:
-        lines.extend([
-            "⚠️ Moins de 10 matchs remplissent les criteres.",
-            "Le seuil de 70 % reste obligatoire.",
-            "Aucune selection ajoutee artificiellement.",
-            "",
-        ])
-
-    if partial:
-        lines.extend([
-            "⚠️ Analyse partielle : budget API ou acces bloque.",
-            (
-                f"Matchs non examines : "
-                f"{len(eligible) - processed}"
-            ),
-            "",
-        ])
-
-    if reasons:
-        lines.append("🔎 Diagnostic :")
-
-        for reason, count in reasons.most_common(10):
-            lines.append(f"• {reason} : {count}")
-
-    if ERRORS:
-        lines.extend([
-            "",
-            "🛠️ API :",
-            *ERRORS[:4],
-        ])
-
-    lines.extend([
-        "",
-        f"Requetes de ce lancement : {CALLS}",
-        "",
-        "Modele simple non calibre.",
-        "Saison et phase des classements : a verifier.",
-        "70 % est une estimation, pas une garantie.",
-        "Sans comparaison aux cotes, ce classement ne mesure "
-        "pas la rentabilite des paris.",
-    ])
-
+    # Diagnostics uniquement dans les logs GitHub.
+    print("MATCHS RECUS :", len(fixtures), flush=True)
+    print("MATCHS A VENIR :", len(eligible), flush=True)
+    print("MATCHS EXAMINES :", processed, flush=True)
+    print("MATCHS ANALYSABLES :", analysed, flush=True)
     print(
-        "DIAGNOSTIC FINAL :",
-        dict(reasons),
+        "MATCHS AU SEUIL :",
+        len(still_upcoming),
         flush=True,
     )
+    print("MATCHS PUBLIES :", len(selected), flush=True)
+    print("REQUETES :", CALLS, flush=True)
+    print("ANALYSE PARTIELLE :", partial, flush=True)
+    print("DIAGNOSTIC :", dict(reasons), flush=True)
+    print("ERREURS API :", ERRORS, flush=True)
 
-    send_message("\n".join(lines))
+    message = build_message(
+        selected, publication_time, partial
+    )
+    send_message(message)
 
 
 if __name__ == "__main__":
