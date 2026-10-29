@@ -1,90 +1,105 @@
 import math
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import requests
 
 # ============================================================
 # BOT FOOTBALL — BTTS / ÉQUIPE +0,5 / OVER 1,5
-# API : football-data.org v4
+# API : SportAPI (sportapi.ai)
+# Plan gratuit : 2 000 requêtes/jour, 14 000/mois
 # Publication : Telegram
-#
-# IMPORTANT :
-# - Les probabilités sont des estimations de modèle, pas des garanties.
-# - Le seuil de 70 % n'est pas une preuve de calibration.
-# - Tester le modèle sur des matchs historiques avant toute utilisation
-#   pour des décisions financières.
 # ============================================================
-
-# ---------------- CONFIGURATION ----------------
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 API_KEY = os.getenv("API_KEY")
 
-BASE_URL = "https://api.football-data.org/v4"
+BASE_URL = "https://sportapi.ai/api"
 PARIS = ZoneInfo("Europe/Paris")
 
 MIN_PERCENT = 70
 MAX_MATCHES = 10
 MAX_MARKETS_PER_MATCH = 2
+CANDIDATE_MATCHES = 25
 
-MAX_API_CALLS = 60
-MIN_INTERVAL = 6.5
+MAX_API_CALLS = 100
+MIN_INTERVAL = 0.5
 MAX_RETRIES = 2
 REQUEST_TIMEOUT = 25
-MAX_CONSECUTIVE_FAILS = 4
 
-LEAGUES = {
-    "PL": "Premier League",
-    "PD": "La Liga",
-    "SA": "Serie A",
-    "BL1": "Bundesliga",
-    "FL1": "Ligue 1",
-    "CL": "Ligue des champions",
-    "PPL": "Primeira Liga",
-    "DED": "Eredivisie",
-    "BSA": "Brasileirão",
+# Ligues suivies : on filtre par nom car les IDs peuvent varier
+LEAGUE_NAMES = {
+    "premier league": "Premier League",
+    "la liga": "La Liga",
+    "laliga": "La Liga",
+    "serie a": "Serie A",
+    "bundesliga": "Bundesliga",
+    "ligue 1": "Ligue 1",
+    "uefa champions league": "Ligue des Champions",
+    "champions league": "Ligue des Champions",
+    "uefa europa league": "Ligue Europa",
+    "europa league": "Ligue Europa",
+    "uefa conference league": "Conference League",
+    "conference league": "Conference League",
+    "primeira liga": "Primeira Liga",
+    "eredivisie": "Eredivisie",
+    "jupiler pro league": "Jupiler Pro League",
+    "süper lig": "Süper Lig",
+    "super lig": "Süper Lig",
+    "swiss super league": "Super League Suisse",
+    "austrian football bundesliga": "Bundesliga Autriche",
+    "ekstraklasa": "Ekstraklasa",
+    "allsvenskan": "Allsvenskan",
+    "eliteserien": "Eliteserien",
+    "brasileirão série a": "Brasileirão",
+    "brasileirao serie a": "Brasileirão",
 }
 
-# Modèle de forme / historique
-HISTORY_DAYS = 240
-OVERALL_N = 10
-VENUE_N = 6
-MIN_OVERALL = 6
-MIN_VENUE = 3
-GOOD_SAMPLE = 8
-DECAY = 0.90
-VENUE_SHRINK = 3.0
-PRIOR_SHRINK = 3.0
-DEFAULT_GOALS = 1.35
-MAX_STALE_DAYS = 60
-SHORT_REST_HOURS = 72
+LEAGUE_PRIORITY = {
+    "Premier League": 1,
+    "La Liga": 1,
+    "Serie A": 1,
+    "Bundesliga": 1,
+    "Ligue 1": 1,
+    "Ligue des Champions": 1,
+    "Ligue Europa": 2,
+    "Conference League": 2,
+    "Primeira Liga": 2,
+    "Eredivisie": 2,
+    "Jupiler Pro League": 3,
+    "Süper Lig": 3,
+    "Super League Suisse": 3,
+    "Bundesliga Autriche": 3,
+    "Ekstraklasa": 4,
+    "Allsvenskan": 4,
+    "Eliteserien": 4,
+    "Brasileirão": 4,
+}
 
-# Mélange du modèle BTTS
-W_POISSON = 0.40
-W_RATES = 0.35
-W_HISTORY = 0.25
+W_POISSON = 0.55
+W_FORM = 0.45
 
-# Mélange du modèle Over 1,5
 W_OVER_POISSON = 0.60
-W_OVER_HISTORY = 0.40
+W_OVER_FORM = 0.40
 
-# Probabilités plafonnées pour éviter une confiance artificielle
 PROB_MIN = 0.01
 PROB_MAX = 0.99
+DEFAULT_GOALS = 1.35
 
 SESSION = requests.Session()
-SESSION.headers.update({"User-Agent": "football-stat-bot/7.0"})
+SESSION.headers.update({
+    "X-Api-Key": API_KEY or "",
+    "User-Agent": "football-stat-bot-sportapi/1.0",
+})
 
 CACHE = {}
 ERRORS = []
 API_CALLS = 0
 API_BLOCKED = False
 LAST_CALL = None
-CONSECUTIVE_FAILS = 0
 
 NUMBERS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣",
            "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
@@ -158,15 +173,6 @@ def add_error(message):
     print(f"DIAGNOSTIC : {message}", flush=True)
 
 
-def note_failure():
-    global CONSECUTIVE_FAILS, API_BLOCKED
-    CONSECUTIVE_FAILS += 1
-
-    if CONSECUTIVE_FAILS >= MAX_CONSECUTIVE_FAILS:
-        API_BLOCKED = True
-        add_error("Trop d'échecs consécutifs : analyse arrêtée.")
-
-
 def diagnostics_text():
     return (
         "\n\n🛠️ Diagnostic : " + " ; ".join(ERRORS[:2])
@@ -176,7 +182,7 @@ def diagnostics_text():
 # ---------------- API ----------------
 
 def api_get(endpoint, params=None):
-    global API_CALLS, API_BLOCKED, LAST_CALL, CONSECUTIVE_FAILS
+    global API_CALLS, API_BLOCKED, LAST_CALL
 
     params = params or {}
     cache_key = (endpoint, tuple(sorted(params.items())))
@@ -198,7 +204,6 @@ def api_get(endpoint, params=None):
 
         if LAST_CALL is not None:
             wait = MIN_INTERVAL - (time.monotonic() - LAST_CALL)
-
             if wait > 0:
                 time.sleep(wait)
 
@@ -209,7 +214,6 @@ def api_get(endpoint, params=None):
         try:
             response = SESSION.get(
                 f"{BASE_URL}/{endpoint}",
-                headers={"X-Auth-Token": API_KEY},
                 params=params,
                 timeout=REQUEST_TIMEOUT,
             )
@@ -220,88 +224,131 @@ def api_get(endpoint, params=None):
                 time.sleep(min(2 ** attempt, 8))
                 continue
 
-            note_failure()
             return None
 
         if response.status_code == 429:
-            if attempt < MAX_RETRIES:
-                retry_after = response.headers.get("Retry-After", "")
-
-                try:
-                    pause = max(60, int(retry_after))
-                except (TypeError, ValueError):
-                    pause = 60
-
-                add_error(f"{endpoint} : quota atteint, pause {pause} s.")
-                time.sleep(pause)
-                continue
-
-            add_error(f"{endpoint} : quota API dépassé.")
+            add_error(f"{endpoint} : quota API atteint.")
             API_BLOCKED = True
             return None
 
-        if response.status_code == 401:
-            add_error("Clé API refusée (401).")
+        if response.status_code in (401, 403):
+            add_error("Clé API refusée ou invalide.")
             API_BLOCKED = True
             return None
 
         if not response.ok:
             add_error(f"{endpoint} : HTTP {response.status_code}.")
-            note_failure()
             return None
 
         try:
             payload = response.json()
         except ValueError:
             add_error(f"{endpoint} : JSON invalide.")
-            note_failure()
             return None
 
-        if not isinstance(payload, dict):
-            add_error(f"{endpoint} : format de réponse invalide.")
-            note_failure()
-            return None
-
-        CONSECUTIVE_FAILS = 0
         CACHE[cache_key] = payload
         return payload
 
     return None
 
 
-# ---------------- FIXTURES ----------------
+# ---------------- OUTILS ----------------
 
-def kickoff_of(match):
-    raw = match["utcDate"]
-    return datetime.fromisoformat(
-        raw.replace("Z", "+00:00")
-    ).astimezone(PARIS)
+def clamp_probability(p):
+    return max(PROB_MIN, min(PROB_MAX, p))
 
+
+def normalize(text):
+    return str(text or "").strip().lower()
+
+
+def league_name(fixture):
+    league = fixture.get("league") or {}
+    competition = fixture.get("competition") or {}
+
+    raw_name = (
+        league.get("name")
+        or competition.get("name")
+        or ""
+    )
+
+    return LEAGUE_NAMES.get(
+        normalize(raw_name),
+        raw_name,
+    )
+
+
+def kickoff_of(fixture):
+    raw = (
+        fixture.get("startTime")
+        or fixture.get("start_time")
+        or fixture.get("date")
+        or fixture.get("kickoff_time")
+    )
+
+    if not raw:
+        raise ValueError("Date de match absente.")
+
+    if raw.endswith("Z"):
+        raw = raw.replace("Z", "+00:00")
+
+    return datetime.fromisoformat(raw).astimezone(PARIS)
+
+
+def fixture_id(fixture):
+    return (
+        fixture.get("id")
+        or fixture.get("fixtureId")
+        or fixture.get("matchId")
+    )
+
+
+def home_team(fixture):
+    return fixture.get("homeTeam") or fixture.get("home") or {}
+
+
+def away_team(fixture):
+    return fixture.get("awayTeam") or fixture.get("away") or {}
+
+
+def team_name(team):
+    return (
+        team.get("name")
+        or team.get("shortName")
+        or "Équipe"
+    )
+
+
+def team_id(team):
+    return team.get("id") or team.get("teamId")
+
+
+# ---------------- MATCHS DU JOUR ----------------
 
 def get_today_fixtures():
     now = datetime.now(PARIS)
     today = now.date()
 
-    data = api_get("matches", {
-        "dateFrom": today.isoformat(),
-        "dateTo": (today + timedelta(days=1)).isoformat(),
-    })
+    data = api_get(f"fixtures/date/{today.isoformat()}")
 
-    matches = data.get("matches") if isinstance(data, dict) else None
-
-    if not isinstance(matches, list):
-        return None, 0
+    if not isinstance(data, list):
+        if isinstance(data, dict):
+            data = (
+                data.get("fixtures")
+                or data.get("matches")
+                or data.get("response")
+                or []
+            )
+        else:
+            data = []
 
     selected = []
-    seen = set()
-    observed_codes = set()
 
-    for fixture in matches:
+    for fixture in data:
         try:
-            code = fixture["competition"]["code"]
-            observed_codes.add(code)
+            name = league_name(fixture)
 
-            if code not in LEAGUES:
+            if name not in LEAGUE_PRIORITY:
                 continue
 
             kickoff = kickoff_of(fixture)
@@ -309,253 +356,204 @@ def get_today_fixtures():
             if kickoff.date() != today:
                 continue
 
-            if fixture.get("status") not in {"TIMED", "SCHEDULED"}:
-                continue
-
             if kickoff <= now:
                 continue
 
-            fixture_id = fixture["id"]
-
-            if fixture_id in seen:
+            if not fixture_id(fixture):
                 continue
 
-            seen.add(fixture_id)
+            if not team_id(home_team(fixture)):
+                continue
+
+            if not team_id(away_team(fixture)):
+                continue
+
             selected.append(fixture)
 
         except (KeyError, TypeError, ValueError):
             continue
 
-    selected.sort(key=kickoff_of)
+    def priority(fixture):
+        return LEAGUE_PRIORITY.get(
+            league_name(fixture),
+            5,
+        )
 
-    if not selected:
-        if not matches:
-            add_error(
-                "L'API n'a retourné aucun match pour la période interrogée "
-                f"({today.isoformat()} à {(today + timedelta(days=1)).isoformat()})."
-            )
-        elif not observed_codes.intersection(LEAGUES):
-            add_error(
-                "Des matchs existent dans la réponse, mais aucun ne correspond "
-                "aux codes de compétitions configurés. Codes reçus : "
-                + ", ".join(sorted(observed_codes)[:12])
-            )
-        else:
-            add_error(
-                "Matchs reçus, mais aucun match à venir aujourd'hui à Paris "
-                "dans les compétitions configurées."
-            )
+    selected.sort(key=lambda x: (
+        priority(x),
+        kickoff_of(x),
+    ))
 
-    return selected, len(matches)
+    return selected[:CANDIDATE_MATCHES], len(data)
 
 
-# ---------------- HISTORIQUE ET STATS ----------------
+# ---------------- CLASSEMENT ET FORME ----------------
 
-def get_league_prior(code):
-    key = ("prior", code)
+def find_team_row(standings, team_id_value, team_name_value):
+    rows = []
 
-    if key in CACHE:
-        return CACHE[key]
+    def collect(value):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key in ("team", "home", "away") and isinstance(item, dict):
+                    row_id = item.get("id") or item.get("teamId")
+                    row_name = item.get("name") or item.get("shortName")
 
-    prior = DEFAULT_GOALS
-    data = api_get(f"competitions/{code}/standings")
+                    if row_id == team_id_value or (
+                        row_name
+                        and normalize(row_name) == normalize(team_name_value)
+                    ):
+                        rows.append(value)
 
-    if isinstance(data, dict):
-        goals = 0
-        played = 0
+                collect(item)
 
-        for block in data.get("standings") or []:
-            if block.get("type") != "TOTAL":
-                continue
+        elif isinstance(value, list):
+            for item in value:
+                collect(item)
 
-            for row in block.get("table") or []:
-                try:
-                    goals += int(row.get("goalsFor") or 0)
-                    played += int(row.get("playedGames") or 0)
-                except (TypeError, ValueError):
-                    continue
-
-        if played >= 20:
-            prior = goals / played
-
-    prior = max(0.9, min(2.2, prior))
-    CACHE[key] = prior
-    return prior
+    collect(standings)
+    return rows[0] if rows else None
 
 
-def regular_goals(match):
-    score = match.get("score") or {}
-    regular = score.get("regularTime") or {}
+def get_number(row, *keys):
+    value = row
 
-    if regular.get("home") is not None and regular.get("away") is not None:
-        return int(regular["home"]), int(regular["away"])
+    for key in keys:
+        if not isinstance(value, dict):
+            return None
 
-    if score.get("duration") in ("EXTRA_TIME", "PENALTY_SHOOTOUT"):
+        value = value.get(key)
+
+    try:
+        if value is None:
+            return None
+
+        return float(value)
+    except (TypeError, ValueError):
         return None
 
-    full = score.get("fullTime") or {}
 
-    if full.get("home") is not None and full.get("away") is not None:
-        return int(full["home"]), int(full["away"])
+def team_form(row):
+    form = (
+        row.get("form")
+        or row.get("recentForm")
+        or row.get("lastMatches")
+        or []
+    )
 
-    return None
+    if isinstance(form, str):
+        form = list(form)
+
+    return form[:6]
 
 
-def get_team_history(team_id):
-    now = datetime.now(PARIS)
+def form_goals(form, team_name_value):
+    scored = 0
+    conceded = 0
+    btts = 0
+    over15 = 0
+    played = 0
 
-    data = api_get(f"teams/{team_id}/matches", {
-        "status": "FINISHED",
-        "dateFrom": (now.date() - timedelta(days=HISTORY_DAYS)).isoformat(),
-        "dateTo": now.date().isoformat(),
-        "limit": 100,
-    })
-
-    raw_matches = data.get("matches") if isinstance(data, dict) else None
-
-    if not isinstance(raw_matches, list):
-        return None
-
-    unique = {}
-
-    for match in raw_matches:
-        try:
-            if match.get("status") != "FINISHED":
-                continue
-
-            goals = regular_goals(match)
-
-            if goals is None:
-                continue
-
-            date = kickoff_of(match)
-
-            if date > now:
-                continue
-
-            home_id = match["homeTeam"]["id"]
-            away_id = match["awayTeam"]["id"]
-
-            if team_id == home_id:
-                venue, gf, ga = "home", goals[0], goals[1]
-            elif team_id == away_id:
-                venue, gf, ga = "away", goals[1], goals[0]
-            else:
-                continue
-
-            unique[match["id"]] = {
-                "gf": gf,
-                "ga": ga,
-                "date": date,
-                "venue": venue,
-            }
-
-        except (KeyError, TypeError, ValueError, AttributeError):
+    for match in form:
+        if not isinstance(match, dict):
             continue
 
-    return sorted(unique.values(), key=lambda x: x["date"], reverse=True)
+        home_name = team_name(match.get("homeTeam") or match.get("home") or {})
+        away_name = team_name(match.get("awayTeam") or match.get("away") or {})
 
+        home_goals = get_number(match, "homeScore") or get_number(
+            match, "score", "home"
+        )
+        away_goals = get_number(match, "awayScore") or get_number(
+            match, "score", "away"
+        )
 
-METRICS = ("gf", "ga", "scored", "conceded", "btts")
+        if home_goals is None or away_goals is None:
+            continue
 
+        played += 1
 
-def shrink(value, n, prior, k):
-    return (value * n + prior * k) / (n + k)
+        if normalize(home_name) == normalize(team_name_value):
+            gf, ga = home_goals, away_goals
+        else:
+            gf, ga = away_goals, home_goals
 
+        scored += gf
+        conceded += ga
 
-def weighted_stats(matches):
-    weights = [DECAY ** index for index in range(len(matches))]
-    total = sum(weights)
+        if gf > 0 and ga > 0:
+            btts += 1
 
-    def average(function):
-        return sum(
-            w * function(m)
-            for w, m in zip(weights, matches)
-        ) / total
+        if gf + ga >= 2:
+            over15 += 1
 
-    return {
-        "n": len(matches),
-        "gf": average(lambda m: m["gf"]),
-        "ga": average(lambda m: m["ga"]),
-        "scored": average(lambda m: 1.0 if m["gf"] > 0 else 0.0),
-        "conceded": average(lambda m: 1.0 if m["ga"] > 0 else 0.0),
-        "btts": average(
-            lambda m: 1.0 if m["gf"] > 0 and m["ga"] > 0 else 0.0
-        ),
-    }
-
-
-def build_profile(history, venue, prior):
-    recent = history[:OVERALL_N]
-
-    if len(recent) < MIN_OVERALL:
+    if played == 0:
         return None
 
-    overall = weighted_stats(recent)
-    same_venue = [
-        m for m in history if m["venue"] == venue
-    ][:VENUE_N]
-
-    if same_venue:
-        local = weighted_stats(same_venue)
-        blended = {
-            key: shrink(
-                local[key],
-                local["n"],
-                overall[key],
-                VENUE_SHRINK,
-            )
-            for key in METRICS
-        }
-    else:
-        blended = {key: overall[key] for key in METRICS}
-
-    prior_scored = 1.0 - math.exp(-prior)
-
-    references = {
-        "gf": prior,
-        "ga": prior,
-        "scored": prior_scored,
-        "conceded": prior_scored,
-        "btts": prior_scored ** 2,
+    return {
+        "played": played,
+        "gf": scored / played,
+        "ga": conceded / played,
+        "btts": btts / played,
+        "over15": over15 / played,
     }
 
-    profile = {
-        key: shrink(
-            blended[key],
-            overall["n"],
-            references[key],
-            PRIOR_SHRINK,
+
+def get_team_profile(league_id, team):
+    team_id_value = team_id(team)
+    name = team_name(team)
+
+    data = api_get(f"standings/{league_id}")
+
+    if not data:
+        return None
+
+    row = find_team_row(data, team_id_value, name)
+
+    if not row:
+        return None
+
+    form = form_goals(team_form(row), name)
+
+    if not form or form["played"] < 4:
+        return None
+
+    gf = get_number(row, "goalsFor") or get_number(
+        row, "all", "goals", "for"
+    )
+    ga = get_number(row, "goalsAgainst") or get_number(
+        row, "all", "goals", "against"
+    )
+    played = get_number(row, "played") or get_number(
+        row, "all", "played"
+    )
+
+    if gf is not None and ga is not None and played and played >= 6:
+        season_gf = gf / played
+        season_ga = ga / played
+
+        profile_gf = (form["gf"] * form["played"] + season_gf * 6) / (
+            form["played"] + 6
         )
-        for key in METRICS
+        profile_ga = (form["ga"] * form["played"] + season_ga * 6) / (
+            form["played"] + 6
+        )
+    else:
+        profile_gf = form["gf"]
+        profile_ga = form["ga"]
+
+    return {
+        "name": name,
+        "gf": profile_gf,
+        "ga": profile_ga,
+        "btts": form["btts"],
+        "over15": form["over15"],
+        "played": form["played"],
+        "form": form,
     }
 
-    profile.update({
-        "n": overall["n"],
-        "n_venue": len(same_venue),
-        "btts_count": sum(
-            1 for m in recent
-            if m["gf"] > 0 and m["ga"] > 0
-        ),
-        "scored_count": sum(
-            1 for m in recent if m["gf"] > 0
-        ),
-        "conceded_count": sum(
-            1 for m in recent if m["ga"] > 0
-        ),
-        "over15_count": sum(
-            1 for m in recent
-            if m["gf"] + m["ga"] >= 2
-        ),
-        "last_date": history[0]["date"],
-    })
 
-    return profile
-
-
-def clamp_probability(p):
-    return max(PROB_MIN, min(PROB_MAX, p))
-
+# ---------------- MODÈLE ----------------
 
 def poisson_markets(lambda_home, lambda_away):
     p_home_scores = 1.0 - math.exp(-lambda_home)
@@ -575,98 +573,62 @@ def poisson_markets(lambda_home, lambda_away):
 
 
 def analyse_fixture(fixture):
-    home_team = fixture.get("homeTeam") or {}
-    away_team = fixture.get("awayTeam") or {}
+    league = fixture.get("league") or {}
     competition = fixture.get("competition") or {}
-    code = competition.get("code")
 
-    if not home_team.get("id") or not away_team.get("id") or not code:
+    league_id = (
+        league.get("id")
+        or competition.get("id")
+        or fixture.get("leagueId")
+    )
+
+    if not league_id:
         return None
 
-    prior = get_league_prior(code)
-    home_history = get_team_history(home_team["id"])
-    away_history = get_team_history(away_team["id"])
+    home = home_team(fixture)
+    away = away_team(fixture)
 
-    if not home_history or not away_history:
+    home_profile = get_team_profile(league_id, home)
+    away_profile = get_team_profile(league_id, away)
+
+    if not home_profile or not away_profile:
         return None
-
-    home = build_profile(home_history, "home", prior)
-    away = build_profile(away_history, "away", prior)
-
-    if not home or not away:
-        return None
-
-    kickoff = kickoff_of(fixture)
-
-    for profile in (home, away):
-        if (kickoff - profile["last_date"]).days > MAX_STALE_DAYS:
-            return None
 
     lambda_home = max(
         0.2,
-        min(3.5, (home["gf"] + away["ga"]) / 2),
+        min(3.5, (home_profile["gf"] + away_profile["ga"]) / 2),
     )
+
     lambda_away = max(
         0.2,
-        min(3.5, (away["gf"] + home["ga"]) / 2),
+        min(3.5, (away_profile["gf"] + home_profile["ga"]) / 2),
     )
 
     poisson = poisson_markets(lambda_home, lambda_away)
 
-    # BTTS : Poisson + fréquences observées + historique BTTS
-    p_rates = (
-        (home["scored"] + away["conceded"]) / 2
-    ) * (
-        (away["scored"] + home["conceded"]) / 2
-    )
-
-    p_history = (home["btts"] + away["btts"]) / 2
+    p_btts_form = (
+        home_profile["btts"] + away_profile["btts"]
+    ) / 2
 
     p_btts = (
         W_POISSON * poisson["btts_poisson"]
-        + W_RATES * p_rates
-        + W_HISTORY * p_history
+        + W_FORM * p_btts_form
     )
     p_btts = clamp_probability(p_btts)
 
-    # Over 1,5 : Poisson + fréquence réelle de matchs à 2+ buts
-    p_over_history = (
-        home["over15_count"] + away["over15_count"]
-    ) / (home["n"] + away["n"])
+    p_over_form = (
+        home_profile["over15"] + away_profile["over15"]
+    ) / 2
 
     p_over_15 = (
         W_OVER_POISSON * poisson["over_15"]
-        + W_OVER_HISTORY * p_over_history
+        + W_OVER_FORM * p_over_form
     )
     p_over_15 = clamp_probability(p_over_15)
 
-    home_name = (
-        home_team.get("shortName")
-        or home_team.get("name")
-        or "Domicile"
-    )
-    away_name = (
-        away_team.get("shortName")
-        or away_team.get("name")
-        or "Extérieur"
-    )
-    league = LEAGUES.get(code, competition.get("name") or code)
-
-    warnings = []
-
-    for name, profile in ((home_name, home), (away_name, away)):
-        rest_hours = (
-            kickoff - profile["last_date"]
-        ).total_seconds() / 3600
-
-        if 0 < rest_hours < SHORT_REST_HOURS:
-            warnings.append(f"repos court : {name}")
-
-    if min(home["n"], away["n"]) < GOOD_SAMPLE:
-        warnings.append("échantillon limité")
-
-    if min(home["n_venue"], away["n_venue"]) < MIN_VENUE:
-        warnings.append("peu de matchs domicile/extérieur")
+    home_name = team_name(home)
+    away_name = team_name(away)
+    league_display = league_name(fixture)
 
     markets = {
         "home_over_05": poisson["home_over_05"],
@@ -677,34 +639,34 @@ def analyse_fixture(fixture):
 
     details = {
         "btts": {
-            "home": f"{home['btts_count']}/{home['n']}",
-            "away": f"{away['btts_count']}/{away['n']}",
+            "home": f"{round(home_profile['btts'] * 100)} %",
+            "away": f"{round(away_profile['btts'] * 100)} %",
         },
         "home_over_05": {
-            "home": f"{home['scored_count']}/{home['n']}",
-            "away": f"{away['conceded_count']}/{away['n']}",
+            "home": f"{home_profile['gf']:.2f} but/match",
+            "away": f"{away_profile['ga']:.2f} but/match",
         },
         "away_over_05": {
-            "home": f"{away['scored_count']}/{away['n']}",
-            "away": f"{home['conceded_count']}/{home['n']}",
+            "home": f"{away_profile['gf']:.2f} but/match",
+            "away": f"{home_profile['ga']:.2f} but/match",
         },
         "over_15": {
-            "home": f"{home['over15_count']}/{home['n']}",
-            "away": f"{away['over15_count']}/{away['n']}",
+            "home": f"{round(home_profile['over15'] * 100)} %",
+            "away": f"{round(away_profile['over15'] * 100)} %",
         },
     }
 
     return {
-        "id": fixture["id"],
+        "id": fixture_id(fixture),
         "match": f"{home_name} - {away_name}",
         "home": home_name,
         "away": away_name,
-        "league": league,
-        "kickoff": kickoff,
+        "league": league_display,
+        "kickoff": kickoff_of(fixture),
         "markets": markets,
         "details": details,
-        "warnings": warnings,
-        "sample": f"{home['n']} matchs récents par équipe",
+        "warnings": [],
+        "sample": f"{home_profile['played']} matchs de forme",
         "lambdas": (lambda_home, lambda_away),
     }
 
@@ -717,7 +679,7 @@ def build_candidates(fixtures):
     partial = False
 
     for fixture in fixtures:
-        if API_BLOCKED or API_CALLS + 3 > MAX_API_CALLS:
+        if API_BLOCKED or API_CALLS + 2 > MAX_API_CALLS:
             partial = True
             break
 
@@ -792,13 +754,11 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
                 percent,
             )
 
-    # Maximum 2 meilleurs marchés par match
     for match_id in matches:
         markets = matches[match_id]["markets"]
         markets.sort(key=lambda x: x[1], reverse=True)
         matches[match_id]["markets"] = markets[:MAX_MARKETS_PER_MATCH]
 
-    # Maximum 10 matchs, classés par meilleure probabilité
     ordered_all = sorted(
         matches.values(),
         key=lambda entry: (
@@ -809,8 +769,6 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
     )
 
     selected_matches = ordered_all[:MAX_MATCHES]
-
-    # Remettre les matchs dans l’ordre chronologique
     selected_matches.sort(
         key=lambda entry: entry["item"]["kickoff"]
     )
@@ -847,7 +805,7 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
                 away_stat = details.get("away", "N/A")
 
                 lines.append(
-                    f"📊 Derniers matchs : {home_stat} et {away_stat}"
+                    f"📊 Forme : {home_stat} et {away_stat}"
                 )
 
                 lambda_home, lambda_away = item.get(
@@ -899,7 +857,8 @@ def main():
         raise RuntimeError("API_KEY absent.")
 
     today = datetime.now(PARIS).strftime("%d/%m/%Y")
-    fixtures, _ = get_today_fixtures()
+
+    fixtures, total = get_today_fixtures()
 
     if fixtures is None:
         send_message(
@@ -924,7 +883,7 @@ def main():
             today,
             candidates,
             analysed,
-            len(fixtures),
+            total,
             partial,
         )
     )
