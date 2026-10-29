@@ -9,7 +9,7 @@ import requests
 # ============================================================
 # BOT FOOTBALL — BTTS / ÉQUIPE +0,5 / OVER 1,5
 # API : SportAPI (sportapi.ai)
-# Plan gratuit : 2 000 requêtes/jour, 14 000/mois
+# Plan gratuit : 2 000 requêtes/jour
 # Publication : Telegram
 # ============================================================
 
@@ -30,53 +30,24 @@ MIN_INTERVAL = 0.5
 MAX_RETRIES = 2
 REQUEST_TIMEOUT = 25
 
-# Ligues suivies : on filtre par nom car les IDs peuvent varier
-LEAGUE_NAMES = {
-    "premier league": "Premier League",
-    "la liga": "La Liga",
-    "laliga": "La Liga",
-    "serie a": "Serie A",
-    "bundesliga": "Bundesliga",
-    "ligue 1": "Ligue 1",
-    "uefa champions league": "Ligue des Champions",
-    "champions league": "Ligue des Champions",
-    "uefa europa league": "Ligue Europa",
-    "europa league": "Ligue Europa",
-    "uefa conference league": "Conference League",
-    "conference league": "Conference League",
-    "primeira liga": "Primeira Liga",
-    "eredivisie": "Eredivisie",
-    "jupiler pro league": "Jupiler Pro League",
-    "süper lig": "Süper Lig",
-    "super lig": "Süper Lig",
-    "swiss super league": "Super League Suisse",
-    "austrian football bundesliga": "Bundesliga Autriche",
-    "ekstraklasa": "Ekstraklasa",
-    "allsvenskan": "Allsvenskan",
-    "eliteserien": "Eliteserien",
-    "brasileirão série a": "Brasileirão",
-    "brasileirao serie a": "Brasileirão",
-}
-
-LEAGUE_PRIORITY = {
+LEAGUES = {
     "Premier League": 1,
-    "La Liga": 1,
+    "Spanish La Liga": 1,
     "Serie A": 1,
     "Bundesliga": 1,
     "Ligue 1": 1,
-    "Ligue des Champions": 1,
-    "Ligue Europa": 2,
-    "Conference League": 2,
+    "UEFA Champions League": 1,
+    "UEFA Europa League": 2,
+    "UEFA Conference League": 2,
     "Primeira Liga": 2,
     "Eredivisie": 2,
     "Jupiler Pro League": 3,
     "Süper Lig": 3,
-    "Super League Suisse": 3,
-    "Bundesliga Autriche": 3,
+    "Swiss Super League": 3,
+    "Austrian Football Bundesliga": 3,
     "Ekstraklasa": 4,
     "Allsvenskan": 4,
     "Eliteserien": 4,
-    "Brasileirão": 4,
 }
 
 W_POISSON = 0.55
@@ -92,7 +63,7 @@ DEFAULT_GOALS = 1.35
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY or "",
-    "User-Agent": "football-stat-bot-sportapi/1.0",
+    "User-Agent": "football-bot-sportapi/1.0",
 })
 
 CACHE = {}
@@ -116,23 +87,15 @@ MARKET_LABELS = {
 
 def send_message(text):
     if not TOKEN or not CHAT_ID:
-        raise RuntimeError("Secret TELEGRAM_TOKEN ou CHAT_ID absent.")
+        raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
 
     chunks = []
     current = ""
 
     for line in text.splitlines(keepends=True):
-        while len(line) > 3500:
-            if current:
-                chunks.append(current)
-                current = ""
-            chunks.append(line[:3500])
-            line = line[3500:]
-
         if len(current) + len(line) > 3500:
             chunks.append(current)
             current = ""
-
         current += line
 
     if current:
@@ -145,12 +108,7 @@ def send_message(text):
             timeout=REQUEST_TIMEOUT,
         )
 
-        try:
-            payload = response.json()
-        except ValueError:
-            payload = {}
-
-        if not response.ok or not payload.get("ok"):
+        if not response.ok:
             raise RuntimeError(
                 f"Erreur Telegram : HTTP {response.status_code}"
             )
@@ -161,9 +119,10 @@ def send_message(text):
 def add_error(message):
     message = str(message)
 
-    for secret in (API_KEY, TOKEN):
-        if secret:
-            message = message.replace(secret, "[MASQUÉ]")
+    if API_KEY:
+        message = message.replace(API_KEY, "[MASQUÉ]")
+    if TOKEN:
+        message = message.replace(TOKEN, "[MASQUÉ]")
 
     message = message[:200]
 
@@ -181,25 +140,22 @@ def diagnostics_text():
 
 # ---------------- API ----------------
 
-def api_get(endpoint, params=None):
+def api_get(endpoint):
     global API_CALLS, API_BLOCKED, LAST_CALL
 
-    params = params or {}
-    cache_key = (endpoint, tuple(sorted(params.items())))
-
-    if cache_key in CACHE:
-        return CACHE[cache_key]
+    if endpoint in CACHE:
+        return CACHE[endpoint]
 
     if API_BLOCKED:
         return None
 
     if not API_KEY:
-        add_error("Secret API_KEY absent.")
+        add_error("API_KEY absent.")
         return None
 
     for attempt in range(MAX_RETRIES + 1):
         if API_CALLS >= MAX_API_CALLS:
-            add_error("Budget maximal d'appels API atteint.")
+            add_error("Limite d'appels API atteinte.")
             return None
 
         if LAST_CALL is not None:
@@ -214,7 +170,6 @@ def api_get(endpoint, params=None):
         try:
             response = SESSION.get(
                 f"{BASE_URL}/{endpoint}",
-                params=params,
                 timeout=REQUEST_TIMEOUT,
             )
         except requests.RequestException as exc:
@@ -227,12 +182,12 @@ def api_get(endpoint, params=None):
             return None
 
         if response.status_code == 429:
-            add_error(f"{endpoint} : quota API atteint.")
+            add_error(f"{endpoint} : quota SportAPI atteint.")
             API_BLOCKED = True
             return None
 
         if response.status_code in (401, 403):
-            add_error("Clé API refusée ou invalide.")
+            add_error("Clé SportAPI invalide ou refusée.")
             API_BLOCKED = True
             return None
 
@@ -246,7 +201,11 @@ def api_get(endpoint, params=None):
             add_error(f"{endpoint} : JSON invalide.")
             return None
 
-        CACHE[cache_key] = payload
+        if not isinstance(payload, dict) or not payload.get("success"):
+            add_error(f"{endpoint} : réponse API invalide.")
+            return None
+
+        CACHE[endpoint] = payload
         return payload
 
     return None
@@ -254,302 +213,172 @@ def api_get(endpoint, params=None):
 
 # ---------------- OUTILS ----------------
 
-def clamp_probability(p):
-    return max(PROB_MIN, min(PROB_MAX, p))
+def clamp_probability(value):
+    return max(PROB_MIN, min(PROB_MAX, value))
 
 
-def normalize(text):
-    return str(text or "").strip().lower()
-
-
-def league_name(fixture):
-    league = fixture.get("league") or {}
-    competition = fixture.get("competition") or {}
-
-    raw_name = (
-        league.get("name")
-        or competition.get("name")
-        or ""
-    )
-
-    return LEAGUE_NAMES.get(
-        normalize(raw_name),
-        raw_name,
-    )
-
-
-def kickoff_of(fixture):
-    raw = (
-        fixture.get("startTime")
-        or fixture.get("start_time")
-        or fixture.get("date")
-        or fixture.get("kickoff_time")
-    )
+def parse_kickoff(fixture):
+    raw = fixture.get("kickoff_utc")
 
     if not raw:
-        raise ValueError("Date de match absente.")
+        return None
 
-    if raw.endswith("Z"):
-        raw = raw.replace("Z", "+00:00")
-
-    return datetime.fromisoformat(raw).astimezone(PARIS)
-
-
-def fixture_id(fixture):
-    return (
-        fixture.get("id")
-        or fixture.get("fixtureId")
-        or fixture.get("matchId")
-    )
-
-
-def home_team(fixture):
-    return fixture.get("homeTeam") or fixture.get("home") or {}
-
-
-def away_team(fixture):
-    return fixture.get("awayTeam") or fixture.get("away") or {}
-
-
-def team_name(team):
-    return (
-        team.get("name")
-        or team.get("shortName")
-        or "Équipe"
-    )
-
-
-def team_id(team):
-    return team.get("id") or team.get("teamId")
+    return datetime.fromisoformat(
+        raw.replace("Z", "+00:00")
+    ).astimezone(PARIS)
 
 
 # ---------------- MATCHS DU JOUR ----------------
 
 def get_today_fixtures():
     now = datetime.now(PARIS)
-    today = now.date()
+    today = now.date().isoformat()
 
-    data = api_get(f"fixtures/date/{today.isoformat()}")
+    payload = api_get(f"fixtures/date/{today}")
 
-    if not isinstance(data, list):
-        if isinstance(data, dict):
-            data = (
-                data.get("fixtures")
-                or data.get("matches")
-                or data.get("response")
-                or []
-            )
-        else:
-            data = []
+    if not payload:
+        return [], 0
+
+    fixtures = payload.get("data") or []
 
     selected = []
 
-    for fixture in data:
+    for fixture in fixtures:
         try:
-            name = league_name(fixture)
+            league_name = fixture.get("league_name") or ""
+            kickoff = parse_kickoff(fixture)
+            status = fixture.get("status")
 
-            if name not in LEAGUE_PRIORITY:
+            if league_name not in LEAGUES:
                 continue
 
-            kickoff = kickoff_of(fixture)
+            if not kickoff:
+                continue
 
-            if kickoff.date() != today:
+            if kickoff.date() != now.date():
+                continue
+
+            if status != "Scheduled":
                 continue
 
             if kickoff <= now:
                 continue
 
-            if not fixture_id(fixture):
-                continue
-
-            if not team_id(home_team(fixture)):
-                continue
-
-            if not team_id(away_team(fixture)):
+            if not fixture.get("home_id") or not fixture.get("away_id"):
                 continue
 
             selected.append(fixture)
 
-        except (KeyError, TypeError, ValueError):
+        except (TypeError, ValueError):
             continue
 
-    def priority(fixture):
-        return LEAGUE_PRIORITY.get(
-            league_name(fixture),
-            5,
-        )
+    selected.sort(key=lambda x: parse_kickoff(x))
 
-    selected.sort(key=lambda x: (
-        priority(x),
-        kickoff_of(x),
-    ))
+    selected = selected[:CANDIDATE_MATCHES]
 
-    return selected[:CANDIDATE_MATCHES], len(data)
+    print(
+        f"Matchs SportAPI reçus : {len(fixtures)} ; "
+        f"matchs retenus : {len(selected)}",
+        flush=True,
+    )
+
+    return selected, len(fixtures)
 
 
 # ---------------- CLASSEMENT ET FORME ----------------
 
-def find_team_row(standings, team_id_value, team_name_value):
-    rows = []
+def get_standings(league_id):
+    payload = api_get(f"standings/{league_id}")
 
-    def collect(value):
-        if isinstance(value, dict):
-            for key, item in value.items():
-                if key in ("team", "home", "away") and isinstance(item, dict):
-                    row_id = item.get("id") or item.get("teamId")
-                    row_name = item.get("name") or item.get("shortName")
+    if not payload:
+        return []
 
-                    if row_id == team_id_value or (
-                        row_name
-                        and normalize(row_name) == normalize(team_name_value)
-                    ):
-                        rows.append(value)
-
-                collect(item)
-
-        elif isinstance(value, list):
-            for item in value:
-                collect(item)
-
-    collect(standings)
-    return rows[0] if rows else None
+    return payload.get("data") or []
 
 
-def get_number(row, *keys):
-    value = row
+def find_team_row(rows, team_id):
+    for row in rows:
+        team = row.get("team") or {}
 
-    for key in keys:
-        if not isinstance(value, dict):
-            return None
+        if team.get("id") == team_id:
+            return row
 
-        value = value.get(key)
-
-    try:
-        if value is None:
-            return None
-
-        return float(value)
-    except (TypeError, ValueError):
-        return None
+    return None
 
 
-def team_form(row):
-    form = (
-        row.get("form")
-        or row.get("recentForm")
-        or row.get("lastMatches")
-        or []
-    )
-
-    if isinstance(form, str):
-        form = list(form)
-
-    return form[:6]
-
-
-def form_goals(form, team_name_value):
-    scored = 0
-    conceded = 0
-    btts = 0
-    over15 = 0
-    played = 0
-
-    for match in form:
-        if not isinstance(match, dict):
-            continue
-
-        home_name = team_name(match.get("homeTeam") or match.get("home") or {})
-        away_name = team_name(match.get("awayTeam") or match.get("away") or {})
-
-        home_goals = get_number(match, "homeScore") or get_number(
-            match, "score", "home"
-        )
-        away_goals = get_number(match, "awayScore") or get_number(
-            match, "score", "away"
-        )
-
-        if home_goals is None or away_goals is None:
-            continue
-
-        played += 1
-
-        if normalize(home_name) == normalize(team_name_value):
-            gf, ga = home_goals, away_goals
-        else:
-            gf, ga = away_goals, home_goals
-
-        scored += gf
-        conceded += ga
-
-        if gf > 0 and ga > 0:
-            btts += 1
-
-        if gf + ga >= 2:
-            over15 += 1
-
-    if played == 0:
-        return None
-
-    return {
-        "played": played,
-        "gf": scored / played,
-        "ga": conceded / played,
-        "btts": btts / played,
-        "over15": over15 / played,
-    }
-
-
-def get_team_profile(league_id, team):
-    team_id_value = team_id(team)
-    name = team_name(team)
-
-    data = api_get(f"standings/{league_id}")
-
-    if not data:
-        return None
-
-    row = find_team_row(data, team_id_value, name)
-
+def build_profile(row):
     if not row:
         return None
 
-    form = form_goals(team_form(row), name)
+    played = row.get("played") or 0
+    goals_for = row.get("goals_for") or 0
+    goals_against = row.get("goals_against") or 0
 
-    if not form or form["played"] < 4:
+    if played < 4:
         return None
 
-    gf = get_number(row, "goalsFor") or get_number(
-        row, "all", "goals", "for"
-    )
-    ga = get_number(row, "goalsAgainst") or get_number(
-        row, "all", "goals", "against"
-    )
-    played = get_number(row, "played") or get_number(
-        row, "all", "played"
-    )
+    season_gf = goals_for / played
+    season_ga = goals_against / played
 
-    if gf is not None and ga is not None and played and played >= 6:
-        season_gf = gf / played
-        season_ga = ga / played
+    form = row.get("form") or []
+    form = form[-6:]
 
-        profile_gf = (form["gf"] * form["played"] + season_gf * 6) / (
-            form["played"] + 6
-        )
-        profile_ga = (form["ga"] * form["played"] + season_ga * 6) / (
-            form["played"] + 6
-        )
+    form_gf = []
+    form_ga = []
+    btts = []
+    over15 = []
+
+    for match in form:
+        home_score = match.get("home_score")
+        away_score = match.get("away_score")
+
+        if home_score is None or away_score is None:
+            continue
+
+        home_score = float(home_score)
+        away_score = float(away_score)
+
+        if match.get("is_home"):
+            gf, ga = home_score, away_score
+        else:
+            gf, ga = away_score, home_score
+
+        form_gf.append(gf)
+        form_ga.append(ga)
+
+        btts.append(1.0 if gf > 0 and ga > 0 else 0.0)
+        over15.append(1.0 if gf + ga >= 2 else 0.0)
+
+    if len(form_gf) < 3:
+        profile_gf = season_gf
+        profile_ga = season_ga
+        profile_btts = 0.5
+        profile_over15 = 0.5
+        form_played = 0
     else:
-        profile_gf = form["gf"]
-        profile_ga = form["ga"]
+        form_played = len(form_gf)
+
+        form_gf_avg = sum(form_gf) / form_played
+        form_ga_avg = sum(form_ga) / form_played
+
+        profile_gf = (
+            form_gf_avg * form_played + season_gf * 6
+        ) / (form_played + 6)
+
+        profile_ga = (
+            form_ga_avg * form_played + season_ga * 6
+        ) / (form_played + 6)
+
+        profile_btts = sum(btts) / form_played
+        profile_over15 = sum(over15) / form_played
 
     return {
-        "name": name,
         "gf": profile_gf,
         "ga": profile_ga,
-        "btts": form["btts"],
-        "over15": form["over15"],
-        "played": form["played"],
-        "form": form,
+        "btts": profile_btts,
+        "over15": profile_over15,
+        "form_played": form_played,
+        "season_played": played,
     }
 
 
@@ -573,42 +402,37 @@ def poisson_markets(lambda_home, lambda_away):
 
 
 def analyse_fixture(fixture):
-    league = fixture.get("league") or {}
-    competition = fixture.get("competition") or {}
+    league_id = fixture.get("league_id")
+    home_id = fixture.get("home_id")
+    away_id = fixture.get("away_id")
 
-    league_id = (
-        league.get("id")
-        or competition.get("id")
-        or fixture.get("leagueId")
-    )
-
-    if not league_id:
+    if not league_id or not home_id or not away_id:
         return None
 
-    home = home_team(fixture)
-    away = away_team(fixture)
+    rows = get_standings(league_id)
 
-    home_profile = get_team_profile(league_id, home)
-    away_profile = get_team_profile(league_id, away)
+    home_row = find_team_row(rows, home_id)
+    away_row = find_team_row(rows, away_id)
 
-    if not home_profile or not away_profile:
+    home = build_profile(home_row)
+    away = build_profile(away_row)
+
+    if not home or not away:
         return None
 
     lambda_home = max(
         0.2,
-        min(3.5, (home_profile["gf"] + away_profile["ga"]) / 2),
+        min(3.5, (home["gf"] + away["ga"]) / 2),
     )
 
     lambda_away = max(
         0.2,
-        min(3.5, (away_profile["gf"] + home_profile["ga"]) / 2),
+        min(3.5, (away["gf"] + home["ga"]) / 2),
     )
 
     poisson = poisson_markets(lambda_home, lambda_away)
 
-    p_btts_form = (
-        home_profile["btts"] + away_profile["btts"]
-    ) / 2
+    p_btts_form = (home["btts"] + away["btts"]) / 2
 
     p_btts = (
         W_POISSON * poisson["btts_poisson"]
@@ -616,19 +440,13 @@ def analyse_fixture(fixture):
     )
     p_btts = clamp_probability(p_btts)
 
-    p_over_form = (
-        home_profile["over15"] + away_profile["over15"]
-    ) / 2
+    p_over_form = (home["over15"] + away["over15"]) / 2
 
     p_over_15 = (
         W_OVER_POISSON * poisson["over_15"]
         + W_OVER_FORM * p_over_form
     )
     p_over_15 = clamp_probability(p_over_15)
-
-    home_name = team_name(home)
-    away_name = team_name(away)
-    league_display = league_name(fixture)
 
     markets = {
         "home_over_05": poisson["home_over_05"],
@@ -639,34 +457,45 @@ def analyse_fixture(fixture):
 
     details = {
         "btts": {
-            "home": f"{round(home_profile['btts'] * 100)} %",
-            "away": f"{round(away_profile['btts'] * 100)} %",
+            "home": f"{round(home['btts'] * 100)} %",
+            "away": f"{round(away['btts'] * 100)} %",
         },
         "home_over_05": {
-            "home": f"{home_profile['gf']:.2f} but/match",
-            "away": f"{away_profile['ga']:.2f} but/match",
+            "home": f"{home['gf']:.2f} but/match",
+            "away": f"{away['ga']:.2f} but/match",
         },
         "away_over_05": {
-            "home": f"{away_profile['gf']:.2f} but/match",
-            "away": f"{home_profile['ga']:.2f} but/match",
+            "home": f"{away['gf']:.2f} but/match",
+            "away": f"{home['ga']:.2f} but/match",
         },
         "over_15": {
-            "home": f"{round(home_profile['over15'] * 100)} %",
-            "away": f"{round(away_profile['over15'] * 100)} %",
+            "home": f"{round(home['over15'] * 100)} %",
+            "away": f"{round(away['over15'] * 100)} %",
         },
     }
 
+    warnings = []
+
+    if home["form_played"] < 4 or away["form_played"] < 4:
+        warnings.append("forme limitée")
+
     return {
-        "id": fixture_id(fixture),
-        "match": f"{home_name} - {away_name}",
-        "home": home_name,
-        "away": away_name,
-        "league": league_display,
-        "kickoff": kickoff_of(fixture),
+        "id": fixture.get("id"),
+        "match": (
+            f"{fixture.get('home_team')} - "
+            f"{fixture.get('away_team')}"
+        ),
+        "home": fixture.get("home_team"),
+        "away": fixture.get("away_team"),
+        "league": fixture.get("league_name"),
+        "kickoff": parse_kickoff(fixture),
         "markets": markets,
         "details": details,
-        "warnings": [],
-        "sample": f"{home_profile['played']} matchs de forme",
+        "warnings": warnings,
+        "sample": (
+            f"{home['form_played']} matchs de forme / "
+            f"{home['season_played']} en saison"
+        ),
         "lambdas": (lambda_home, lambda_away),
     }
 
@@ -846,32 +675,21 @@ def build_message(today, candidates, analysed, total_fixtures, partial):
 
 def main():
     if not TOKEN or not CHAT_ID:
-        raise RuntimeError(
-            "Ajoute les secrets TELEGRAM_TOKEN et CHAT_ID."
-        )
+        raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
 
     if not API_KEY:
-        send_message(
-            "Bot football : secret GitHub API_KEY absent."
-        )
-        raise RuntimeError("API_KEY absent.")
+        send_message("Bot football : API_KEY absente.")
+        raise RuntimeError("API_KEY absente.")
 
     today = datetime.now(PARIS).strftime("%d/%m/%Y")
 
     fixtures, total = get_today_fixtures()
 
-    if fixtures is None:
-        send_message(
-            f"⚽ Analyse football — {today}\n\n"
-            "❌ Impossible de récupérer les matchs du jour."
-            + diagnostics_text()
-        )
-        return
-
     if not fixtures:
         send_message(
             f"⚽ Analyse football — {today}\n\n"
-            "😴 Aucun match à venir trouvé dans les championnats suivis."
+            "😴 Aucun match à venir trouvé dans les championnats suivis.\n\n"
+            f"Matchs reçus de SportAPI : {total}"
             + diagnostics_text()
         )
         return
