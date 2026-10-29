@@ -9,11 +9,17 @@ import requests
 
 # ============================================================
 # BOT FOOTBALL — SPORTAPI
-# Marchés : équipe marque / BTTS / Over 1,5
-# Publication : maximum 10 matchs sur Telegram
 #
-# Les probabilités sont des estimations non calibrées.
-# Ce code ne garantit ni résultat ni rentabilité.
+# - Tous les pays : aucune liste de championnats.
+# - Tous les matchs du jour encore à venir sont examinés,
+#   dans la limite du budget API.
+# - Statistiques du classement + forme récente si exploitable.
+# - Marchés : équipe marque, BTTS, Over 1,5.
+# - Seuil réel obligatoire : 70 % avant arrondi.
+# - Maximum 15 matchs distincts, 2 marchés par match.
+# - Objectif 10 minimum seulement si les critères le permettent.
+#
+# Modèle simple non calibré. Aucun pari n'est garanti.
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -23,95 +29,48 @@ API_KEY = os.getenv("API_KEY", "").strip()
 BASE_URL = "https://sportapi.ai/api"
 PARIS = ZoneInfo("Europe/Paris")
 
-MAX_MATCHES = 10
-MAX_MARKETS_PER_MATCH = 2
 MIN_PROBABILITY = 0.70
-MIN_SEASON_MATCHES = 6
+MIN_TARGET_MATCHES = 10
+MAX_MATCHES = 15
+MAX_MARKETS_PER_MATCH = 2
 
-MAX_API_CALLS = 80
+MIN_PLAYED = 6
+MIN_FORM_MATCHES = 4
+MAX_FORM_AGE_DAYS = 60
+
+MAX_API_CALLS = 150
 MIN_INTERVAL = 1.0
 TIMEOUT = 25
-
-# Noms exacts observés + variantes.
-# Cette liste n'est pas encore toute l'Europe.
-LEAGUES = {
-    "Premier League",
-    "English Premier League",
-    "Spanish La Liga",
-    "La Liga",
-    "Italian Serie A",
-    "Serie A",
-    "German Bundesliga",
-    "Bundesliga",
-    "French Ligue 1",
-    "Ligue 1",
-
-    "UEFA Champions League",
-    "UEFA Europa League",
-    "UEFA Conference League",
-    "UEFA Europa Conference League",
-    "UEFA Women's Champions League",
-
-    "Portuguese Primeira Liga",
-    "Primeira Liga",
-    "Dutch Eredivisie",
-    "Eredivisie",
-    "Belgian Pro League",
-    "Belgian First Division A",
-    "Jupiler Pro League",
-    "Turkish Super Lig",
-    "Süper Lig",
-    "Swiss Super League",
-    "Austrian Football Bundesliga",
-    "Austrian Bundesliga",
-    "Polish Ekstraklasa",
-    "Ekstraklasa",
-    "Swedish Allsvenskan",
-    "Allsvenskan",
-    "Norwegian Eliteserien",
-    "Eliteserien",
-    "Finnish Veikkausliiga",
-    "Veikkausliiga",
-
-    "English League Cup",
-    "Spanish Copa Del Rey",
-}
-
-LEAGUE_NAMES = {name.casefold() for name in LEAGUES}
 
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-bot-diagnostic/2.0",
+    "User-Agent": "football-world-bot/4.1",
 })
 
 CACHE = {}
 ERRORS = []
-API_CALLS = 0
+CALLS = 0
 LAST_CALL = None
-API_BLOCKED = False
-
-MARKETS = {
-    "home": "marque au moins un but",
-    "away": "marque au moins un but",
-    "btts": "BTTS — Oui",
-    "over15": "Plus de 1,5 but",
-}
+BLOCKED = False
 
 
-# ---------------- SECURITE / TELEGRAM ----------------
+# ---------------- SECURITE ET TELEGRAM ----------------
 
-def mask(value):
+def safe(value):
     text = str(value)
-    for secret in (API_KEY, TOKEN, CHAT_ID):
+
+    for secret in (TOKEN, API_KEY, CHAT_ID):
         if secret:
             text = text.replace(secret, "[MASQUE]")
+
     return text
 
 
-def log_error(message):
-    message = mask(message)[:400]
+def add_error(message):
+    message = safe(message)[:350]
     print("DIAGNOSTIC :", message, flush=True)
+
     if message not in ERRORS:
         ERRORS.append(message)
 
@@ -120,7 +79,6 @@ def send_message(text):
     if not TOKEN or not CHAT_ID:
         raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
 
-    # Découpage volontairement conservateur.
     for start in range(0, len(text), 3000):
         try:
             response = requests.post(
@@ -132,7 +90,7 @@ def send_message(text):
                 timeout=TIMEOUT,
             )
         except requests.RequestException:
-            raise RuntimeError("Erreur réseau Telegram.") from None
+            raise RuntimeError("Erreur reseau Telegram.") from None
 
         try:
             payload = response.json()
@@ -140,34 +98,36 @@ def send_message(text):
             payload = {}
 
         if not response.ok or not payload.get("ok"):
+            description = safe(
+                payload.get("description", "reponse invalide")
+            )
             raise RuntimeError(
-                f"Telegram : HTTP {response.status_code}, "
-                + mask(payload.get("description", "réponse invalide"))
+                f"Telegram HTTP {response.status_code} : "
+                f"{description}"
             )
 
 
 # ---------------- API ----------------
 
 def api_get(endpoint):
-    global API_CALLS, LAST_CALL, API_BLOCKED
+    global CALLS, LAST_CALL, BLOCKED
 
     if endpoint in CACHE:
         return CACHE[endpoint]
 
-    if API_BLOCKED or API_CALLS >= MAX_API_CALLS:
-        log_error("Budget API atteint ou accès bloqué.")
+    if BLOCKED or CALLS >= MAX_API_CALLS:
         return None
 
     if LAST_CALL is not None:
-        wait = MIN_INTERVAL - (time.monotonic() - LAST_CALL)
-        if wait > 0:
-            time.sleep(wait)
+        delay = MIN_INTERVAL - (time.monotonic() - LAST_CALL)
+        if delay > 0:
+            time.sleep(delay)
 
-    API_CALLS += 1
     LAST_CALL = time.monotonic()
+    CALLS += 1
 
     print(
-        f"API {API_CALLS}/{MAX_API_CALLS} : {endpoint}",
+        f"API {CALLS}/{MAX_API_CALLS} : {endpoint}",
         flush=True,
     )
 
@@ -177,72 +137,57 @@ def api_get(endpoint):
             timeout=TIMEOUT,
         )
     except requests.RequestException:
-        log_error(f"{endpoint} : erreur réseau.")
+        add_error(f"{endpoint} : erreur reseau.")
+        CACHE[endpoint] = None
         return None
 
     if response.status_code in (401, 403, 429):
-        API_BLOCKED = True
+        BLOCKED = True
 
     if not response.ok:
-        log_error(f"{endpoint} : HTTP {response.status_code}.")
+        add_error(
+            f"{endpoint} : HTTP {response.status_code}."
+        )
+        CACHE[endpoint] = None
         return None
 
     try:
         payload = response.json()
     except ValueError:
-        log_error(f"{endpoint} : réponse non JSON.")
+        add_error(f"{endpoint} : JSON invalide.")
+        CACHE[endpoint] = None
         return None
 
-    if isinstance(payload, dict):
-        if payload.get("success") is False:
-            log_error(
-                f"{endpoint} : "
-                + str(payload.get("message", "échec signalé par API"))
+    if not isinstance(payload, dict):
+        add_error(f"{endpoint} : format JSON inattendu.")
+        CACHE[endpoint] = None
+        return None
+
+    if payload.get("success") is False:
+        add_error(
+            f"{endpoint} : "
+            + str(
+                payload.get("error")
+                or payload.get("message")
+                or "echec API"
             )
-            return None
+        )
+        CACHE[endpoint] = None
+        return None
 
     CACHE[endpoint] = payload
     return payload
 
 
-def extract_list(payload, keys):
-    if isinstance(payload, list):
-        return payload
-
-    if isinstance(payload, dict):
-        for key in keys:
-            value = payload.get(key)
-            if isinstance(value, list):
-                return value
-
-            if isinstance(value, dict):
-                nested = extract_list(value, keys)
-                if nested is not None:
-                    return nested
-
-    return None
-
-
-# ---------------- LECTURE DES DONNEES ----------------
-
-def kickoff_of(fixture):
-    raw = fixture.get("kickoff_utc")
-    if not isinstance(raw, str) or not raw:
+def data_list(payload):
+    if not isinstance(payload, dict):
         return None
 
-    try:
-        value = datetime.fromisoformat(
-            raw.replace("Z", "+00:00")
-        )
-    except ValueError:
-        return None
+    data = payload.get("data")
+    return data if isinstance(data, list) else None
 
-    # Le champ est explicitement nommé kickoff_utc.
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
 
-    return value.astimezone(PARIS)
-
+# ---------------- OUTILS ----------------
 
 def number(value):
     if value is None or isinstance(value, bool):
@@ -250,7 +195,7 @@ def number(value):
 
     try:
         result = float(value)
-    except (ValueError, TypeError):
+    except (TypeError, ValueError):
         return None
 
     return result if math.isfinite(result) else None
@@ -261,10 +206,33 @@ def first_number(*values):
         result = number(value)
         if result is not None:
             return result
+
     return None
 
 
+def kickoff_of(fixture):
+    raw = fixture.get("kickoff_utc")
+
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+
+    try:
+        value = datetime.fromisoformat(
+            raw.replace("Z", "+00:00")
+        )
+    except ValueError:
+        return None
+
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(PARIS)
+
+
 def find_team_row(rows, wanted_id):
+    if wanted_id is None:
+        return None
+
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -273,6 +241,7 @@ def find_team_row(rows, wanted_id):
         team = team if isinstance(team, dict) else {}
 
         row_id = team.get("id")
+
         if row_id is None:
             row_id = row.get("team_id")
 
@@ -282,12 +251,34 @@ def find_team_row(rows, wanted_id):
     return None
 
 
-def profile_from_row(row):
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+
+    if value in (0, 1):
+        return bool(value)
+
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+
+        if normalized in {"true", "1"}:
+            return True
+        if normalized in {"false", "0"}:
+            return False
+
+    return None
+
+
+# ---------------- PROFILS STATISTIQUES ----------------
+
+def build_profile(row, today):
     if not isinstance(row, dict):
         return None
 
     all_stats = row.get("all")
-    all_stats = all_stats if isinstance(all_stats, dict) else {}
+    all_stats = (
+        all_stats if isinstance(all_stats, dict) else {}
+    )
 
     goals = all_stats.get("goals")
     goals = goals if isinstance(goals, dict) else {}
@@ -297,112 +288,190 @@ def profile_from_row(row):
         row.get("playedGames"),
         all_stats.get("played"),
     )
-    gf = first_number(
+
+    goals_for = first_number(
         row.get("goals_for"),
         row.get("goalsFor"),
         goals.get("for"),
     )
-    ga = first_number(
+
+    goals_against = first_number(
         row.get("goals_against"),
         row.get("goalsAgainst"),
         goals.get("against"),
     )
 
-    # Ne pas remplacer des statistiques absentes par zéro.
-    if played is None or gf is None or ga is None:
+    if (
+        played is None
+        or goals_for is None
+        or goals_against is None
+    ):
         return None
 
-    if played < MIN_SEASON_MATCHES or gf < 0 or ga < 0:
+    if (
+        played < MIN_PLAYED
+        or goals_for < 0
+        or goals_against < 0
+    ):
         return None
 
-    return {
+    season_gf = goals_for / played
+    season_ga = goals_against / played
+
+    recent = []
+    form = row.get("form")
+
+    if isinstance(form, list):
+        for match in form:
+            if not isinstance(match, dict):
+                continue
+
+            home_score = number(match.get("home_score"))
+            away_score = number(match.get("away_score"))
+            is_home = parse_bool(match.get("is_home"))
+
+            if (
+                home_score is None
+                or away_score is None
+                or is_home is None
+            ):
+                continue
+
+            if home_score < 0 or away_score < 0:
+                continue
+
+            try:
+                match_date = datetime.fromisoformat(
+                    str(match.get("date"))[:10]
+                ).date()
+            except ValueError:
+                continue
+
+            age = (today - match_date).days
+
+            # Date seule : exclusion des résultats du jour
+            # pour ne pas utiliser un résultat à heure inconnue.
+            if not 0 < age <= MAX_FORM_AGE_DAYS:
+                continue
+
+            if is_home:
+                gf, ga = home_score, away_score
+            else:
+                gf, ga = away_score, home_score
+
+            recent.append({
+                "date": match_date,
+                "gf": gf,
+                "ga": ga,
+            })
+
+    recent.sort(key=lambda item: item["date"], reverse=True)
+    recent = recent[:6]
+
+    profile = {
         "played": int(played),
-        "gf": gf / played,
-        "ga": ga / played,
+        "gf": season_gf,
+        "ga": season_ga,
+        "recent_n": len(recent),
+        "btts": None,
+        "over15": None,
     }
 
+    if len(recent) >= MIN_FORM_MATCHES:
+        n = len(recent)
 
-# ---------------- ANALYSE ----------------
+        recent_gf = sum(m["gf"] for m in recent) / n
+        recent_ga = sum(m["ga"] for m in recent) / n
 
-def analyse_match(fixture, standings_cache, reasons):
-    league_id = fixture.get("league_id")
-
-    if league_id is None:
-        reasons["Identifiant de ligue absent"] += 1
-        return None
-
-    cache_key = str(league_id)
-
-    if cache_key not in standings_cache:
-        payload = api_get(f"standings/{league_id}")
-        rows = extract_list(
-            payload,
-            ("data", "standings", "table", "rows", "response"),
+        profile["gf"] = (
+            0.70 * season_gf + 0.30 * recent_gf
+        )
+        profile["ga"] = (
+            0.70 * season_ga + 0.30 * recent_ga
         )
 
-        standings_cache[cache_key] = rows
+        profile["btts"] = sum(
+            m["gf"] > 0 and m["ga"] > 0
+            for m in recent
+        ) / n
 
-        if rows:
-            # Diagnostic si le format du classement diffère.
-            print(
-                f"EXEMPLE CLASSEMENT {league_id} :",
-                mask(rows[0])[:1800],
-                flush=True,
-            )
+        profile["over15"] = sum(
+            m["gf"] + m["ga"] >= 2
+            for m in recent
+        ) / n
 
-    rows = standings_cache[cache_key]
+    return profile
 
-    if not rows:
-        reasons["Classement absent ou format non reconnu"] += 1
-        return None
 
+# ---------------- MODELE ----------------
+
+def analyse_match(fixture, rows, today):
     home_row = find_team_row(rows, fixture.get("home_id"))
     away_row = find_team_row(rows, fixture.get("away_id"))
 
     if home_row is None or away_row is None:
-        reasons["Equipe introuvable dans le classement"] += 1
-        return None
+        return None, "Equipe absente du classement lu"
 
-    home = profile_from_row(home_row)
-    away = profile_from_row(away_row)
+    home = build_profile(home_row, today)
+    away = build_profile(away_row, today)
 
     if home is None or away is None:
-        reasons["Stats absentes ou moins de 6 matchs joués"] += 1
-        return None
+        return None, "Stats absentes ou moins de 6 matchs"
 
-    # Modèle Poisson simple basé sur les moyennes de saison.
-    # Ce n'est pas le modèle de forme récente de l'ancien bot.
     lambda_home = (home["gf"] + away["ga"]) / 2
     lambda_away = (away["gf"] + home["ga"]) / 2
 
     p_home = 1 - math.exp(-lambda_home)
     p_away = 1 - math.exp(-lambda_away)
+
     total = lambda_home + lambda_away
+    p_btts = p_home * p_away
+    p_over15 = 1 - math.exp(-total) * (1 + total)
+
+    form_used = (
+        home["btts"] is not None
+        and away["btts"] is not None
+    )
+
+    if form_used:
+        p_btts = (
+            0.75 * p_btts
+            + 0.25 * (home["btts"] + away["btts"]) / 2
+        )
+
+        p_over15 = (
+            0.75 * p_over15
+            + 0.25 * (home["over15"] + away["over15"]) / 2
+        )
 
     probabilities = {
         "home": p_home,
         "away": p_away,
-        "btts": p_home * p_away,
-        "over15": 1 - math.exp(-total) * (1 + total),
+        "btts": p_btts,
+        "over15": p_over15,
     }
 
-    picks = [
-        (market, probability)
-        for market, probability in probabilities.items()
-        if probability >= MIN_PROBABILITY
-    ]
-    picks.sort(key=lambda item: item[1], reverse=True)
+    # Filtre appliqué AVANT tout arrondi d'affichage.
+    picks = sorted(
+        (
+            (market, probability)
+            for market, probability in probabilities.items()
+            if probability >= MIN_PROBABILITY
+        ),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:MAX_MARKETS_PER_MATCH]
 
     return {
         "fixture": fixture,
-        "kickoff": kickoff_of(fixture),
-        "picks": picks[:MAX_MARKETS_PER_MATCH],
-        "best": picks[0][1] if picks else 0,
         "home": home,
         "away": away,
+        "picks": picks,
+        "best": picks[0][1] if picks else 0,
+        "form_used": form_used,
         "lambda_home": lambda_home,
         "lambda_away": lambda_away,
-    }
+    }, None
 
 
 # ---------------- EXECUTION ----------------
@@ -420,60 +489,37 @@ def main():
     now = datetime.now(PARIS)
     today = now.date()
     reasons = Counter()
-    standings_cache = {}
 
-    payload = api_get(f"fixtures/date/{today.isoformat()}")
-    fixtures = extract_list(
-        payload,
-        ("data", "fixtures", "matches", "events", "response"),
+    payload = api_get(
+        f"fixtures/date/{today.isoformat()}"
     )
+    fixtures = data_list(payload)
 
     if fixtures is None:
+        print(
+            "REPONSE MATCHS NON RECONNUE :",
+            safe(payload)[:2000],
+            flush=True,
+        )
         send_message(
             "❌ Impossible de lire les matchs SportAPI.\n\n"
             + "\n".join(ERRORS[:4])
-            + "\nRegarde les logs GitHub."
-        )
-        print(
-            "FORMAT REPONSE :",
-            mask(payload)[:1800],
-            flush=True,
+            + "\nConsulte les logs GitHub."
         )
         return
-
-    league_names = sorted({
-        str(f.get("league_name") or "INCONNU")
-        for f in fixtures
-        if isinstance(f, dict)
-    })
-
-    print("LIGUES RECUES :", league_names, flush=True)
-
-    if fixtures:
-        print(
-            "EXEMPLE MATCH :",
-            mask(fixtures[0])[:2200],
-            flush=True,
-        )
 
     eligible = []
     seen = set()
 
     for fixture in fixtures:
         if not isinstance(fixture, dict):
-            reasons["Format match invalide"] += 1
-            continue
-
-        league = str(fixture.get("league_name") or "").strip()
-
-        if league.casefold() not in LEAGUE_NAMES:
-            reasons["Competition hors liste Europe"] += 1
+            reasons["Format de match non reconnu"] += 1
             continue
 
         kickoff = kickoff_of(fixture)
 
         if kickoff is None:
-            reasons["Date illisible"] += 1
+            reasons["Horaire illisible"] += 1
             continue
 
         if kickoff.date() != today:
@@ -481,23 +527,28 @@ def main():
             continue
 
         if kickoff <= now:
-            reasons["Match deja commence ou passe"] += 1
+            reasons["Match deja commence ou termine"] += 1
             continue
 
-        status = str(fixture.get("status") or "").strip().casefold()
+        status = str(
+            fixture.get("status") or ""
+        ).strip().casefold()
 
-        if status not in {"scheduled", "not started", "ns"}:
-            reasons[f"Statut non retenu : {status or 'absent'}"] += 1
+        if status != "scheduled":
+            reasons[
+                f"Statut exclu : {status or 'absent'}"
+            ] += 1
             continue
 
-        if (
-            fixture.get("home_id") is None
-            or fixture.get("away_id") is None
+        if any(
+            fixture.get(key) is None
+            for key in ("league_id", "home_id", "away_id")
         ):
-            reasons["Identifiants equipes absents"] += 1
+            reasons["Identifiants absents"] += 1
             continue
 
         identifier = fixture.get("id")
+
         if identifier is None:
             identifier = (
                 fixture.get("home_id"),
@@ -513,72 +564,194 @@ def main():
 
     eligible.sort(key=kickoff_of)
 
+    print(
+        f"MATCHS RECUS : {len(fixtures)} ; "
+        f"A VENIR : {len(eligible)}",
+        flush=True,
+    )
+
+    standings_cache = {}
     results = []
+    processed = 0
     analysed = 0
+    form_count = 0
     partial = False
 
     for fixture in eligible:
-        if API_BLOCKED or API_CALLS >= MAX_API_CALLS:
-            partial = True
-            break
-
-        try:
-            result = analyse_match(
-                fixture, standings_cache, reasons
-            )
-        except (TypeError, ValueError, KeyError, OverflowError):
-            reasons["Format statistique non reconnu"] += 1
+        # Ne pas publier un match ayant commencé
+        # pendant l'exécution du bot.
+        if kickoff_of(fixture) <= datetime.now(PARIS):
+            reasons["Match commence pendant le lancement"] += 1
+            processed += 1
             continue
 
-        if result is not None:
-            analysed += 1
-            if result["picks"]:
-                results.append(result)
+        league_id = str(fixture["league_id"])
 
-    results.sort(key=lambda item: item["best"], reverse=True)
-    selected = results[:MAX_MATCHES]
-    selected.sort(key=lambda item: item["kickoff"])
+        if league_id not in standings_cache:
+            if BLOCKED or CALLS >= MAX_API_CALLS:
+                partial = True
+                break
+
+            standings_payload = api_get(
+                f"standings/{league_id}"
+            )
+
+            if standings_payload is None:
+                standings_cache[league_id] = (
+                    None,
+                    "Erreur d'acces au classement",
+                )
+            else:
+                rows = data_list(standings_payload)
+
+                if rows is None:
+                    standings_cache[league_id] = (
+                        None,
+                        "Format classement non reconnu",
+                    )
+                    print(
+                        f"CLASSEMENT INCONNU {league_id} :",
+                        safe(standings_payload)[:2200],
+                        flush=True,
+                    )
+                elif not rows:
+                    standings_cache[league_id] = (
+                        None,
+                        "Classement vide",
+                    )
+                else:
+                    standings_cache[league_id] = (
+                        rows,
+                        None,
+                    )
+                    print(
+                        f"EXEMPLE CLASSEMENT {league_id} :",
+                        safe(rows[0])[:1600],
+                        flush=True,
+                    )
+
+        processed += 1
+        rows, failure = standings_cache[league_id]
+
+        if rows is None:
+            reasons[failure] += 1
+            continue
+
+        try:
+            result, failure = analyse_match(
+                fixture, rows, today
+            )
+        except (
+            TypeError,
+            ValueError,
+            KeyError,
+            OverflowError,
+            ZeroDivisionError,
+        ):
+            reasons["Erreur de lecture statistiques"] += 1
+            continue
+
+        if result is None:
+            reasons[failure] += 1
+            continue
+
+        analysed += 1
+        form_count += int(result["form_used"])
+
+        if not result["picks"]:
+            reasons["Aucun marche a 70 % minimum"] += 1
+            continue
+
+        results.append(result)
+
+    # Dernière vérification des horaires avant publication.
+    publication_time = datetime.now(PARIS)
+    still_upcoming = []
+
+    for result in results:
+        if kickoff_of(result["fixture"]) > publication_time:
+            still_upcoming.append(result)
+        else:
+            reasons["Selection commencee avant publication"] += 1
+
+    # Classement par meilleure estimation NON arrondie.
+    # A égalité : deuxième estimation, puis horaire.
+    still_upcoming.sort(
+        key=lambda result: (
+            -result["best"],
+            -result["picks"][-1][1],
+            kickoff_of(result["fixture"]),
+        )
+    )
+
+    selected = still_upcoming[:MAX_MATCHES]
 
     lines = [
-        "⚽ ANALYSE FOOTBALL",
-        now.strftime("📅 %d/%m/%Y · %H:%M Paris"),
+        "⚽ SELECTION FOOTBALL — TOUS PAYS",
+        publication_time.strftime(
+            "📅 %d/%m/%Y · %H:%M Paris"
+        ),
         "",
-        f"📥 Matchs reçus : {len(fixtures)}",
-        f"🇪🇺 Matchs à venir dans la liste : {len(eligible)}",
-        f"📊 Matchs avec statistiques exploitables : {analysed}",
-        f"📤 Matchs sélectionnés : {len(selected)}/10",
+        f"📥 Matchs recus du jour : {len(fixtures)}",
+        f"🌍 Matchs a venir au lancement : {len(eligible)}",
+        f"🔎 Matchs examines : {processed}",
+        f"📊 Matchs avec stats exploitables : {analysed}",
+        f"📈 Dont forme recente utilisee : {form_count}",
+        f"✅ Matchs admissibles a 70 % minimum : {len(still_upcoming)}",
+        f"📤 Matchs selectionnes : {len(selected)}/15",
+        "",
+        "Seuil obligatoire : 70 % avant arrondi.",
+        "Classement par meilleure estimation du modele.",
         "",
     ]
 
-    for index, result in enumerate(selected, 1):
+    for rank, result in enumerate(selected, 1):
         fixture = result["fixture"]
-        home_name = str(fixture.get("home_team") or "Domicile")
-        away_name = str(fixture.get("away_team") or "Exterieur")
+
+        home_name = str(
+            fixture.get("home_team") or "Domicile"
+        )
+        away_name = str(
+            fixture.get("away_team") or "Exterieur"
+        )
+
+        labels = {
+            "home": f"{home_name} marque",
+            "away": f"{away_name} marque",
+            "btts": "BTTS — Oui",
+            "over15": "Plus de 1,5 but",
+        }
 
         lines.extend([
-            f"{index}. {home_name} — {away_name}",
-            f"🏆 {fixture.get('league_name')}",
-            f"🕘 {result['kickoff'].strftime('%H:%M')}",
+            f"#{rank} {home_name} — {away_name}",
+            f"🏆 {fixture.get('league_name') or 'Competition'}",
+            f"🕘 {kickoff_of(fixture).strftime('%H:%M')} Paris",
         ])
 
         for market, probability in result["picks"]:
-            if market == "home":
-                label = f"{home_name} marque"
-            elif market == "away":
-                label = f"{away_name} marque"
-            else:
-                label = MARKETS[market]
-
             lines.append(
-                f"• {label} : estimation {probability:.0%}"
+                f"• {labels[market]} : "
+                f"estimation {probability:.0%}"
+            )
+
+        lines.append(
+            "📊 Classement : "
+            f"{result['home']['played']} / "
+            f"{result['away']['played']} matchs renseignes"
+        )
+
+        if result["form_used"]:
+            lines.append(
+                "📈 Forme utilisee : "
+                f"{result['home']['recent_n']} / "
+                f"{result['away']['recent_n']} matchs"
+            )
+        else:
+            lines.append(
+                "📈 Moyennes du classement uniquement"
             )
 
         lines.extend([
-            (
-                "📊 Echantillon saison : "
-                f"{result['home']['played']} / "
-                f"{result['away']['played']} matchs"
-            ),
             (
                 "⚽ Moyennes projetees du modele : "
                 f"{result['lambda_home']:.2f} — "
@@ -587,41 +760,54 @@ def main():
             "",
         ])
 
-    if not selected:
+    if len(selected) < MIN_TARGET_MATCHES:
         lines.extend([
-            "Aucune selection publiable avec les donnees disponibles.",
-            "Cela ne signifie pas qu'il n'existe aucun match.",
+            "⚠️ Moins de 10 matchs remplissent les criteres.",
+            "Le seuil de 70 % reste obligatoire.",
+            "Aucune selection ajoutee artificiellement.",
+            "",
+        ])
+
+    if partial:
+        lines.extend([
+            "⚠️ Analyse partielle : budget API ou acces bloque.",
+            (
+                f"Matchs non examines : "
+                f"{len(eligible) - processed}"
+            ),
             "",
         ])
 
     if reasons:
         lines.append("🔎 Diagnostic :")
-        for reason, count in reasons.most_common(8):
+
+        for reason, count in reasons.most_common(10):
             lines.append(f"• {reason} : {count}")
 
-    if not eligible:
+    if ERRORS:
         lines.extend([
             "",
-            "🏆 Competitions recues :",
-            *league_names[:40],
+            "🛠️ API :",
+            *ERRORS[:4],
         ])
-
-    if partial:
-        lines.append(
-            "\n⚠️ Analyse partielle : budget API ou acces bloque."
-        )
-
-    if ERRORS:
-        lines.extend(["", "🛠️ API :", *ERRORS[:3]])
 
     lines.extend([
         "",
-        f"Requetes de ce lancement : {API_CALLS}",
-        "Modele simple sur moyennes de saison, non calibre.",
-        "Estimations sans garantie ; aucun pari n'est sur.",
+        f"Requetes de ce lancement : {CALLS}",
+        "",
+        "Modele simple non calibre.",
+        "Saison et phase des classements : a verifier.",
+        "70 % est une estimation, pas une garantie.",
+        "Sans comparaison aux cotes, ce classement ne mesure "
+        "pas la rentabilite des paris.",
     ])
 
-    print("DIAGNOSTIC FINAL :", dict(reasons), flush=True)
+    print(
+        "DIAGNOSTIC FINAL :",
+        dict(reasons),
+        flush=True,
+    )
+
     send_message("\n".join(lines))
 
 
@@ -632,7 +818,7 @@ if __name__ == "__main__":
         print(
             "ERREUR FATALE :",
             type(exc).__name__,
-            mask(exc),
+            safe(exc),
             flush=True,
         )
         raise SystemExit(1)
