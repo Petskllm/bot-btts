@@ -1,8 +1,9 @@
+import csv
 import math
 import os
 import re
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
@@ -10,41 +11,20 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI
-#
-# Tous les pays, matchs du jour encore à venir.
-#
-# Historique :
-# - jusqu'à 10 résultats récents par équipe ;
-# - domicile/extérieur si suffisamment de résultats ;
-# - forme du classement en secours.
+# BOT FOOTBALL — SPORTAPI — VERSION 6.0
 #
 # Marchés :
-# - équipe +0,5 but ;
-# - BTTS Oui ;
-# - plus de 1,5 but.
+# - équipe +0,5 but (72-85 %)
+# - BTTS Oui (72-85 %)
+# - Plus de 1,5 but (72-85 %)
+# - Buteur (60 % minimum)
 #
-# Filtre obligatoire : 72 à 85 % inclus, AVANT arrondi
-# (réglable avec MIN_PROB et MAX_PROB ci-dessous).
-# Maximum : 15 matchs, 2 marchés par match.
-#
-# Version 5.2 :
-# - 429 : pause puis nouvel essai (au lieu de tout bloquer) ;
-# - 403 / 404 isolés : ressource ignorée, sans tout bloquer ;
-# - ordre d'analyse : ligues prioritaires, puis horaire, avec un
-#   plafond par ligue (une ligue géante n'épuise plus le budget) ;
-# - équipes de jeunes / réserves exclues (option) ;
-# - léger lissage du modèle vers la moyenne (petits échantillons) ;
-# - section "au-dessus du plafond" séparée, pour comparer les
-#   tranches dans ton bilan (option SHOW_ABOVE_MAX).
-#
-# Telegram : pronostics + horaires + buts projetés.
-# Diagnostics détaillés : logs GitHub uniquement.
-#
-# Pas d'appels de tirs cadrés : ils ne participent pas
-# encore au calcul.
-#
-# Modèle expérimental non calibré, sans garantie.
+# Ajouts 6.0 :
+# - H2H dans BTTS et Over 1,5
+# - Meilleurs buteurs de la ligue
+# - Buteur retenu si probabilite >= 60 %
+# - Tirs du buteur retenu recuperes pour calibration
+# - Journal data/predictions.csv pour mesurer la calibration
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -56,26 +36,15 @@ PARIS = ZoneInfo("Europe/Paris")
 
 MIN_PROB = 0.72
 MAX_PROB = 0.85
+MIN_SCORER_PROB = 0.60
 
 MAX_MATCHES = 15
 MAX_MARKETS = 2
+MAX_SCORERS_PER_MATCH = 1
 
-# Suivi : affiche à part les marchés au-dessus de MAX_PROB, pour
-# comparer la réussite des tranches (False pour désactiver).
-SHOW_ABOVE_MAX = False
-MAX_ABOVE = 8
-
-# Identifiants de ligues à analyser en premier (texte), par exemple
-# {"135", "39"}. Les identifiants sont listés dans les logs GitHub
-# ("LIGUES DU JOUR"). Vide : ordre automatique.
+MAX_PER_LEAGUE = 12
 PRIORITY_LEAGUE_IDS = set()
 
-# Nombre maximum de matchs analysés par ligue (hors ligues
-# prioritaires) : un championnat compte au plus ~10 matchs par jour.
-MAX_PER_LEAGUE = 12
-
-# Exclut les équipes de jeunes (U15-U23, Youth, Primavera...) et
-# les équipes réserves : peu de données fiables.
 EXCLUDE_YOUTH = True
 YOUTH_PATTERN = re.compile(
     r"\bU[- ]?(1[5-9]|2[0-3])\b|\byouth\b|\bjuniors?\b"
@@ -83,9 +52,6 @@ YOUTH_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-# Lissage vers la moyenne (petits échantillons). Valeur choisie
-# par simulation : à 4, les pourcentages annoncés collent le mieux
-# à la réalité simulée (sans lissage, ils sont trop optimistes).
 PRIOR_K = 4.0
 PRIORS = {
     "gf": 1.35,
@@ -101,27 +67,37 @@ MAX_HISTORY_DAYS = 240
 MAX_STALE_DAYS = 60
 DECAY = 0.90
 
+H2H_N = 5
+H2H_WEIGHT = 0.15
+MIN_H2H = 3
+
+TOP_SCORERS_N = 30
+SCORER_MIN_GOALS = 2
+
 MAX_API_CALLS = 350
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
-
 MAX_RETRIES = 2
 RETRY_PAUSE = 60
 MAX_CONSECUTIVE_FAILS = 8
 
+PREDICTIONS_FILE = "data/predictions.csv"
+
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/5.2",
+    "User-Agent": "football-history-bot/6.0",
 })
 
 CACHE = {}
 TEAM_CACHE = {}
 STANDINGS_CACHE = {}
+TOP_SCORERS_CACHE = {}
+H2H_CACHE = {}
+
 ERRORS = []
 REASONS = Counter()
-
 CALLS = 0
 LAST_CALL = None
 BLOCKED = False
@@ -134,18 +110,15 @@ STARTED = time.monotonic()
 
 def safe(value):
     text = str(value)
-
     for secret in (TOKEN, API_KEY, CHAT_ID):
         if secret:
             text = text.replace(secret, "[MASQUE]")
-
     return text
 
 
 def error(message):
     message = safe(message)[:350]
     print("DIAGNOSTIC :", message, flush=True)
-
     if message not in ERRORS:
         ERRORS.append(message)
 
@@ -172,7 +145,6 @@ def send_message(text):
             if current:
                 chunks.append(current)
                 current = ""
-
             chunks.append(line[:3000])
             line = line[3000:]
 
@@ -186,22 +158,12 @@ def send_message(text):
         chunks.append(current)
 
     for chunk in chunks:
-        try:
-            response = requests.post(
-                f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-                json={
-                    "chat_id": CHAT_ID,
-                    "text": chunk,
-                },
-                timeout=TIMEOUT,
-            )
-        except requests.RequestException:
-            raise RuntimeError("Erreur reseau Telegram.") from None
-
-        try:
-            payload = response.json()
-        except ValueError:
-            payload = {}
+        response = requests.post(
+            f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+            json={"chat_id": CHAT_ID, "text": chunk},
+            timeout=TIMEOUT,
+        )
+        payload = response.json() if response.content else {}
 
         if not response.ok or not payload.get("ok"):
             raise RuntimeError(
@@ -213,20 +175,12 @@ def send_message(text):
 # ---------------- API ----------------
 
 def failed(endpoint):
-    """Échec d'une ressource : on l'ignore, sans tout bloquer.
-
-    Après plusieurs échecs d'affilée, on arrête pour ne pas gaspiller
-    le budget (clé invalide, service en panne...).
-    """
     global FAILS, BLOCKED
-
     CACHE[endpoint] = None
     FAILS += 1
-
     if FAILS >= MAX_CONSECUTIVE_FAILS:
         BLOCKED = True
         error("Trop d'echecs d'affilee : analyse arretee.")
-
     return None
 
 
@@ -254,11 +208,7 @@ def api_get(endpoint):
 
         LAST_CALL = time.monotonic()
         CALLS += 1
-
-        print(
-            f"API {CALLS}/{MAX_API_CALLS} : {endpoint}",
-            flush=True,
-        )
+        print(f"API {CALLS}/{MAX_API_CALLS} : {endpoint}", flush=True)
 
         try:
             response = SESSION.get(
@@ -267,22 +217,18 @@ def api_get(endpoint):
             )
         except requests.RequestException:
             error(f"{endpoint} : erreur reseau.")
-
             if attempt < MAX_RETRIES:
                 time.sleep(2 * (attempt + 1))
                 continue
-
             return failed(endpoint)
 
         if response.status_code == 429:
             pause = retry_pause(response)
             elapsed = time.monotonic() - STARTED
-
             if attempt < MAX_RETRIES and elapsed + pause < MAX_RUNTIME_SECONDS:
                 error(f"{endpoint} : limite atteinte, pause {pause} s.")
                 time.sleep(pause)
                 continue
-
             error(f"{endpoint} : limite de requetes depassee.")
             BLOCKED = True
             return None
@@ -298,7 +244,6 @@ def api_get(endpoint):
             continue
 
         if not response.ok:
-            # 403 / 404 / autres : ressource ignorée, le reste continue.
             error(f"{endpoint} : HTTP {response.status_code}.")
             return failed(endpoint)
 
@@ -308,10 +253,7 @@ def api_get(endpoint):
             error(f"{endpoint} : JSON invalide.")
             return failed(endpoint)
 
-        if (
-            not isinstance(payload, dict)
-            or payload.get("success") is False
-        ):
+        if not isinstance(payload, dict) or payload.get("success") is False:
             error(f"{endpoint} : reponse invalide.")
             return failed(endpoint)
 
@@ -325,53 +267,8 @@ def api_get(endpoint):
 def get_list(payload, key="data"):
     if not isinstance(payload, dict):
         return []
-
     value = payload.get(key)
     return value if isinstance(value, list) else []
-
-
-def log_payload_shape(label, payload):
-    if not isinstance(payload, dict):
-        print(
-            label,
-            "type :",
-            type(payload).__name__,
-            flush=True,
-        )
-        return
-
-    print(
-        label,
-        "cles principales :",
-        list(payload.keys()),
-        flush=True,
-    )
-
-    for key in ("matches", "results", "data"):
-        value = payload.get(key)
-
-        if isinstance(value, list):
-            print(
-                label,
-                f"{key} : liste de {len(value)} elements",
-                flush=True,
-            )
-
-            if value:
-                print(
-                    label,
-                    f"exemple {key} :",
-                    safe(value[0])[:1800],
-                    flush=True,
-                )
-
-        elif isinstance(value, dict):
-            print(
-                label,
-                f"{key} : objet avec cles",
-                list(value.keys())[:25],
-                flush=True,
-            )
 
 
 # ---------------- OUTILS ----------------
@@ -379,44 +276,32 @@ def log_payload_shape(label, payload):
 def number(value):
     if value is None or isinstance(value, bool):
         return None
-
     try:
         value = float(value)
     except (ValueError, TypeError):
         return None
-
     return value if math.isfinite(value) else None
 
 
 def kickoff_of(match):
     raw = match.get("kickoff_utc")
-
     if not isinstance(raw, str):
         return None
-
     try:
-        value = datetime.fromisoformat(
-            raw.replace("Z", "+00:00")
-        )
+        value = datetime.fromisoformat(raw.replace("Z", "+00:00"))
     except ValueError:
         return None
-
     if value.tzinfo is None:
         value = value.replace(tzinfo=timezone.utc)
-
     return value.astimezone(PARIS)
 
 
 def date_of(match):
     kickoff = kickoff_of(match)
-
     if kickoff is not None:
         return kickoff.date()
-
     try:
-        return datetime.fromisoformat(
-            str(match.get("date"))[:10]
-        ).date()
+        return datetime.fromisoformat(str(match.get("date"))[:10]).date()
     except ValueError:
         return None
 
@@ -436,45 +321,15 @@ def is_youth(fixture):
 def league_label(fixture):
     for key in ("league_name", "league", "competition"):
         value = fixture.get(key)
-
         if isinstance(value, dict):
             value = value.get("name")
-
         if isinstance(value, str) and value.strip():
             return short_name(value)
-
     return None
 
 
 def prioritise(fixtures):
-    """Ligues prioritaires d'abord, puis horaire, avec un plafond par ligue.
-
-    Le plafond empêche une "ligue" géante (groupes, coupes régionales...)
-    de consommer tout le budget de requêtes.
-    """
     counts = Counter(str(f.get("league_id")) for f in fixtures)
-
-    print("\nLIGUES DU JOUR (id : matchs : exemple) :", flush=True)
-
-    shown = set()
-
-    for fixture in sorted(
-        fixtures,
-        key=lambda f: -counts[str(f.get("league_id"))],
-    ):
-        league = str(fixture.get("league_id"))
-
-        if league in shown or len(shown) >= 25:
-            continue
-
-        shown.add(league)
-
-        print(
-            f"  {league} : {counts[league]} : "
-            f"{fixture.get('home_team')} - {fixture.get('away_team')}",
-            flush=True,
-        )
-
     ordered = sorted(
         fixtures,
         key=lambda f: (
@@ -488,14 +343,12 @@ def prioritise(fixtures):
 
     for fixture in ordered:
         league = str(fixture.get("league_id"))
-
         if (
             league not in PRIORITY_LEAGUE_IDS
             and taken[league] >= MAX_PER_LEAGUE
         ):
             REASONS["Plafond par ligue atteint"] += 1
             continue
-
         taken[league] += 1
         kept.append(fixture)
 
@@ -505,121 +358,62 @@ def prioritise(fixtures):
 def boolean(value):
     if isinstance(value, bool):
         return value
-
     if value in (0, 1):
         return bool(value)
-
     if isinstance(value, str):
         normalized = value.strip().lower()
-
         if normalized in {"true", "1"}:
             return True
-
         if normalized in {"false", "0"}:
             return False
-
     return None
 
 
-# ---------------- CLASSEMENT EN SECOURS ----------------
+# ---------------- CLASSEMENT ----------------
 
 def standings_row(league_id, team_id):
     key = str(league_id)
-
     if key not in STANDINGS_CACHE:
         payload = api_get(f"standings/{league_id}")
         STANDINGS_CACHE[key] = get_list(payload)
 
-        if not STANDINGS_CACHE[key]:
-            log_payload_shape(
-                f"CLASSEMENT {league_id}",
-                payload,
-            )
-
     for row in STANDINGS_CACHE[key]:
         if not isinstance(row, dict):
             continue
-
         team = row.get("team")
-
-        if not isinstance(team, dict):
-            continue
-
-        if str(team.get("id")) == str(team_id):
+        if isinstance(team, dict) and str(team.get("id")) == str(team_id):
             return row
-
     return None
 
 
-# ---------------- HISTORIQUE DETAILLE ----------------
+# ---------------- HISTORIQUE EQUIPE ----------------
 
 def parse_results(matches, team_id, today, slug=None):
     history = []
-    rejected = Counter()
-    statuses = Counter()
-    examples = {}
-
-    def reject(reason, match):
-        rejected[reason] += 1
-
-        if reason not in examples:
-            examples[reason] = {
-                "id": match.get("id"),
-                "status": match.get("status"),
-                "date": match.get("date"),
-                "kickoff_utc": match.get("kickoff_utc"),
-                "home_id": match.get("home_id"),
-                "away_id": match.get("away_id"),
-                "home_slug": match.get("home_slug"),
-                "away_slug": match.get("away_slug"),
-                "home_score": match.get("home_score"),
-                "away_score": match.get("away_score"),
-                "champs_disponibles": list(match.keys()),
-            }
 
     for match in matches:
         if not isinstance(match, dict):
-            rejected["Match non presente comme objet JSON"] += 1
             continue
 
-        status = str(match.get("status") or "").strip()
-        statuses[status or "ABSENT"] += 1
-
-        # Critère inchangé pour observer les rejets sans
-        # modifier silencieusement les données du modèle.
-        if status.upper() != "FT":
-            reject("Statut different de FT", match)
+        if str(match.get("status") or "").upper() != "FT":
             continue
 
         date = date_of(match)
-
         if date is None:
-            reject("Date absente ou illisible", match)
             continue
 
         age = (today - date).days
-
-        if age <= 0:
-            reject("Date du jour ou future", match)
-            continue
-
-        if age > MAX_HISTORY_DAYS:
-            reject("Resultat trop ancien", match)
+        if age <= 0 or age > MAX_HISTORY_DAYS:
             continue
 
         home_score = number(match.get("home_score"))
         away_score = number(match.get("away_score"))
-
         if home_score is None or away_score is None:
-            reject("Score absent ou illisible", match)
             continue
-
         if home_score < 0 or away_score < 0:
-            reject("Score negatif", match)
             continue
 
         is_home = None
-
         if str(match.get("home_id")) == str(team_id):
             is_home = True
         elif str(match.get("away_id")) == str(team_id):
@@ -631,7 +425,6 @@ def parse_results(matches, team_id, today, slug=None):
                 is_home = False
 
         if is_home is None:
-            reject("Equipe impossible a identifier", match)
             continue
 
         history.append({
@@ -642,72 +435,27 @@ def parse_results(matches, team_id, today, slug=None):
             "ga": away_score if is_home else home_score,
         })
 
-    print(
-        f"\nHISTORIQUE EQUIPE {team_id}",
-        f"slug={slug}",
-        f"recus={len(matches)}",
-        f"retenus={len(history)}",
-        flush=True,
-    )
-
-    print(
-        "STATUTS HISTORIQUE :",
-        dict(statuses),
-        flush=True,
-    )
-
-    print(
-        "REJETS HISTORIQUE :",
-        dict(rejected),
-        flush=True,
-    )
-
-    if len(history) < MIN_HISTORY:
-        for reason, example in examples.items():
-            print(
-                f"EXEMPLE REJET EQUIPE {team_id} — {reason} :",
-                safe(example),
-                flush=True,
-            )
-
-        if not matches:
-            print(
-                f"HISTORIQUE EQUIPE {team_id} : "
-                "aucun match dans la liste lue.",
-                flush=True,
-            )
-
     return history
 
 
 def merge_history(*groups):
     unique = {}
-
     for group in groups:
         for match in group:
             identifier = match.get("id")
-
             if identifier is None:
                 identifier = (
-                    match["date"],
-                    match["venue"],
-                    match["gf"],
-                    match["ga"],
+                    match["date"], match["venue"],
+                    match["gf"], match["ga"],
                 )
-
             unique[identifier] = match
 
-    return sorted(
-        unique.values(),
-        key=lambda match: match["date"],
-        reverse=True,
-    )
+    return sorted(unique.values(), key=lambda m: m["date"], reverse=True)
 
 
 def history_from_form(row, today):
     history = []
     form = row.get("form") if isinstance(row, dict) else None
-
     if not isinstance(form, list):
         return history
 
@@ -720,16 +468,10 @@ def history_from_form(row, today):
         home_score = number(match.get("home_score"))
         away_score = number(match.get("away_score"))
 
-        if (
-            date is None
-            or home is None
-            or home_score is None
-            or away_score is None
-            or home_score < 0
-            or away_score < 0
-        ):
+        if None in (date, home, home_score, away_score):
             continue
-
+        if home_score < 0 or away_score < 0:
+            continue
         if not 0 < (today - date).days <= MAX_HISTORY_DAYS:
             continue
 
@@ -746,76 +488,41 @@ def history_from_form(row, today):
 
 def team_history(team_id, league_id, today):
     key = str(team_id)
-
     if key in TEAM_CACHE:
         return TEAM_CACHE[key]
 
     payload = api_get(f"teams/{team_id}")
-
-    history = parse_results(
-        get_list(payload, "matches"),
-        team_id,
-        today,
-    )
+    history = parse_results(get_list(payload, "matches"), team_id, today)
     history = merge_history(history)
 
     team = payload.get("team") if isinstance(payload, dict) else {}
     team = team if isinstance(team, dict) else {}
-
     slug = team.get("slug")
     row = None
 
-    if len(history) < MIN_HISTORY:
-        log_payload_shape(
-            f"REPONSE EQUIPE {team_id}",
-            payload,
-        )
-
-    # Un slug doit provenir de la réponse API :
-    # ne pas le fabriquer à partir du nom.
     if len(history) < HISTORY_N and not slug:
         row = standings_row(league_id, team_id)
         row_team = row.get("team") if isinstance(row, dict) else {}
-
         if isinstance(row_team, dict):
             slug = row_team.get("slug")
 
     if len(history) < HISTORY_N and slug:
-        slug_payload = api_get(
-            f"teams/slug/{quote(str(slug), safe='')}"
-        )
-
+        slug_payload = api_get(f"teams/slug/{quote(str(slug), safe='')}")
         extra = parse_results(
             get_list(slug_payload, "results"),
             team_id,
             today,
             slug=str(slug),
         )
-
         history = merge_history(history, extra)
-
-        if len(history) < MIN_HISTORY:
-            log_payload_shape(
-                f"REPONSE SLUG {slug}",
-                slug_payload,
-            )
 
     if len(history) < MIN_HISTORY:
         if row is None:
             row = standings_row(league_id, team_id)
 
         fallback = history_from_form(row, today)
-
-        # Choisir la source la plus complète au lieu de
-        # mélanger des résultats avec identifiants incompatibles.
         if len(fallback) > len(history):
             history = fallback
-
-            print(
-                f"EQUIPE {team_id} : secours sur forme classement, "
-                f"{len(history)} resultats.",
-                flush=True,
-            )
 
     print(
         f"HISTORIQUE FINAL EQUIPE {team_id} : "
@@ -827,13 +534,50 @@ def team_history(team_id, league_id, today):
     return history
 
 
-# ---------------- MODELE ----------------
+# ---------------- H2H ----------------
+
+def h2h_stats(home_id, away_id):
+    key = f"{home_id}-{away_id}"
+    if key in H2H_CACHE:
+        return H2H_CACHE[key]
+
+    payload = api_get(f"fixtures/h2h/{home_id}/{away_id}")
+    matches = get_list(payload)
+
+    btts = []
+    over15 = []
+
+    for match in matches:
+        if str(match.get("status") or "").upper() != "FT":
+            continue
+
+        home_score = number(match.get("home_score"))
+        away_score = number(match.get("away_score"))
+        if home_score is None or away_score is None:
+            continue
+
+        btts.append(float(home_score > 0 and away_score > 0))
+        over15.append(float(home_score + away_score >= 2))
+
+        if len(btts) >= H2H_N:
+            break
+
+    result = None
+    if len(btts) >= MIN_H2H:
+        result = {
+            "btts": sum(btts) / len(btts),
+            "over15": sum(over15) / len(over15),
+            "n": len(btts),
+        }
+
+    H2H_CACHE[key] = result
+    return result
+
+
+# ---------------- MODELE EQUIPE ----------------
 
 def weighted_stats(matches):
-    weights = [
-        DECAY ** index
-        for index in range(len(matches))
-    ]
+    weights = [DECAY ** i for i in range(len(matches))]
     total = sum(weights)
 
     def average(function):
@@ -843,24 +587,15 @@ def weighted_stats(matches):
         ) / total
 
     return {
-        "gf": average(lambda match: match["gf"]),
-        "ga": average(lambda match: match["ga"]),
-        "btts": average(
-            lambda match: float(
-                match["gf"] > 0 and match["ga"] > 0
-            )
-        ),
-        "over15": average(
-            lambda match: float(
-                match["gf"] + match["ga"] >= 2
-            )
-        ),
+        "gf": average(lambda m: m["gf"]),
+        "ga": average(lambda m: m["ga"]),
+        "btts": average(lambda m: float(m["gf"] > 0 and m["ga"] > 0)),
+        "over15": average(lambda m: float(m["gf"] + m["ga"] >= 2)),
     }
 
 
 def profile(history, venue, today):
     recent = history[:HISTORY_N]
-
     if len(recent) < MIN_HISTORY:
         return None
 
@@ -870,15 +605,11 @@ def profile(history, venue, today):
     overall = weighted_stats(recent)
 
     local_matches = [
-        match for match in history
-        if match["venue"] == venue
+        m for m in history if m["venue"] == venue
     ][:VENUE_N]
 
     if len(local_matches) >= 3:
-        venue_weight = min(
-            0.50,
-            len(local_matches) / (len(local_matches) + 6),
-        )
+        venue_weight = min(0.50, len(local_matches) / (len(local_matches) + 6))
         local = weighted_stats(local_matches)
     else:
         venue_weight = 0
@@ -893,8 +624,6 @@ def profile(history, venue, today):
     }
 
     n = len(recent)
-
-    # Lissage léger vers la moyenne : limite l'effet d'une courte série.
     for metric, prior in PRIORS.items():
         result[metric] = (
             result[metric] * n + prior * PRIOR_K
@@ -902,11 +631,10 @@ def profile(history, venue, today):
 
     result["n"] = n
     result["venue_n"] = len(local_matches)
-
     return result
 
 
-def estimate(home, away):
+def estimate(home, away, h2h):
     lambda_home = (home["gf"] + away["ga"]) / 2
     lambda_away = (away["gf"] + home["ga"]) / 2
 
@@ -914,35 +642,246 @@ def estimate(home, away):
     p_away = 1 - math.exp(-lambda_away)
     total = lambda_home + lambda_away
 
-    probabilities = {
+    btts = (
+        0.75 * p_home * p_away
+        + 0.25 * (home["btts"] + away["btts"]) / 2
+    )
+
+    over15 = (
+        0.75 * (1 - math.exp(-total) * (1 + total))
+        + 0.25 * (home["over15"] + away["over15"]) / 2
+    )
+
+    if h2h:
+        btts = (1 - H2H_WEIGHT) * btts + H2H_WEIGHT * h2h["btts"]
+        over15 = (1 - H2H_WEIGHT) * over15 + H2H_WEIGHT * h2h["over15"]
+
+    return lambda_home, lambda_away, {
         "home": p_home,
         "away": p_away,
-        "btts": (
-            0.75 * p_home * p_away
-            + 0.25 * (home["btts"] + away["btts"]) / 2
-        ),
-        "over15": (
-            0.75 * (
-                1 - math.exp(-total) * (1 + total)
-            )
-            + 0.25 * (home["over15"] + away["over15"]) / 2
-        ),
+        "btts": btts,
+        "over15": over15,
     }
 
-    return lambda_home, lambda_away, probabilities
 
+# ---------------- BUTEURS ----------------
+
+def top_scorers(league_id):
+    key = str(league_id)
+    if key in TOP_SCORERS_CACHE:
+        return TOP_SCORERS_CACHE[key]
+
+    payload = api_get(f"leagues/{league_id}/topscorers?limit={TOP_SCORERS_N}")
+    rows = get_list(payload)
+
+    by_team = defaultdict(list)
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        goals = number(row.get("goals"))
+        team_id = row.get("team_id")
+        player_name = row.get("player_name")
+
+        if goals is None or goals < SCORER_MIN_GOALS:
+            continue
+        if not team_id or not player_name:
+            continue
+
+        by_team[str(team_id)].append({
+            "name": str(player_name),
+            "team_id": str(team_id),
+            "goals": goals,
+        })
+
+    for team_id in by_team:
+        by_team[team_id].sort(key=lambda p: -p["goals"])
+
+    TOP_SCORERS_CACHE[key] = by_team
+    return by_team
+
+
+def scorer_candidates(fixture, lambda_home, lambda_away):
+    scorers = top_scorers(fixture.get("league_id"))
+    candidates = []
+
+    team_goals = {
+        str(fixture["home_id"]): max(lambda_home, 0.05),
+        str(fixture["away_id"]): max(lambda_away, 0.05),
+    }
+
+    for side, team_id in (
+        ("home", str(fixture["home_id"])),
+        ("away", str(fixture["away_id"])),
+    ):
+        players = scorers.get(team_id, [])[:3]
+        total_goals = sum(p["goals"] for p in players) or 1
+
+        for player in players:
+            share = player["goals"] / total_goals
+            share = min(max(share, 0.15), 0.55)
+
+            probability = 1 - math.exp(-team_goals[team_id] * share)
+
+            candidates.append({
+                "side": side,
+                "player": player["name"],
+                "goals": player["goals"],
+                "probability": probability,
+            })
+
+    candidates.sort(key=lambda p: -p["probability"])
+    return candidates[:MAX_SCORERS_PER_MATCH]
+
+
+def player_shots(player_name, team_id):
+    endpoint = (
+        "players/stats?name="
+        + quote(str(player_name), safe="")
+        + f"&team_id={team_id}"
+    )
+
+    payload = api_get(endpoint)
+    if not isinstance(payload, dict):
+        return None
+
+    totals = payload.get("totals")
+    if not isinstance(totals, dict):
+        return None
+
+    return {
+        "goals": number(totals.get("goals")),
+        "shots": number(totals.get("shots_total")),
+        "appearances": number(totals.get("appearances")),
+    }
+
+
+# ---------------- CALIBRATION ----------------
+
+def ensure_predictions_file():
+    os.makedirs(os.path.dirname(PREDICTIONS_FILE), exist_ok=True)
+
+    if not os.path.exists(PREDICTIONS_FILE):
+        with open(PREDICTIONS_FILE, "w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(
+                file,
+                fieldnames=[
+                    "date", "fixture_id", "match", "league",
+                    "kickoff", "market", "player",
+                    "probability", "model_version", "result",
+                ],
+            )
+            writer.writeheader()
+
+
+def append_prediction(row):
+    ensure_predictions_file()
+
+    with open(PREDICTIONS_FILE, "a", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=[
+            "date", "fixture_id", "match", "league",
+            "kickoff", "market", "player",
+            "probability", "model_version", "result",
+        ])
+        writer.writerow(row)
+
+
+def settle_previous_predictions(today):
+    ensure_predictions_file()
+
+    if not os.path.exists(PREDICTIONS_FILE):
+        return
+
+    with open(PREDICTIONS_FILE, newline="", encoding="utf-8") as file:
+        rows = list(csv.DictReader(file))
+
+    changed = False
+
+    for row in rows:
+        if row.get("result") not in (None, "", "pending"):
+            continue
+
+        fixture_id = row.get("fixture_id")
+        if not fixture_id:
+            continue
+
+        try:
+            match_date = datetime.fromisoformat(row["date"]).date()
+        except ValueError:
+            continue
+
+        if match_date >= today:
+            continue
+
+        payload = api_get(f"fixtures/{fixture_id}")
+        fixture = payload.get("fixture") if isinstance(payload, dict) else None
+
+        if not isinstance(fixture, dict):
+            continue
+
+        if str(fixture.get("status") or "").upper() not in ("FT", "AET", "PENS"):
+            continue
+
+        home_score = number(fixture.get("home_score"))
+        away_score = number(fixture.get("away_score"))
+
+        if home_score is None or away_score is None:
+            continue
+
+        market = row.get("market")
+        player = row.get("player") or ""
+
+        if market == "home":
+            result = "gagne" if home_score > 0 else "perdu"
+        elif market == "away":
+            result = "gagne" if away_score > 0 else "perdu"
+        elif market == "btts":
+            result = (
+                "gagne"
+                if home_score > 0 and away_score > 0
+                else "perdu"
+            )
+        elif market == "over15":
+            result = (
+                "gagne"
+                if home_score + away_score >= 2
+                else "perdu"
+            )
+        elif market == "buteur":
+            events = get_list(api_get(f"fixtures/{fixture_id}/events"))
+            scored = any(
+                isinstance(event, dict)
+                and str(event.get("event_type") or "").lower() == "goal"
+                and str(event.get("player_name") or "").strip().lower()
+                == player.strip().lower()
+                for event in events
+            )
+            result = "gagne" if scored else "perdu"
+        else:
+            continue
+
+        row["result"] = result
+        changed = True
+
+    if changed:
+        with open(PREDICTIONS_FILE, "w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=[
+                "date", "fixture_id", "match", "league",
+                "kickoff", "market", "player",
+                "probability", "model_version", "result",
+            ])
+            writer.writeheader()
+            writer.writerows(rows)
+
+
+# ---------------- ANALYSE ----------------
 
 def analyse(fixture, today):
     home_history = team_history(
-        fixture["home_id"],
-        fixture["league_id"],
-        today,
+        fixture["home_id"], fixture["league_id"], today
     )
-
     away_history = team_history(
-        fixture["away_id"],
-        fixture["league_id"],
-        today,
+        fixture["away_id"], fixture["league_id"], today
     )
 
     home = profile(home_history, "home", today)
@@ -951,9 +890,9 @@ def analyse(fixture, today):
     if home is None or away is None:
         return None
 
-    lambda_home, lambda_away, probabilities = estimate(home, away)
+    h2h = h2h_stats(fixture["home_id"], fixture["away_id"])
+    lambda_home, lambda_away, probabilities = estimate(home, away, h2h)
 
-    # Seuils appliqués sur les valeurs réelles avant arrondi.
     picks = sorted(
         (
             (market, probability)
@@ -964,43 +903,35 @@ def analyse(fixture, today):
         reverse=True,
     )[:MAX_MARKETS]
 
-    # Suivi : marchés au-dessus du plafond (affichés à part).
-    above = sorted(
-        (
-            (market, probability)
-            for market, probability in probabilities.items()
-            if probability > MAX_PROB
-        ),
-        key=lambda item: item[1],
-        reverse=True,
-    )[:MAX_MARKETS]
+    scorer = None
+
+    if lambda_home + lambda_away >= 1.20:
+        candidates = scorer_candidates(
+            fixture, lambda_home, lambda_away
+        )
+
+        if candidates and candidates[0]["probability"] >= MIN_SCORER_PROB:
+            scorer = candidates[0]
 
     print(
         "MODELE :",
-        fixture.get("home_team"),
-        fixture.get("away_team"),
-        "echantillons :",
-        home["n"],
-        away["n"],
-        "dom/ext :",
-        home["venue_n"],
-        away["venue_n"],
-        "probabilites :",
-        probabilities,
+        fixture.get("home_team"), "-", fixture.get("away_team"),
+        "probabilites :", probabilities,
+        "buteur :", scorer,
         flush=True,
     )
 
     return {
         "fixture": fixture,
         "picks": picks,
-        "above": above,
+        "scorer": scorer,
         "best": picks[0][1] if picks else 0,
         "lambda_home": lambda_home,
         "lambda_away": lambda_away,
     }
 
 
-# ---------------- MESSAGE COMPACT ----------------
+# ---------------- MESSAGE ----------------
 
 def market_labels(fixture):
     home = short_name(fixture.get("home_team"))
@@ -1014,7 +945,7 @@ def market_labels(fixture):
     }
 
 
-def build_message(selected, above, partial, analysed, total):
+def build_message(selected, partial, analysed, total):
     lines = [
         "⚽ PRONOSTICS DU JOUR",
         datetime.now(PARIS).strftime("📅 %d/%m/%Y"),
@@ -1023,30 +954,30 @@ def build_message(selected, above, partial, analysed, total):
 
     for index, result in enumerate(selected, 1):
         fixture = result["fixture"]
-
         home = short_name(fixture.get("home_team"))
         away = short_name(fixture.get("away_team"))
         kickoff = kickoff_of(fixture).strftime("%H:%M")
 
-        lines.append(
-            f"{index}. {home} — {away} · {kickoff}"
-        )
+        lines.append(f"{index}. {home} — {away} · {kickoff}")
 
         league = league_label(fixture)
-
         if league:
             lines.append(f"🏆 {league}")
 
         labels = market_labels(fixture)
 
         for market, probability in result["picks"]:
+            lines.append(f"• {labels[market]} : {probability:.0%}")
+
+        if result["scorer"]:
+            scorer = result["scorer"]
             lines.append(
-                f"• {labels[market]} : {probability:.0%}"
+                f"• ⚽ Buteur : {scorer['player']} : "
+                f"{scorer['probability']:.0%}"
             )
 
         projection = (
-            f"{result['lambda_home']:.2f} — "
-            f"{result['lambda_away']:.2f}"
+            f"{result['lambda_home']:.2f} — {result['lambda_away']:.2f}"
         ).replace(".", ",")
 
         lines.extend([
@@ -1056,30 +987,9 @@ def build_message(selected, above, partial, analysed, total):
 
     if not selected:
         lines.extend([
-            f"Aucun marché estimé entre {MIN_PROB:.0%} et {MAX_PROB:.0%}",
-            "avec un historique suffisant.",
+            "Aucun marché estimé dans les filtres actuels.",
             "",
         ])
-
-    if above:
-        lines.append(
-            f"🔎 Au-dessus de {MAX_PROB:.0%} (suivi, hors filtre) :"
-        )
-
-        for result in above:
-            fixture = result["fixture"]
-            home = short_name(fixture.get("home_team"))
-            away = short_name(fixture.get("away_team"))
-            kickoff = kickoff_of(fixture).strftime("%H:%M")
-            labels = market_labels(fixture)
-            market, probability = result["above"][0]
-
-            lines.append(
-                f"• {home} — {away} · {kickoff} · "
-                f"{labels[market]} : {probability:.0%}"
-            )
-
-        lines.append("")
 
     lines.append(f"📈 {analysed}/{total} matchs analysés")
 
@@ -1101,7 +1011,6 @@ def main():
 
     if not TOKEN or not CHAT_ID:
         raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
-
     if not API_KEY:
         send_message("❌ Secret API_KEY absent.")
         return
@@ -1109,20 +1018,11 @@ def main():
     now = datetime.now(PARIS)
     today = now.date()
 
-    payload = api_get(
-        f"fixtures/date/{today.isoformat()}"
-    )
+    settle_previous_predictions(today)
 
-    if (
-        not isinstance(payload, dict)
-        or not isinstance(payload.get("data"), list)
-    ):
-        log_payload_shape("REPONSE MATCHS", payload)
-
-        send_message(
-            "⚠️ Analyse indisponible : "
-            "impossible de lire les matchs SportAPI."
-        )
+    payload = api_get(f"fixtures/date/{today.isoformat()}")
+    if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+        send_message("⚠️ Analyse indisponible : matchs SportAPI illisibles.")
         return
 
     fixtures = payload["data"]
@@ -1131,46 +1031,32 @@ def main():
 
     for fixture in fixtures:
         if not isinstance(fixture, dict):
-            REASONS["Format match non reconnu"] += 1
             continue
 
         kickoff = kickoff_of(fixture)
-
         if kickoff is None:
-            REASONS["Horaire illisible"] += 1
             continue
 
         if kickoff.date() != today or kickoff <= now:
-            REASONS["Autre jour ou match deja commence"] += 1
             continue
 
-        status = str(
-            fixture.get("status") or ""
-        ).strip().casefold()
-
-        if status != "scheduled":
-            REASONS["Statut non admissible"] += 1
+        if str(fixture.get("status") or "").casefold() != "scheduled":
             continue
 
         if any(
             fixture.get(field) is None
             for field in ("home_id", "away_id", "league_id")
         ):
-            REASONS["Identifiants absents"] += 1
             continue
 
         if EXCLUDE_YOUTH and is_youth(fixture):
-            REASONS["Equipes de jeunes ou reserves exclues"] += 1
             continue
 
-        identifier = fixture.get("id")
-
-        if identifier is None:
-            identifier = (
-                fixture["home_id"],
-                fixture["away_id"],
-                str(fixture.get("kickoff_utc")),
-            )
+        identifier = fixture.get("id") or (
+            fixture["home_id"],
+            fixture["away_id"],
+            str(fixture.get("kickoff_utc")),
+        )
 
         if identifier in seen:
             continue
@@ -1178,45 +1064,23 @@ def main():
         seen.add(identifier)
         eligible.append(fixture)
 
-    if fixtures and isinstance(fixtures[0], dict):
-        print(
-            "CHAMPS D'UN MATCH :",
-            list(fixtures[0].keys()),
-            flush=True,
-        )
-
     eligible = prioritise(eligible)
 
     results = []
-    above_results = []
     analysed = 0
-    examined = 0
 
     for fixture in eligible:
         if not budget_available():
             PARTIAL = True
             break
 
-        examined += 1
-
         if kickoff_of(fixture) <= datetime.now(PARIS):
-            REASONS["Match commence pendant le lancement"] += 1
             continue
 
         try:
             result = analyse(fixture, today)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            OverflowError,
-            ZeroDivisionError,
-        ) as exc:
-            error(
-                "Lecture historique impossible : "
-                + type(exc).__name__
-            )
-            REASONS["Erreur lecture historique"] += 1
+        except Exception as exc:
+            error("Lecture historique impossible : " + type(exc).__name__)
             continue
 
         if result is None:
@@ -1225,54 +1089,74 @@ def main():
 
         analysed += 1
 
-        if result["above"]:
-            above_results.append(result)
-
-        if result["picks"]:
+        if result["picks"] or result["scorer"]:
             results.append(result)
-        else:
-            REASONS[
-                f"Aucun marche entre {MIN_PROB:.0%} et {MAX_PROB:.0%}"
-            ] += 1
 
-    # Si une limite est atteinte pendant la dernière analyse,
-    # le diagnostic doit aussi le signaler.
     if BLOCKED:
         PARTIAL = True
 
     results.sort(
-        key=lambda result: (
-            -result["best"],
-            kickoff_of(result["fixture"]),
-        )
+        key=lambda r: (-r["best"], kickoff_of(r["fixture"]))
     )
 
     publication_time = datetime.now(PARIS)
+    selected = [
+        r for r in results
+        if kickoff_of(r["fixture"]) > publication_time
+    ][:MAX_MATCHES]
 
-    still_upcoming = [
-        result
-        for result in results
-        if kickoff_of(result["fixture"]) > publication_time
-    ]
+    for result in selected:
+        fixture = result["fixture"]
+        match_name = (
+            f"{fixture.get('home_team')} - {fixture.get('away_team')}"
+        )
 
-    selected = still_upcoming[:MAX_MATCHES]
+        for market, probability in result["picks"]:
+            append_prediction({
+                "date": today.isoformat(),
+                "fixture_id": fixture.get("id"),
+                "match": match_name,
+                "league": fixture.get("league_name"),
+                "kickoff": kickoff_of(fixture).strftime("%H:%M"),
+                "market": market,
+                "player": "",
+                "probability": f"{probability:.4f}",
+                "model_version": "6.0",
+                "result": "pending",
+            })
 
-    above_selected = []
+        if result["scorer"]:
+            scorer = result["scorer"]
+            team_id = (
+                fixture["home_id"]
+                if scorer["side"] == "home"
+                else fixture["away_id"]
+            )
 
-    if SHOW_ABOVE_MAX:
-        above_selected = sorted(
-            (
-                result
-                for result in above_results
-                if kickoff_of(result["fixture"]) > publication_time
-            ),
-            key=lambda result: -result["above"][0][1],
-        )[:MAX_ABOVE]
+            shots = player_shots(scorer["player"], team_id)
+
+            append_prediction({
+                "date": today.isoformat(),
+                "fixture_id": fixture.get("id"),
+                "match": match_name,
+                "league": fixture.get("league_name"),
+                "kickoff": kickoff_of(fixture).strftime("%H:%M"),
+                "market": "buteur",
+                "player": scorer["player"],
+                "probability": f"{scorer['probability']:.4f}",
+                "model_version": "6.0",
+                "result": "pending",
+            })
+
+            print(
+                f"BUTEUR RETENU : {scorer['player']} | "
+                f"tirs carriere : {shots}",
+                flush=True,
+            )
 
     print("\n===== BILAN FINAL =====", flush=True)
     print("MATCHS RECUS :", len(fixtures), flush=True)
     print("MATCHS A VENIR :", len(eligible), flush=True)
-    print("MATCHS EXAMINES :", examined, flush=True)
     print("MATCHS ANALYSABLES :", analysed, flush=True)
     print("MATCHS PUBLIES :", len(selected), flush=True)
     print("REQUETES :", CALLS, flush=True)
@@ -1281,13 +1165,7 @@ def main():
     print("ERREURS :", ERRORS, flush=True)
 
     send_message(
-        build_message(
-            selected,
-            above_selected,
-            PARTIAL,
-            analysed,
-            len(eligible),
-        )
+        build_message(selected, PARTIAL, analysed, len(eligible))
     )
 
 
@@ -1295,10 +1173,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        print(
-            "ERREUR FATALE :",
-            type(exc).__name__,
-            safe(exc),
-            flush=True,
-        )
+        print("ERREUR FATALE :", type(exc).__name__, safe(exc), flush=True)
         raise SystemExit(1)
