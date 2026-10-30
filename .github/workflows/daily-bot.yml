@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: bot-btts
@@ -37,3 +37,25 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           API_KEY: ${{ secrets.API_KEY }}
         run: python -u bot_btts.py
+
+      - name: Sauvegarder le journal de calibration
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          mkdir -p data
+
+          if [ ! -f data/predictions.csv ]; then
+            echo "date,fixture_id,match,league,kickoff,market,player,probability,model_version,result" > data/predictions.csv
+          fi
+
+          git add data/predictions.csv
+
+          if git diff --cached --quiet; then
+            echo "Aucune mise à jour de calibration."
+          else
+            git commit -m "Mise à jour calibration"
+            git pull --rebase
+            git push
+          fi
