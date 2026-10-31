@@ -778,6 +778,38 @@ OLD_FIELDS = [
 
 
 def read_predictions():
+    old_backup = PREDICTIONS_FILE.replace(".csv", "_ancien.csv")
+    if os.path.exists(old_backup):
+        recovered = read_old_format(old_backup)
+        if recovered:
+            current = read_predictions_file()
+            known = {
+                (r["date"], r["fixture_id"], r["market"], r["player"])
+                for r in current
+            }
+            current += [
+                r for r in recovered
+                if (r["date"], r["fixture_id"], r["market"], r["player"])
+                not in known
+            ]
+            write_predictions(current)
+            os.replace(old_backup, old_backup + ".repris")
+    return read_predictions_file()
+
+
+def read_old_format(path):
+    with open(path, newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        if reader.fieldnames != OLD_FIELDS:
+            return []
+        rows = list(reader)
+    for row in rows:
+        row["prob_base"] = row.get("probability", "")
+        row["published"] = 1
+    return [{k: r.get(k, "") for k in FIELDS} for r in rows]
+
+
+def read_predictions_file():
     if not os.path.exists(PREDICTIONS_FILE):
         return []
     with open(PREDICTIONS_FILE, newline="", encoding="utf-8") as file:
@@ -1027,11 +1059,21 @@ def build_message(selected, scorers, partial, analysed, total):
         "",
     ]
 
+    selected = sorted(
+        selected, key=lambda r: (kickoff_of(r["fixture"]), -r["best"])
+    )
+    current_hour = None
+
     for index, result in enumerate(selected, 1):
         fixture = result["fixture"]
         home = short_name(fixture.get("home_team"))
         away = short_name(fixture.get("away_team"))
-        kickoff = kickoff_of(fixture).strftime("%H:%M")
+        start = kickoff_of(fixture)
+        kickoff = start.strftime("%H:%M")
+
+        if start.hour != current_hour:
+            current_hour = start.hour
+            lines.append(f"⏰ {current_hour:02d}h")
 
         lines.append(f"{index}. {home} — {away} · {kickoff}")
 
@@ -1064,7 +1106,11 @@ def build_message(selected, scorers, partial, analysed, total):
 
     if scorers:
         lines.append("🧪 BUTEURS (test, non validé)")
-        for result in scorers[:MAX_SCORERS_SHOWN]:
+        scorers = sorted(
+            scorers[:MAX_SCORERS_SHOWN],
+            key=lambda r: kickoff_of(r["fixture"]),
+        )
+        for result in scorers:
             fixture = result["fixture"]
             scorer = result["scorer"]
             kickoff = kickoff_of(fixture).strftime("%H:%M")
