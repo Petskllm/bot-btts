@@ -771,18 +771,33 @@ def fmt_odds(value):
 
 # ---------------- JOURNAL / CALIBRATION ----------------
 
+OLD_FIELDS = [
+    "date", "fixture_id", "match", "league", "kickoff",
+    "market", "player", "probability", "model_version", "result",
+]
+
+
 def read_predictions():
     if not os.path.exists(PREDICTIONS_FILE):
         return []
     with open(PREDICTIONS_FILE, newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
-        if reader.fieldnames != FIELDS:
-            # ancien format : on le garde de cote
-            backup = PREDICTIONS_FILE.replace(".csv", "_ancien.csv")
-            file.close()
-            os.replace(PREDICTIONS_FILE, backup)
-            return []
-        return list(reader)
+        header = reader.fieldnames
+        rows = list(reader)
+
+    if header == FIELDS:
+        return rows
+
+    if header == OLD_FIELDS:
+        # format 6.0 : on garde les lignes (elles etaient toutes publiees)
+        for row in rows:
+            row["prob_base"] = row.get("probability", "")
+            row["published"] = 1
+        return [{k: r.get(k, "") for k in FIELDS} for r in rows]
+
+    backup = PREDICTIONS_FILE.replace(".csv", "_ancien.csv")
+    os.replace(PREDICTIONS_FILE, backup)
+    return []
 
 
 def write_predictions(rows):
