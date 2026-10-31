@@ -611,3 +611,66 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,18638647,Sportivo Luqueño - Nacional Asunción,Paraguayan Primera División,23:30,over15,,0.7367,0.6903,0,6.1,pending
 2026-10-31,18638648,Sportivo San Lorenzo - Libertad,Paraguayan Primera División,23:30,away,,0.7793,0.7793,0,6.1,pending
 2026-10-31,18638648,Sportivo San Lorenzo - Libertad,Paraguayan Primera División,23:30,over15,,0.7199,0.7293,0,6.1,pending
+2026-10-30,18640604,Rodez - Dunkerque,French Ligue 2,20:00,over15,,0.8499,0.8499,1,6.0,perdu
+2026-10-30,18640604,Rodez - Dunkerque,French Ligue 2,20:00,away,,0.8320,0.8320,1,6.0,perdu
+2026-10-30,18640604,Rodez - Dunkerque,French Ligue 2,20:00,buteur,Egor Prutsev,0.6250,0.6250,1,6.0,perdu
+2026-10-30,18640921,RKC Waalwijk - Almere City,Dutch Eerste Divisie,20:00,over15,,0.8471,0.8471,1,6.0,gagne
+2026-10-30,18640921,RKC Waalwijk - Almere City,Dutch Eerste Divisie,20:00,away,,0.8146,0.8146,1,6.0,gagne
+2026-10-30,18640921,RKC Waalwijk - Almere City,Dutch Eerste Divisie,20:00,buteur,Ferdy Druijf,0.6042,0.6042,1,6.0,gagne
+2026-10-30,15271925,Flint Town United - Holywell,Cymru Premier,20:45,home,,0.8465,0.8465,1,6.0,gagne
+2026-10-30,15271925,Flint Town United - Holywell,Cymru Premier,20:45,over15,,0.8116,0.8116,1,6.0,gagne
+2026-10-30,15271925,Flint Town United - Holywell,Cymru Premier,20:45,buteur,T. Owolabi,0.6433,0.6433,1,6.0,gagne
+2026-10-30,15271947,Al Shabab - Al Ahli,Saudi Arabian League,19:00,over15,,0.8449,0.8449,1,6.0,gagne
+2026-10-30,15271947,Al Shabab - Al Ahli,Saudi Arabian League,19:00,away,,0.8361,0.8361,1,6.0,gagne
+2026-10-30,15271947,Al Shabab - Al Ahli,Saudi Arabian League,19:00,buteur,I. Toney,0.6301,0.6301,1,6.0,perdu
+2026-10-30,18640922,Roda JC - Jong AZ,Dutch Eerste Divisie,20:00,home,,0.8408,0.8408,1,6.0,gagne
+2026-10-30,18640922,Roda JC - Jong AZ,Dutch Eerste Divisie,20:00,away,,0.8392,0.8392,1,6.0,gagne
+2026-10-30,18640922,Roda JC - Jong AZ,Dutch Eerste Divisie,20:00,buteur,Anthony van der Hurk,0.6360,0.6360,1,6.0,gagne
+2026-10-30,15271904,Zulte Waregem - Club Brugge,Belgian Pro League,20:45,away,,0.8377,0.8377,1,6.0,gagne
+2026-10-30,15271904,Zulte Waregem - Club Brugge,Belgian Pro League,20:45,over15,,0.8169,0.8169,1,6.0,gagne
+2026-10-30,15271904,Zulte Waregem - Club Brugge,Belgian Pro League,20:45,buteur,N. Tresoldi,0.6321,0.6321,1,6.0,gagne
+2026-10-30,18640920,Helmond Sport - Eindhoven,Dutch Eerste Divisie,20:00,home,,0.8370,0.8370,1,6.0,gagne
+2026-10-30,18640920,Helmond Sport - Eindhoven,Dutch Eerste Divisie,20:00,over15,,0.8333,0.8333,1,6.0,gagne
+2026-10-30,15328886,Slaven Koprivnica - Istra 1961,Croatia Prva HNL,18:00,over15,,0.8343,0.8343,1,6.0,gagne
+2026-10-30,15328886,Slaven Koprivnica - Istra 1961,Croatia Prva HNL,18:00,away,,0.8082,0.8082,1,6.0,gagne
+2026-10-30,15271922,Barry Town United - Trefelin,Cymru Premier,20:45,home,,0.8319,0.8319,1,6.0,gagne
+2026-10-30,15271922,Barry Town United - Trefelin,Cymru Premier,20:45,away,,0.7846,0.7846,1,6.0,perdu
+2026-10-30,15271906,Bodø / Glimt - Viking,Norwegian Eliteserien,19:00,over15,,0.8311,0.8311,1,6.0,gagne
+2026-10-30,15271906,Bodø / Glimt - Viking,Norwegian Eliteserien,19:00,home,,0.8162,0.8162,1,6.0,gagne
+2026-10-30,15271906,Bodø / Glimt - Viking,Norwegian Eliteserien,19:00,buteur,A. Helmersen,0.6061,0.6061,1,6.0,gagne
+2026-10-30,18639989,Arminia Bielefeld - Eintracht Braunschweig,German 2. Bundesliga,18:30,home,,0.8307,0.8307,1,6.0,gagne
+2026-10-30,18639989,Arminia Bielefeld - Eintracht Braunschweig,German 2. Bundesliga,18:30,over15,,0.8128,0.8128,1,6.0,gagne
+2026-10-30,18639989,Arminia Bielefeld - Eintracht Braunschweig,German 2. Bundesliga,18:30,buteur,Joel Grodowski,0.6234,0.6234,1,6.0,gagne
+2026-10-30,18636887,Criciúma - Ponte Preta,Brazilian Serie B,23:30,home,,0.8283,0.8283,1,6.0,gagne
+2026-10-30,18636887,Criciúma - Ponte Preta,Brazilian Serie B,23:30,over15,,0.7580,0.7580,1,6.0,gagne
+2026-10-30,15271913,Fylde - Hornchurch,National League,20:45,home,,0.8270,0.8270,1,6.0,gagne
+2026-10-30,15271913,Fylde - Hornchurch,National League,20:45,over15,,0.8158,0.8158,1,6.0,gagne
+2026-10-30,15271913,Fylde - Hornchurch,National League,20:45,buteur,L. Thomas,0.6191,0.6191,1,6.0,perdu
+2026-10-30,15271902,Lille - Lens,French Ligue 1,21:05,over15,,0.8251,0.8251,1,6.0,perdu
+2026-10-30,15271902,Lille - Lens,French Ligue 1,21:05,home,,0.7904,0.7904,1,6.0,gagne
+2026-10-30,15271919,Larne - Portadown,Northern Irish Premiership,20:45,over15,,0.8242,0.8242,1,6.0,perdu
+2026-10-30,15271919,Larne - Portadown,Northern Irish Premiership,20:45,home,,0.8131,0.8131,1,6.0,gagne
+2026-10-30,15271919,Larne - Portadown,Northern Irish Premiership,20:45,buteur,P. O'Neill,0.6024,0.6024,1,6.0,perdu
+2026-10-30,18636887,Criciúma - Ponte Preta,Brazilian Serie B,23:30,home,,0.8283,0.8283,1,6.0,gagne
+2026-10-30,18636887,Criciúma - Ponte Preta,Brazilian Serie B,23:30,over15,,0.7580,0.7580,1,6.0,gagne
+2026-10-30,15271902,Lille - Lens,French Ligue 1,21:05,over15,,0.8251,0.8251,1,6.0,perdu
+2026-10-30,15271902,Lille - Lens,French Ligue 1,21:05,home,,0.7904,0.7904,1,6.0,gagne
+2026-10-30,15380463,Villarreal - Espanyol,Spanish La Liga,21:00,home,,0.8092,0.8092,1,6.0,perdu
+2026-10-30,15380463,Villarreal - Espanyol,Spanish La Liga,21:00,over15,,0.7868,0.7868,1,6.0,perdu
+2026-10-30,18637117,Colo Colo - Universidad de Concepción,Chilean Primera División,23:00,over15,,0.8002,0.8002,1,6.0,gagne
+2026-10-30,15271909,Casa Pia - Sporting CP,Portuguese Primeira Liga,21:15,over15,,0.7884,0.7884,1,6.0,gagne
+2026-10-30,15271909,Casa Pia - Sporting CP,Portuguese Primeira Liga,21:15,buteur,L. Suárez,0.6702,0.6702,1,6.0,perdu
+2026-10-30,18637504,Deportivo Pereira - Jaguares de Córdoba,Colombian Primera A,22:00,home,,0.7748,0.7748,1,6.0,gagne
+2026-10-30,18637504,Deportivo Pereira - Jaguares de Córdoba,Colombian Primera A,22:00,over15,,0.7570,0.7570,1,6.0,perdu
+2026-10-30,15271911,Sheffield United - Wrexham,Championship,21:00,home,,0.7739,0.7739,1,6.0,gagne
+2026-10-30,15271911,Sheffield United - Wrexham,Championship,21:00,over15,,0.7548,0.7548,1,6.0,perdu
+2026-10-30,18639089,Real Potosí - Independiente Petrolero,Bolivian División Profesional,23:00,home,,0.7705,0.7705,1,6.0,gagne
+2026-10-30,18637118,Coquimbo Unido - Unión La Calera,Chilean Primera División,23:00,home,,0.7627,0.7627,1,6.0,gagne
+2026-10-30,18637118,Coquimbo Unido - Unión La Calera,Chilean Primera División,23:00,over15,,0.7264,0.7264,1,6.0,perdu
+2026-10-30,18638645,Sportivo Trinidense - Rubio Ñú,Paraguayan Primera División,23:30,home,,0.7624,0.7624,1,6.0,gagne
+2026-10-30,18635859,Estudiantes de Río Cuarto - Gimnasia La Plata,Argentine Liga Profesional,23:00,away,,0.7437,0.7437,1,6.0,gagne
+2026-10-30,18635859,Estudiantes de Río Cuarto - Gimnasia La Plata,Argentine Liga Profesional,23:00,over15,,0.7336,0.7336,1,6.0,gagne
+2026-10-30,18638644,Club Guaraní - 2 de Mayo,Paraguayan Primera División,23:30,home,,0.7354,0.7354,1,6.0,gagne
+2026-10-30,18638644,Club Guaraní - 2 de Mayo,Paraguayan Primera División,23:30,over15,,0.7312,0.7312,1,6.0,perdu
+2026-10-30,18635860,Huracán - Tigre,Argentine Liga Profesional,23:00,home,,0.7342,0.7342,1,6.0,perdu
+2026-10-30,18641582,Louisville City - Pittsburgh Riverhounds,USL Championship,23:30,home,,0.7257,0.7257,1,6.0,pending
