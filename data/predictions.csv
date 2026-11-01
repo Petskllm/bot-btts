@@ -513,7 +513,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15329178,Sporting KC - Dallas,US Major League Soccer,20:00,away,,0.8640,0.8640,0,6.1,gagne
 2026-10-31,15329178,Sporting KC - Dallas,US Major League Soccer,20:00,btts,,0.6973,0.6973,0,6.1,gagne
 2026-10-31,15329178,Sporting KC - Dallas,US Major League Soccer,20:00,over15,,0.8809,0.8809,0,6.1,gagne
-2026-10-31,15329178,Sporting KC - Dallas,US Major League Soccer,20:00,buteur,P. Musa,0.6662,0.6662,1,6.1,pending
+2026-10-31,15329178,Sporting KC - Dallas,US Major League Soccer,20:00,buteur,P. Musa,0.6662,0.6662,1,6.1,perdu
 2026-10-31,15329179,St. Louis City - San Diego,US Major League Soccer,20:00,home,,0.9027,0.9027,0,6.1,perdu
 2026-10-31,15329179,St. Louis City - San Diego,US Major League Soccer,20:00,away,,0.8006,0.8006,0,6.1,gagne
 2026-10-31,15329179,St. Louis City - San Diego,US Major League Soccer,20:00,btts,,0.7224,0.7224,0,6.1,perdu
@@ -524,12 +524,12 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,18639994,Karlsruher SC - Heidenheim,German 2. Bundesliga,20:30,home,,0.8152,0.8152,0,6.1,gagne
 2026-10-31,18639994,Karlsruher SC - Heidenheim,German 2. Bundesliga,20:30,away,,0.8056,0.8056,0,6.1,gagne
 2026-10-31,18639994,Karlsruher SC - Heidenheim,German 2. Bundesliga,20:30,over15,,0.8280,0.8280,0,6.1,gagne
-2026-10-31,18639994,Karlsruher SC - Heidenheim,German 2. Bundesliga,20:30,buteur,Shio Fukuda,0.6049,0.6049,0,6.1,pending
+2026-10-31,18639994,Karlsruher SC - Heidenheim,German 2. Bundesliga,20:30,buteur,Shio Fukuda,0.6049,0.6049,0,6.1,perdu
 2026-10-31,15328908,Luzern - Sion,Swiss Super League,20:30,home,,0.8330,0.8330,1,6.1,gagne
 2026-10-31,15328908,Luzern - Sion,Swiss Super League,20:30,away,,0.8502,0.8502,0,6.1,gagne
 2026-10-31,15328908,Luzern - Sion,Swiss Super League,20:30,btts,,0.6641,0.6930,0,6.1,gagne
 2026-10-31,15328908,Luzern - Sion,Swiss Super League,20:30,over15,,0.8580,0.8771,0,6.1,gagne
-2026-10-31,15328908,Luzern - Sion,Swiss Super League,20:30,buteur,W. Boteli,0.6130,0.6130,0,6.1,pending
+2026-10-31,15328908,Luzern - Sion,Swiss Super League,20:30,buteur,W. Boteli,0.6130,0.6130,0,6.1,perdu
 2026-10-31,18638116,Peñarol - Montevideo Wanderers,Uruguayan Primera División,20:30,home,,0.7936,0.7936,0,6.1,gagne
 2026-10-31,18638116,Peñarol - Montevideo Wanderers,Uruguayan Primera División,20:30,over15,,0.7391,0.7391,0,6.1,gagne
 2026-10-31,15328880,Anderlecht - Westerlo,Belgian Pro League,20:45,home,,0.7838,0.7838,0,6.1,gagne
@@ -538,7 +538,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328881,Beveren - Union Saint-Gilloise,Belgian Pro League,20:45,home,,0.6820,0.6820,0,6.1,gagne
 2026-10-31,15328881,Beveren - Union Saint-Gilloise,Belgian Pro League,20:45,away,,0.8737,0.8737,0,6.1,gagne
 2026-10-31,15328881,Beveren - Union Saint-Gilloise,Belgian Pro League,20:45,over15,,0.8289,0.8289,0,6.1,gagne
-2026-10-31,15328881,Beveren - Union Saint-Gilloise,Belgian Pro League,20:45,buteur,R. Florucz,0.6795,0.6795,1,6.1,pending
+2026-10-31,15328881,Beveren - Union Saint-Gilloise,Belgian Pro League,20:45,buteur,R. Florucz,0.6795,0.6795,1,6.1,perdu
 2026-10-31,15328875,Troyes - Le Mans,French Ligue 1,20:45,home,,0.7044,0.7044,0,6.1,gagne
 2026-10-31,15328875,Troyes - Le Mans,French Ligue 1,20:45,away,,0.7837,0.7837,0,6.1,perdu
 2026-10-31,15328875,Troyes - Le Mans,French Ligue 1,20:45,over15,,0.7734,0.7734,0,6.1,gagne
@@ -553,12 +553,12 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328895,Ajax - AZ,Dutch Eredivisie,21:00,home,,0.8260,0.8260,1,6.1,gagne
 2026-10-31,15328895,Ajax - AZ,Dutch Eredivisie,21:00,away,,0.7811,0.7811,0,6.1,perdu
 2026-10-31,15328895,Ajax - AZ,Dutch Eredivisie,21:00,over15,,0.8456,0.8456,1,6.1,perdu
-2026-10-31,15328895,Ajax - AZ,Dutch Eredivisie,21:00,buteur,J. Brandt,0.6147,0.6147,0,6.1,pending
+2026-10-31,15328895,Ajax - AZ,Dutch Eredivisie,21:00,buteur,J. Brandt,0.6147,0.6147,0,6.1,perdu
 2026-10-31,15328896,Cambuur - Go Ahead Eagles,Dutch Eredivisie,21:00,home,,0.8597,0.8597,0,6.1,gagne
 2026-10-31,15328896,Cambuur - Go Ahead Eagles,Dutch Eredivisie,21:00,away,,0.8486,0.8486,1,6.1,perdu
 2026-10-31,15328896,Cambuur - Go Ahead Eagles,Dutch Eredivisie,21:00,btts,,0.7297,0.7297,1,6.1,perdu
 2026-10-31,15328896,Cambuur - Go Ahead Eagles,Dutch Eredivisie,21:00,over15,,0.8937,0.8937,0,6.1,gagne
-2026-10-31,15328896,Cambuur - Go Ahead Eagles,Dutch Eredivisie,21:00,buteur,S. Tengstedt,0.6460,0.6460,0,6.1,pending
+2026-10-31,15328896,Cambuur - Go Ahead Eagles,Dutch Eredivisie,21:00,buteur,S. Tengstedt,0.6460,0.6460,0,6.1,perdu
 2026-10-31,18638646,Deportivo Recoleta - Sportivo Ameliano,Paraguayan Primera División,21:00,home,,0.6848,0.6848,0,6.1,gagne
 2026-10-31,18638646,Deportivo Recoleta - Sportivo Ameliano,Paraguayan Primera División,21:00,away,,0.7582,0.7582,0,6.1,perdu
 2026-10-31,18638646,Deportivo Recoleta - Sportivo Ameliano,Paraguayan Primera División,21:00,over15,,0.7708,0.7303,0,6.1,gagne
@@ -568,7 +568,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15380455,Barcelona - Alavés,Spanish La Liga,21:00,home,,0.8734,0.8734,0,6.1,gagne
 2026-10-31,15380455,Barcelona - Alavés,Spanish La Liga,21:00,away,,0.7321,0.7321,1,6.1,gagne
 2026-10-31,15380455,Barcelona - Alavés,Spanish La Liga,21:00,over15,,0.8437,0.8437,1,6.1,gagne
-2026-10-31,15380455,Barcelona - Alavés,Spanish La Liga,21:00,buteur,Raphinha,0.6586,0.6586,0,6.1,pending
+2026-10-31,15380455,Barcelona - Alavés,Spanish La Liga,21:00,buteur,Raphinha,0.6586,0.6586,0,6.1,gagne
 2026-10-31,18639714,Albacete - Sabadell,Spanish La Liga 2,21:00,away,,0.7281,0.7281,0,6.1,gagne
 2026-10-31,18639714,Albacete - Sabadell,Spanish La Liga 2,21:00,over15,,0.6928,0.6928,0,6.1,gagne
 2026-10-31,18636889,Vila Nova - Juventude,Brazilian Serie B,21:30,home,,0.6985,0.6985,0,6.1,gagne
@@ -1082,3 +1082,63 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,15380470,Juventus - Napoli,Italian Serie A,20:45,home,,0.7931,0.7931,0,6.1,pending
 2026-11-01,15380470,Juventus - Napoli,Italian Serie A,20:45,away,,0.7820,0.7820,0,6.1,pending
 2026-11-01,15380470,Juventus - Napoli,Italian Serie A,20:45,over15,,0.8237,0.8237,0,6.1,pending
+2026-11-01,18638649,Cerro Porteño - Olimpia,Paraguayan Primera División,21:00,home,,0.6624,0.6624,0,6.1,pending
+2026-11-01,18638649,Cerro Porteño - Olimpia,Paraguayan Primera División,21:00,away,,0.7624,0.7624,0,6.1,pending
+2026-11-01,18638649,Cerro Porteño - Olimpia,Paraguayan Primera División,21:00,over15,,0.7088,0.7162,0,6.1,pending
+2026-11-01,15380454,Athletic Club - Real Sociedad,Spanish La Liga,21:00,home,,0.8083,0.8083,1,6.1,pending
+2026-11-01,15380454,Athletic Club - Real Sociedad,Spanish La Liga,21:00,away,,0.8348,0.8348,1,6.1,pending
+2026-11-01,15380454,Athletic Club - Real Sociedad,Spanish La Liga,21:00,over15,,0.8023,0.8557,0,6.1,pending
+2026-11-01,18639718,Tenerife - FC Andorra,Spanish La Liga 2,21:00,home,,0.7193,0.7193,0,6.1,pending
+2026-11-01,18639718,Tenerife - FC Andorra,Spanish La Liga 2,21:00,away,,0.7032,0.7032,0,6.1,pending
+2026-11-01,18639718,Tenerife - FC Andorra,Spanish La Liga 2,21:00,over15,,0.7165,0.7165,0,6.1,pending
+2026-11-01,18637816,Atlético Grau - Universitario,Peruvian Liga 1,21:30,home,,0.7510,0.7510,0,6.1,pending
+2026-11-01,18637816,Atlético Grau - Universitario,Peruvian Liga 1,21:30,away,,0.8038,0.8038,0,6.1,pending
+2026-11-01,18637816,Atlético Grau - Universitario,Peruvian Liga 1,21:30,over15,,0.7966,0.7966,0,6.1,pending
+2026-11-01,15380505,Sporting Braga - Famalicão,Portuguese Primeira Liga,21:30,home,,0.6770,0.6770,0,6.1,pending
+2026-11-01,15380505,Sporting Braga - Famalicão,Portuguese Primeira Liga,21:30,away,,0.7706,0.7706,0,6.1,pending
+2026-11-01,15380505,Sporting Braga - Famalicão,Portuguese Primeira Liga,21:30,over15,,0.7313,0.7313,0,6.1,pending
+2026-11-01,15380610,Vancouver Whitecaps - Seattle Sounders,US Major League Soccer,21:30,home,,0.8070,0.8070,1,6.1,pending
+2026-11-01,15380610,Vancouver Whitecaps - Seattle Sounders,US Major League Soccer,21:30,away,,0.7643,0.7643,0,6.1,pending
+2026-11-01,15380610,Vancouver Whitecaps - Seattle Sounders,US Major League Soccer,21:30,over15,,0.8393,0.8110,1,6.1,pending
+2026-11-01,18638398,Guayaquil City FC - Libertad (Ecuador),Ecuadorian LigaPro,22:00,home,,0.7833,0.7833,0,6.1,pending
+2026-11-01,18638398,Guayaquil City FC - Libertad (Ecuador),Ecuadorian LigaPro,22:00,away,,0.7743,0.7743,0,6.1,pending
+2026-11-01,18638398,Guayaquil City FC - Libertad (Ecuador),Ecuadorian LigaPro,22:00,over15,,0.7746,0.7937,0,6.1,pending
+2026-11-01,18642242,Deportivo San Pedro - Municipal,Guatemalan Liga Nacional,22:00,home,,0.7175,0.7175,0,6.1,pending
+2026-11-01,18642242,Deportivo San Pedro - Municipal,Guatemalan Liga Nacional,22:00,away,,0.7126,0.7126,0,6.1,pending
+2026-11-01,18642242,Deportivo San Pedro - Municipal,Guatemalan Liga Nacional,22:00,over15,,0.7231,0.7231,0,6.1,pending
+2026-11-01,18642514,Atletico Balboa - Alianza FC,Salvadoran Primera División,22:00,home,,0.7237,0.7237,0,6.1,pending
+2026-11-01,18642514,Atletico Balboa - Alianza FC,Salvadoran Primera División,22:00,away,,0.7242,0.7242,0,6.1,pending
+2026-11-01,18642514,Atletico Balboa - Alianza FC,Salvadoran Primera División,22:00,over15,,0.7286,0.7286,0,6.1,pending
+2026-11-01,18642515,Fuerte San Francisco - Águila,Salvadoran Primera División,22:00,home,,0.6653,0.6653,0,6.1,pending
+2026-11-01,18642515,Fuerte San Francisco - Águila,Salvadoran Primera División,22:00,away,,0.7775,0.7775,0,6.1,pending
+2026-11-01,18642515,Fuerte San Francisco - Águila,Salvadoran Primera División,22:00,over15,,0.7749,0.7352,0,6.1,pending
+2026-11-01,18637508,Deportivo Cali - Boyacá Chicó FC,Colombian Primera A,22:05,home,,0.7807,0.7807,0,6.1,pending
+2026-11-01,18637508,Deportivo Cali - Boyacá Chicó FC,Colombian Primera A,22:05,over15,,0.6772,0.6772,0,6.1,pending
+2026-11-01,18639094,Guabirá - Bolívar,Bolivian División Profesional,22:15,home,,0.7293,0.7293,0,6.1,pending
+2026-11-01,18639094,Guabirá - Bolívar,Bolivian División Profesional,22:15,away,,0.8434,0.8434,1,6.1,pending
+2026-11-01,18639094,Guabirá - Bolívar,Bolivian División Profesional,22:15,over15,,0.8259,0.8259,1,6.1,pending
+2026-11-01,18635867,Belgrano (Córdoba) - Barracas Central,Argentine Liga Profesional,22:30,home,,0.6588,0.6588,0,6.1,pending
+2026-11-01,18635867,Belgrano (Córdoba) - Barracas Central,Argentine Liga Profesional,22:30,away,,0.7058,0.7058,0,6.1,pending
+2026-11-01,18635867,Belgrano (Córdoba) - Barracas Central,Argentine Liga Profesional,22:30,over15,,0.6864,0.6864,0,6.1,pending
+2026-11-01,18635868,Newell's Old Boys - Unión (Santa Fe),Argentine Liga Profesional,22:30,home,,0.7475,0.7475,0,6.1,pending
+2026-11-01,18635868,Newell's Old Boys - Unión (Santa Fe),Argentine Liga Profesional,22:30,over15,,0.7111,0.7111,0,6.1,pending
+2026-11-01,18636529,San Martín (Tucumán) - Colegiales,Argentine Primera Nacional,22:30,home,,0.7277,0.7277,0,6.1,pending
+2026-11-01,18636529,San Martín (Tucumán) - Colegiales,Argentine Primera Nacional,22:30,away,,0.7122,0.7122,0,6.1,pending
+2026-11-01,18636529,San Martín (Tucumán) - Colegiales,Argentine Primera Nacional,22:30,over15,,0.7229,0.7229,0,6.1,pending
+2026-11-01,18636892,Cuiabá - São Bernardo,Brazilian Serie B,22:30,home,,0.6992,0.6992,0,6.1,pending
+2026-11-01,18636892,Cuiabá - São Bernardo,Brazilian Serie B,22:30,away,,0.6734,0.6734,0,6.1,pending
+2026-11-01,18636892,Cuiabá - São Bernardo,Brazilian Serie B,22:30,over15,,0.6772,0.6772,0,6.1,pending
+2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,home,,0.8211,0.8211,0,6.1,pending
+2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,away,,0.6528,0.6528,0,6.1,pending
+2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,over15,,0.7649,0.7649,0,6.1,pending
+2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,buteur,Robson,0.6119,0.6119,0,6.1,pending
+2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,home,,0.8118,0.8118,1,6.1,pending
+2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,away,,0.8266,0.8266,1,6.1,pending
+2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,btts,,0.6661,0.6661,0,6.1,pending
+2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,over15,,0.8670,0.8670,0,6.1,pending
+2026-11-01,15380609,Nashville SC - New York RB,US Major League Soccer,22:30,home,,0.8104,0.8104,0,6.1,pending
+2026-11-01,15380609,Nashville SC - New York RB,US Major League Soccer,22:30,over15,,0.7293,0.7293,0,6.1,pending
+2026-11-01,18636525,Gimnasia y Tiro (Salta) - Quilmes,Argentine Primera Nacional,23:00,home,,0.7113,0.7113,0,6.1,pending
+2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,home,,0.8015,0.8015,1,6.1,pending
+2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,away,,0.7337,0.7337,0,6.1,pending
+2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,over15,,0.8216,0.7901,1,6.1,pending
