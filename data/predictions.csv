@@ -255,14 +255,14 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328955,Crewe Alexandra - Barnet,League Two,16:00,away,,0.8192,0.8192,0,6.1,gagne
 2026-10-31,15328955,Crewe Alexandra - Barnet,League Two,16:00,btts,,0.6979,0.6979,0,6.1,gagne
 2026-10-31,15328955,Crewe Alexandra - Barnet,League Two,16:00,over15,,0.8614,0.8614,0,6.1,gagne
-2026-10-31,15328955,Crewe Alexandra - Barnet,League Two,16:00,buteur,K. Tshimanga,0.6096,0.6096,0,6.1,pending
+2026-10-31,15328955,Crewe Alexandra - Barnet,League Two,16:00,buteur,K. Tshimanga,0.6096,0.6096,0,6.1,perdu
 2026-10-31,15328956,Fleetwood Town - Bristol Rovers,League Two,16:00,home,,0.8143,0.8143,0,6.1,gagne
 2026-10-31,15328956,Fleetwood Town - Bristol Rovers,League Two,16:00,over15,,0.7498,0.7498,0,6.1,gagne
-2026-10-31,15328956,Fleetwood Town - Bristol Rovers,League Two,16:00,buteur,R. Coughlan,0.6039,0.6039,0,6.1,pending
+2026-10-31,15328956,Fleetwood Town - Bristol Rovers,League Two,16:00,buteur,R. Coughlan,0.6039,0.6039,0,6.1,perdu
 2026-10-31,15328957,Oldham Athletic - Crawley Town,League Two,16:00,home,,0.8280,0.8280,1,6.1,perdu
 2026-10-31,15328957,Oldham Athletic - Crawley Town,League Two,16:00,away,,0.7584,0.7584,0,6.1,gagne
 2026-10-31,15328957,Oldham Athletic - Crawley Town,League Two,16:00,over15,,0.8298,0.8298,1,6.1,perdu
-2026-10-31,15328957,Oldham Athletic - Crawley Town,League Two,16:00,buteur,C. Kavanagh,0.6203,0.6203,0,6.1,pending
+2026-10-31,15328957,Oldham Athletic - Crawley Town,League Two,16:00,buteur,C. Kavanagh,0.6203,0.6203,0,6.1,perdu
 2026-10-31,15328958,Salford City - Exeter City,League Two,16:00,home,,0.7026,0.7026,0,6.1,gagne
 2026-10-31,15328959,Shrewsbury Town - Gillingham,League Two,16:00,home,,0.7860,0.7860,0,6.1,gagne
 2026-10-31,15328959,Shrewsbury Town - Gillingham,League Two,16:00,away,,0.7600,0.7600,0,6.1,gagne
@@ -276,7 +276,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328964,Aldershot Town - Gateshead,National League,16:00,home,,0.8872,0.8872,0,6.1,gagne
 2026-10-31,15328964,Aldershot Town - Gateshead,National League,16:00,away,,0.6988,0.6988,0,6.1,perdu
 2026-10-31,15328964,Aldershot Town - Gateshead,National League,16:00,over15,,0.8389,0.8389,1,6.1,perdu
-2026-10-31,15328964,Aldershot Town - Gateshead,National League,16:00,buteur,T. Abrahams,0.6989,0.6989,1,6.1,pending
+2026-10-31,15328964,Aldershot Town - Gateshead,National League,16:00,buteur,T. Abrahams,0.6989,0.6989,1,6.1,perdu
 2026-10-31,15328965,Altrincham - Carlisle United,National League,16:00,home,,0.7446,0.7446,0,6.1,gagne
 2026-10-31,15328965,Altrincham - Carlisle United,National League,16:00,away,,0.7092,0.7092,0,6.1,gagne
 2026-10-31,15328965,Altrincham - Carlisle United,National League,16:00,over15,,0.7328,0.7328,0,6.1,gagne
@@ -285,7 +285,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328967,Boreham Wood - Hartlepool United,National League,16:00,home,,0.9200,0.9200,0,6.1,gagne
 2026-10-31,15328967,Boreham Wood - Hartlepool United,National League,16:00,away,,0.6796,0.6796,0,6.1,gagne
 2026-10-31,15328967,Boreham Wood - Hartlepool United,National League,16:00,over15,,0.8792,0.8792,0,6.1,gagne
-2026-10-31,15328967,Boreham Wood - Hartlepool United,National League,16:00,buteur,M. Rush,0.6613,0.6613,0,6.1,pending
+2026-10-31,15328967,Boreham Wood - Hartlepool United,National League,16:00,buteur,M. Rush,0.6613,0.6613,0,6.1,gagne
 2026-10-31,15328968,Solihull Moors - Kidderminster Harriers,National League,16:00,home,,0.6603,0.6603,0,6.1,gagne
 2026-10-31,15328968,Solihull Moors - Kidderminster Harriers,National League,16:00,away,,0.7397,0.7397,0,6.1,gagne
 2026-10-31,15328968,Solihull Moors - Kidderminster Harriers,National League,16:00,over15,,0.6890,0.6890,0,6.1,gagne
@@ -293,12 +293,12 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328969,Tamworth - Woking,National League,16:00,away,,0.8115,0.8115,1,6.1,gagne
 2026-10-31,15328969,Tamworth - Woking,National League,16:00,btts,,0.6665,0.6665,0,6.1,perdu
 2026-10-31,15328969,Tamworth - Woking,National League,16:00,over15,,0.8347,0.8347,1,6.1,perdu
-2026-10-31,15328969,Tamworth - Woking,National League,16:00,buteur,J. Marquis,0.6006,0.6006,0,6.1,pending
+2026-10-31,15328969,Tamworth - Woking,National League,16:00,buteur,J. Marquis,0.6006,0.6006,0,6.1,perdu
 2026-10-31,15328970,Wealdstone - Southend United,National League,16:00,home,,0.7899,0.7899,0,6.1,gagne
 2026-10-31,15328970,Wealdstone - Southend United,National League,16:00,away,,0.8415,0.8415,1,6.1,gagne
 2026-10-31,15328970,Wealdstone - Southend United,National League,16:00,btts,,0.6542,0.6520,0,6.1,gagne
 2026-10-31,15328970,Wealdstone - Southend United,National League,16:00,over15,,0.8171,0.8436,1,6.1,gagne
-2026-10-31,15328970,Wealdstone - Southend United,National League,16:00,buteur,L. Chambers-Parillon,0.6019,0.6019,0,6.1,pending
+2026-10-31,15328970,Wealdstone - Southend United,National League,16:00,buteur,L. Chambers-Parillon,0.6019,0.6019,0,6.1,gagne
 2026-10-31,15328971,Worthing - Sutton United,National League,16:00,home,,0.8254,0.8254,0,6.1,perdu
 2026-10-31,15328971,Worthing - Sutton United,National League,16:00,away,,0.7230,0.7230,0,6.1,gagne
 2026-10-31,15328971,Worthing - Sutton United,National League,16:00,over15,,0.8159,0.8159,0,6.1,gagne
@@ -322,7 +322,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328979,Oxford City - South Shields,National League N / S,16:00,home,,0.8753,0.8753,0,6.1,gagne
 2026-10-31,15328979,Oxford City - South Shields,National League N / S,16:00,away,,0.7458,0.7458,0,6.1,gagne
 2026-10-31,15328979,Oxford City - South Shields,National League N / S,16:00,over15,,0.8514,0.8514,0,6.1,gagne
-2026-10-31,15328979,Oxford City - South Shields,National League N / S,16:00,buteur,T. Marsh,0.6818,0.6818,1,6.1,pending
+2026-10-31,15328979,Oxford City - South Shields,National League N / S,16:00,buteur,T. Marsh,0.6818,0.6818,1,6.1,perdu
 2026-10-31,15328980,Radcliffe - Merthyr Town,National League N / S,16:00,home,,0.7811,0.7811,0,6.1,gagne
 2026-10-31,15328980,Radcliffe - Merthyr Town,National League N / S,16:00,away,,0.7043,0.7043,0,6.1,gagne
 2026-10-31,15328980,Radcliffe - Merthyr Town,National League N / S,16:00,over15,,0.7633,0.7633,0,6.1,gagne
@@ -332,7 +332,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328982,Spalding United - Darlington,National League N / S,16:00,home,,0.8265,0.8265,0,6.1,gagne
 2026-10-31,15328982,Spalding United - Darlington,National League N / S,16:00,away,,0.7277,0.7277,0,6.1,gagne
 2026-10-31,15328982,Spalding United - Darlington,National League N / S,16:00,over15,,0.8177,0.8177,0,6.1,gagne
-2026-10-31,15328982,Spalding United - Darlington,National League N / S,16:00,buteur,B. Cybulski,0.6184,0.6184,0,6.1,pending
+2026-10-31,15328982,Spalding United - Darlington,National League N / S,16:00,buteur,B. Cybulski,0.6184,0.6184,0,6.1,perdu
 2026-10-31,15328983,Spennymoor Town - Chorley,National League N / S,16:00,home,,0.7232,0.7232,0,6.1,gagne
 2026-10-31,15328983,Spennymoor Town - Chorley,National League N / S,16:00,away,,0.8038,0.8038,0,6.1,perdu
 2026-10-31,15328983,Spennymoor Town - Chorley,National League N / S,16:00,over15,,0.7820,0.7820,0,6.1,gagne
@@ -366,7 +366,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328911,Fenerbahçe - Göztepe,Turkish Super Lig,17:00,away,,0.8143,0.8143,1,6.1,gagne
 2026-10-31,15328911,Fenerbahçe - Göztepe,Turkish Super Lig,17:00,btts,,0.6670,0.6670,0,6.1,gagne
 2026-10-31,15328911,Fenerbahçe - Göztepe,Turkish Super Lig,17:00,over15,,0.8780,0.8780,0,6.1,gagne
-2026-10-31,15328911,Fenerbahçe - Göztepe,Turkish Super Lig,17:00,buteur,V. Muriqi,0.6087,0.6087,0,6.1,pending
+2026-10-31,15328911,Fenerbahçe - Göztepe,Turkish Super Lig,17:00,buteur,V. Muriqi,0.6087,0.6087,0,6.1,perdu
 2026-10-31,18638115,Cerro - Central Español Fútbol Club,Uruguayan Primera División,17:00,home,,0.7489,0.7489,0,6.1,gagne
 2026-10-31,18638115,Cerro - Central Español Fútbol Club,Uruguayan Primera División,17:00,over15,,0.6818,0.6818,0,6.1,gagne
 2026-10-31,18640321,Catanzaro - Padova,Italian Serie B,17:15,home,,0.7297,0.7297,0,6.1,gagne
@@ -385,7 +385,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328885,Rudeš - Dinamo Zagreb,Croatia Prva HNL,18:00,away,,0.8702,0.8702,0,6.1,perdu
 2026-10-31,15328885,Rudeš - Dinamo Zagreb,Croatia Prva HNL,18:00,btts,,0.6711,0.6711,0,6.1,perdu
 2026-10-31,15328885,Rudeš - Dinamo Zagreb,Croatia Prva HNL,18:00,over15,,0.8565,0.8565,0,6.1,perdu
-2026-10-31,15328885,Rudeš - Dinamo Zagreb,Croatia Prva HNL,18:00,buteur,D. Beljo,0.6747,0.6747,1,6.1,pending
+2026-10-31,15328885,Rudeš - Dinamo Zagreb,Croatia Prva HNL,18:00,buteur,D. Beljo,0.6747,0.6747,1,6.1,perdu
 2026-10-31,15328891,Sigma Olomouc - Zbrojovka Brno,Czech First League,18:00,home,,0.7807,0.7807,0,6.1,gagne
 2026-10-31,15328891,Sigma Olomouc - Zbrojovka Brno,Czech First League,18:00,away,,0.6862,0.6862,0,6.1,perdu
 2026-10-31,15328891,Sigma Olomouc - Zbrojovka Brno,Czech First League,18:00,over15,,0.7612,0.7612,0,6.1,gagne
@@ -394,7 +394,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328870,Udinese - Roma,Italian Serie A,18:00,home,,0.6607,0.6607,0,6.1,gagne
 2026-10-31,15328870,Udinese - Roma,Italian Serie A,18:00,away,,0.8402,0.8402,1,6.1,gagne
 2026-10-31,15328870,Udinese - Roma,Italian Serie A,18:00,over15,,0.7913,0.7913,1,6.1,gagne
-2026-10-31,15328870,Udinese - Roma,Italian Serie A,18:00,buteur,D. Malen,0.6275,0.6275,0,6.1,pending
+2026-10-31,15328870,Udinese - Roma,Italian Serie A,18:00,buteur,D. Malen,0.6275,0.6275,0,6.1,gagne
 2026-10-31,15328899,Aalesund - Sandefjord,Norwegian Eliteserien,18:00,home,,0.8083,0.8083,0,6.1,gagne
 2026-10-31,15328899,Aalesund - Sandefjord,Norwegian Eliteserien,18:00,away,,0.8096,0.8096,1,6.1,gagne
 2026-10-31,15328899,Aalesund - Sandefjord,Norwegian Eliteserien,18:00,btts,,0.6508,0.6508,0,6.1,gagne
@@ -406,12 +406,12 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328907,St.Gallen - Servette,Swiss Super League,18:00,home,,0.7727,0.7727,0,6.1,gagne
 2026-10-31,15328907,St.Gallen - Servette,Swiss Super League,18:00,away,,0.8199,0.8199,1,6.1,gagne
 2026-10-31,15328907,St.Gallen - Servette,Swiss Super League,18:00,over15,,0.8404,0.8122,1,6.1,gagne
-2026-10-31,15328907,St.Gallen - Servette,Swiss Super League,18:00,buteur,K. Mutandwa,0.6105,0.6105,0,6.1,pending
+2026-10-31,15328907,St.Gallen - Servette,Swiss Super League,18:00,buteur,K. Mutandwa,0.6105,0.6105,0,6.1,perdu
 2026-10-31,15329174,Charlotte - Orlando City,US Major League Soccer,18:00,home,,0.8717,0.8717,0,6.1,gagne
 2026-10-31,15329174,Charlotte - Orlando City,US Major League Soccer,18:00,away,,0.8212,0.8212,0,6.1,perdu
 2026-10-31,15329174,Charlotte - Orlando City,US Major League Soccer,18:00,btts,,0.7089,0.7089,0,6.1,perdu
 2026-10-31,15329174,Charlotte - Orlando City,US Major League Soccer,18:00,over15,,0.8760,0.8760,0,6.1,gagne
-2026-10-31,15329174,Charlotte - Orlando City,US Major League Soccer,18:00,buteur,I. Toklomati,0.6767,0.6767,1,6.1,pending
+2026-10-31,15329174,Charlotte - Orlando City,US Major League Soccer,18:00,buteur,I. Toklomati,0.6767,0.6767,1,6.1,perdu
 2026-10-31,15328879,Standard Liège - Kortrijk,Belgian Pro League,18:15,home,,0.7996,0.7996,0,6.1,gagne
 2026-10-31,15328879,Standard Liège - Kortrijk,Belgian Pro League,18:15,over15,,0.7206,0.7206,0,6.1,gagne
 2026-10-31,15329123,The New Saints - Connah's Quay Nomads,Cymru Premier,18:15,home,,0.9169,0.9169,0,6.1,perdu
@@ -423,19 +423,19 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328868,Bayern Munich - Borussia Dortmund,German Bundesliga,18:30,away,,0.7429,0.7429,0,6.1,gagne
 2026-10-31,15328868,Bayern Munich - Borussia Dortmund,German Bundesliga,18:30,btts,,0.6951,0.6413,0,6.1,gagne
 2026-10-31,15328868,Bayern Munich - Borussia Dortmund,German Bundesliga,18:30,over15,,0.8679,0.8446,0,6.1,gagne
-2026-10-31,15328868,Bayern Munich - Borussia Dortmund,German Bundesliga,18:30,buteur,M. Olise,0.6217,0.6217,0,6.1,pending
+2026-10-31,15328868,Bayern Munich - Borussia Dortmund,German Bundesliga,18:30,buteur,M. Olise,0.6217,0.6217,0,6.1,perdu
 2026-10-31,15328972,Boston United - Scunthorpe United,National League,18:30,home,,0.8227,0.8227,0,6.1,gagne
 2026-10-31,15328972,Boston United - Scunthorpe United,National League,18:30,away,,0.8285,0.8285,0,6.1,gagne
 2026-10-31,15328972,Boston United - Scunthorpe United,National League,18:30,btts,,0.7201,0.6707,0,6.1,gagne
 2026-10-31,15328972,Boston United - Scunthorpe United,National League,18:30,over15,,0.8812,0.8603,0,6.1,gagne
-2026-10-31,15328972,Boston United - Scunthorpe United,National League,18:30,buteur,T. Cursons,0.6139,0.6139,0,6.1,pending
+2026-10-31,15328972,Boston United - Scunthorpe United,National League,18:30,buteur,T. Cursons,0.6139,0.6139,0,6.1,gagne
 2026-10-31,15328926,Tottenham Hotspur - Crystal Palace,Premier League,18:30,home,,0.8093,0.8093,0,6.1,gagne
 2026-10-31,15328926,Tottenham Hotspur - Crystal Palace,Premier League,18:30,away,,0.7477,0.7477,0,6.1,perdu
 2026-10-31,15328926,Tottenham Hotspur - Crystal Palace,Premier League,18:30,over15,,0.7949,0.7949,0,6.1,gagne
 2026-10-31,15329019,Rangers - Aberdeen,Scottish League Cup,18:30,home,,0.8196,0.8196,0,6.1,gagne
 2026-10-31,15329019,Rangers - Aberdeen,Scottish League Cup,18:30,away,,0.6690,0.6690,0,6.1,perdu
 2026-10-31,15329019,Rangers - Aberdeen,Scottish League Cup,18:30,over15,,0.7583,0.7598,0,6.1,perdu
-2026-10-31,15329019,Rangers - Aberdeen,Scottish League Cup,18:30,buteur,D. Neil,0.6101,0.6101,0,6.1,pending
+2026-10-31,15329019,Rangers - Aberdeen,Scottish League Cup,18:30,buteur,D. Neil,0.6101,0.6101,0,6.1,perdu
 2026-10-31,15380462,Real Betis - Málaga,Spanish La Liga,18:30,home,,0.8033,0.8033,0,6.1,gagne
 2026-10-31,15380462,Real Betis - Málaga,Spanish La Liga,18:30,away,,0.7284,0.7284,0,6.1,gagne
 2026-10-31,15380462,Real Betis - Málaga,Spanish La Liga,18:30,over15,,0.7685,0.7685,0,6.1,gagne
@@ -446,7 +446,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328893,Heerenveen - NEC,Dutch Eredivisie,18:45,home,,0.8444,0.8444,1,6.1,gagne
 2026-10-31,15328893,Heerenveen - NEC,Dutch Eredivisie,18:45,away,,0.7417,0.7417,0,6.1,perdu
 2026-10-31,15328893,Heerenveen - NEC,Dutch Eredivisie,18:45,over15,,0.8331,0.8331,1,6.1,perdu
-2026-10-31,15328893,Heerenveen - NEC,Dutch Eredivisie,18:45,buteur,J. Trenskow,0.6405,0.6405,0,6.1,pending
+2026-10-31,15328893,Heerenveen - NEC,Dutch Eredivisie,18:45,buteur,J. Trenskow,0.6405,0.6405,0,6.1,perdu
 2026-10-31,18636520,Agropecuario - Almagro,Argentine Primera Nacional,19:00,home,,0.7025,0.7025,0,6.1,gagne
 2026-10-31,18636520,Agropecuario - Almagro,Argentine Primera Nacional,19:00,away,,0.6547,0.6547,0,6.1,gagne
 2026-10-31,18636520,Agropecuario - Almagro,Argentine Primera Nacional,19:00,over15,,0.6711,0.6711,0,6.1,gagne
@@ -456,7 +456,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,18636526,Godoy Cruz Antonio Tomba - Almirante Brown,Argentine Primera Nacional,19:00,home,,0.8298,0.8298,0,6.1,gagne
 2026-10-31,18636526,Godoy Cruz Antonio Tomba - Almirante Brown,Argentine Primera Nacional,19:00,away,,0.6917,0.6917,0,6.1,gagne
 2026-10-31,18636526,Godoy Cruz Antonio Tomba - Almirante Brown,Argentine Primera Nacional,19:00,over15,,0.7813,0.7813,0,6.1,gagne
-2026-10-31,18636526,Godoy Cruz Antonio Tomba - Almirante Brown,Argentine Primera Nacional,19:00,buteur,Martín Pino,0.6224,0.6224,0,6.1,pending
+2026-10-31,18636526,Godoy Cruz Antonio Tomba - Almirante Brown,Argentine Primera Nacional,19:00,buteur,Martín Pino,0.6224,0.6224,0,6.1,gagne
 2026-10-31,18636527,Güemes - Temperley,Argentine Primera Nacional,19:00,away,,0.7299,0.7299,0,6.1,gagne
 2026-10-31,18636528,San Martín (San Juan) - Gimnasia y Esgrima (Jujuy),Argentine Primera Nacional,19:00,home,,0.7275,0.7275,0,6.1,gagne
 2026-10-31,18636528,San Martín (San Juan) - Gimnasia y Esgrima (Jujuy),Argentine Primera Nacional,19:00,away,,0.7132,0.7132,0,6.1,gagne
@@ -487,7 +487,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-10-31,15328877,LASK - WSG Tirol,Austrian Bundesliga,19:30,home,,0.8093,0.8093,0,6.1,gagne
 2026-10-31,15328877,LASK - WSG Tirol,Austrian Bundesliga,19:30,away,,0.8178,0.8178,0,6.1,gagne
 2026-10-31,15328877,LASK - WSG Tirol,Austrian Bundesliga,19:30,over15,,0.8535,0.8535,0,6.1,gagne
-2026-10-31,15328877,LASK - WSG Tirol,Austrian Bundesliga,19:30,buteur,N. Baden,0.6080,0.6080,0,6.1,pending
+2026-10-31,15328877,LASK - WSG Tirol,Austrian Bundesliga,19:30,buteur,N. Baden,0.6080,0.6080,0,6.1,perdu
 2026-10-31,18640322,Sampdoria - Virtus Entella,Italian Serie B,19:30,home,,0.6740,0.6740,0,6.1,gagne
 2026-10-31,18640322,Sampdoria - Virtus Entella,Italian Serie B,19:30,away,,0.7457,0.7457,0,6.1,perdu
 2026-10-31,18640322,Sampdoria - Virtus Entella,Italian Serie B,19:30,over15,,0.7215,0.7215,0,6.1,gagne
@@ -978,3 +978,107 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,15380510,Partizan - Zemun,Serbian Super Liga,17:00,home,,0.8107,0.8107,0,6.1,pending
 2026-11-01,15380510,Partizan - Zemun,Serbian Super Liga,17:00,away,,0.6877,0.6877,0,6.1,pending
 2026-11-01,15380510,Partizan - Zemun,Serbian Super Liga,17:00,over15,,0.7676,0.7676,0,6.1,pending
+2026-11-01,15380524,Kasımpaşa - Beşiktaş,Turkish Super Lig,17:00,home,,0.7928,0.7928,0,6.1,pending
+2026-11-01,15380524,Kasımpaşa - Beşiktaş,Turkish Super Lig,17:00,away,,0.7386,0.7386,0,6.1,pending
+2026-11-01,15380524,Kasımpaşa - Beşiktaş,Turkish Super Lig,17:00,over15,,0.7875,0.7875,0,6.1,pending
+2026-11-01,18638118,Boston River - Montevideo City Torque,Uruguayan Primera División,17:00,home,,0.7102,0.7102,0,6.1,pending
+2026-11-01,18638118,Boston River - Montevideo City Torque,Uruguayan Primera División,17:00,away,,0.6966,0.6966,0,6.1,pending
+2026-11-01,18638118,Boston River - Montevideo City Torque,Uruguayan Primera División,17:00,over15,,0.7070,0.7070,0,6.1,pending
+2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,home,,0.8288,0.8288,0,6.1,pending
+2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,away,,0.7318,0.7318,0,6.1,pending
+2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,over15,,0.8184,0.8184,0,6.1,pending
+2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,buteur,E. Nuamah,0.6212,0.6212,0,6.1,pending
+2026-11-01,15380472,Paris FC - Monaco,French Ligue 1,17:15,home,,0.7480,0.7480,0,6.1,pending
+2026-11-01,15380472,Paris FC - Monaco,French Ligue 1,17:15,away,,0.7540,0.7540,0,6.1,pending
+2026-11-01,15380472,Paris FC - Monaco,French Ligue 1,17:15,over15,,0.7577,0.7577,0,6.1,pending
+2026-11-01,18640326,Hellas Verona - Carrarese,Italian Serie B,17:15,home,,0.7492,0.7492,0,6.1,pending
+2026-11-01,18640326,Hellas Verona - Carrarese,Italian Serie B,17:15,away,,0.6938,0.6938,0,6.1,pending
+2026-11-01,18640326,Hellas Verona - Carrarese,Italian Serie B,17:15,over15,,0.7298,0.7298,0,6.1,pending
+2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,home,,0.8256,0.8256,1,6.1,pending
+2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,away,,0.7755,0.7755,0,6.1,pending
+2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,btts,,0.6609,0.6011,0,6.1,pending
+2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,over15,,0.8429,0.8152,1,6.1,pending
+2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,buteur,Y. Ebnoutalib,0.6173,0.6173,0,6.1,pending
+2026-11-01,15380525,Liverpool - Arsenal,Premier League,17:30,home,,0.7835,0.7835,0,6.1,pending
+2026-11-01,15380525,Liverpool - Arsenal,Premier League,17:30,away,,0.7773,0.7773,0,6.1,pending
+2026-11-01,15380525,Liverpool - Arsenal,Premier League,17:30,over15,,0.8001,0.8001,0,6.1,pending
+2026-11-01,18639313,Lokomotiv Moscow - Spartak Moscow,Russian Premier League,17:45,home,,0.7110,0.7110,0,6.1,pending
+2026-11-01,18639313,Lokomotiv Moscow - Spartak Moscow,Russian Premier League,17:45,away,,0.7268,0.7268,0,6.1,pending
+2026-11-01,18639313,Lokomotiv Moscow - Spartak Moscow,Russian Premier League,17:45,over15,,0.7313,0.7313,0,6.1,pending
+2026-11-01,18641976,Cartaginés - AD San Carlos,Costa Rican Primera División,18:00,home,,0.7536,0.7536,0,6.1,pending
+2026-11-01,18641976,Cartaginés - AD San Carlos,Costa Rican Primera División,18:00,away,,0.7271,0.7271,0,6.1,pending
+2026-11-01,18641976,Cartaginés - AD San Carlos,Costa Rican Primera División,18:00,over15,,0.7149,0.7234,0,6.1,pending
+2026-11-01,15328883,Lokomotiva Zagreb - Osijek,Croatia Prva HNL,18:00,home,,0.7679,0.7679,0,6.1,pending
+2026-11-01,15328883,Lokomotiva Zagreb - Osijek,Croatia Prva HNL,18:00,away,,0.7049,0.7049,0,6.1,pending
+2026-11-01,15328883,Lokomotiva Zagreb - Osijek,Croatia Prva HNL,18:00,over15,,0.7183,0.7392,0,6.1,pending
+2026-11-01,15380483,Bohemians 1905 - Sparta Prague,Czech First League,18:00,home,,0.6502,0.6502,0,6.1,pending
+2026-11-01,15380483,Bohemians 1905 - Sparta Prague,Czech First League,18:00,away,,0.7334,0.7334,0,6.1,pending
+2026-11-01,15380483,Bohemians 1905 - Sparta Prague,Czech First League,18:00,over15,,0.6777,0.6777,0,6.1,pending
+2026-11-01,15380487,Brøndby - AGF,Danish Superligaen,18:00,home,,0.8056,0.8056,0,6.1,pending
+2026-11-01,15380487,Brøndby - AGF,Danish Superligaen,18:00,away,,0.7487,0.7487,0,6.1,pending
+2026-11-01,15380487,Brøndby - AGF,Danish Superligaen,18:00,over15,,0.7718,0.8021,0,6.1,pending
+2026-11-01,15380495,PAOK - Asteras Tripolis,Greek Super League,18:00,home,,0.8208,0.8208,0,6.1,pending
+2026-11-01,15380495,PAOK - Asteras Tripolis,Greek Super League,18:00,away,,0.7096,0.7096,0,6.1,pending
+2026-11-01,15380495,PAOK - Asteras Tripolis,Greek Super League,18:00,over15,,0.8020,0.8020,0,6.1,pending
+2026-11-01,18642241,Aurora FC - Antigua GFC,Guatemalan Liga Nacional,18:00,home,,0.7966,0.7966,0,6.1,pending
+2026-11-01,18642241,Aurora FC - Antigua GFC,Guatemalan Liga Nacional,18:00,away,,0.6880,0.6880,0,6.1,pending
+2026-11-01,18642241,Aurora FC - Antigua GFC,Guatemalan Liga Nacional,18:00,over15,,0.7990,0.7635,0,6.1,pending
+2026-11-01,15380469,Lecce - Genoa,Italian Serie A,18:00,home,,0.7099,0.7099,0,6.1,pending
+2026-11-01,15380469,Lecce - Genoa,Italian Serie A,18:00,away,,0.7516,0.7516,0,6.1,pending
+2026-11-01,15380469,Lecce - Genoa,Italian Serie A,18:00,over15,,0.7364,0.7364,0,6.1,pending
+2026-11-01,15380479,Lommel - Gent,Belgian Pro League,18:30,away,,0.7729,0.7729,0,6.1,pending
+2026-11-01,15380479,Lommel - Gent,Belgian Pro League,18:30,over15,,0.7170,0.7170,0,6.1,pending
+2026-11-01,15380496,Panathinaikos - AEK Athens,Greek Super League,18:30,home,,0.8662,0.8662,0,6.1,pending
+2026-11-01,15380496,Panathinaikos - AEK Athens,Greek Super League,18:30,away,,0.7228,0.7228,0,6.1,pending
+2026-11-01,15380496,Panathinaikos - AEK Athens,Greek Super League,18:30,over15,,0.8248,0.8380,0,6.1,pending
+2026-11-01,15380457,Elche - Valencia,Spanish La Liga,18:30,home,,0.7725,0.7725,0,6.1,pending
+2026-11-01,15380457,Elche - Valencia,Spanish La Liga,18:30,away,,0.7415,0.7415,0,6.1,pending
+2026-11-01,15380457,Elche - Valencia,Spanish La Liga,18:30,over15,,0.7563,0.7563,0,6.1,pending
+2026-11-01,18639717,Burgos - Castellón,Spanish La Liga 2,18:30,home,,0.6755,0.6755,0,6.1,pending
+2026-11-01,18639717,Burgos - Castellón,Spanish La Liga 2,18:30,away,,0.7902,0.7902,0,6.1,pending
+2026-11-01,18639717,Burgos - Castellón,Spanish La Liga 2,18:30,over15,,0.7378,0.7378,0,6.1,pending
+2026-11-01,18637121,Cobresal - Everton CD,Chilean Primera División,19:00,home,,0.7895,0.7895,0,6.1,pending
+2026-11-01,18637121,Cobresal - Everton CD,Chilean Primera División,19:00,away,,0.8143,0.8143,1,6.1,pending
+2026-11-01,18637121,Cobresal - Everton CD,Chilean Primera División,19:00,over15,,0.8472,0.8472,1,6.1,pending
+2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,home,,0.9102,0.9102,0,6.1,pending
+2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,away,,0.6885,0.6885,0,6.1,pending
+2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,over15,,0.8758,0.8758,0,6.1,pending
+2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,buteur,Luis Razo,0.6440,0.6440,0,6.1,pending
+2026-11-01,15380503,Académico de Viseu - Rio Ave,Portuguese Primeira Liga,19:00,home,,0.7718,0.7718,0,6.1,pending
+2026-11-01,15380503,Académico de Viseu - Rio Ave,Portuguese Primeira Liga,19:00,away,,0.6807,0.6807,0,6.1,pending
+2026-11-01,15380503,Académico de Viseu - Rio Ave,Portuguese Primeira Liga,19:00,over15,,0.7302,0.7302,0,6.1,pending
+2026-11-01,15380504,Marítimo - Santa Clara,Portuguese Primeira Liga,19:00,away,,0.7766,0.7766,0,6.1,pending
+2026-11-01,15380504,Marítimo - Santa Clara,Portuguese Primeira Liga,19:00,over15,,0.7035,0.7035,0,6.1,pending
+2026-11-01,15380480,Sporting Charleroi - RAAL La Louvière,Belgian Pro League,19:15,home,,0.8393,0.8393,1,6.1,pending
+2026-11-01,15380480,Sporting Charleroi - RAAL La Louvière,Belgian Pro League,19:15,away,,0.6935,0.6935,0,6.1,pending
+2026-11-01,15380480,Sporting Charleroi - RAAL La Louvière,Belgian Pro League,19:15,over15,,0.8106,0.8106,1,6.1,pending
+2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,home,,0.8631,0.8631,0,6.1,pending
+2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,away,,0.7748,0.7748,0,6.1,pending
+2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,btts,,0.6699,0.6699,0,6.1,pending
+2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,over15,,0.8652,0.8652,0,6.1,pending
+2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,buteur,L. Haren,0.6650,0.6650,1,6.1,pending
+2026-11-01,18637815,Cusco - Sport Boys,Peruvian Liga 1,19:15,home,,0.7722,0.7722,0,6.1,pending
+2026-11-01,18637815,Cusco - Sport Boys,Peruvian Liga 1,19:15,away,,0.6852,0.6852,0,6.1,pending
+2026-11-01,18637815,Cusco - Sport Boys,Peruvian Liga 1,19:15,over15,,0.7480,0.7480,0,6.1,pending
+2026-11-01,18638397,Independiente del Valle - LDU Quito,Ecuadorian LigaPro,19:30,home,,0.7472,0.7472,0,6.1,pending
+2026-11-01,18638397,Independiente del Valle - LDU Quito,Ecuadorian LigaPro,19:30,away,,0.7018,0.7018,0,6.1,pending
+2026-11-01,18638397,Independiente del Valle - LDU Quito,Ecuadorian LigaPro,19:30,over15,,0.7291,0.7291,0,6.1,pending
+2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,home,,0.8443,0.8443,1,6.1,pending
+2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,away,,0.7204,0.7204,0,6.1,pending
+2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,over15,,0.8300,0.8300,1,6.1,pending
+2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,buteur,Dennis Johnsen,0.6054,0.6054,0,6.1,pending
+2026-11-01,18639093,The Strongest - GV San José,Bolivian División Profesional,20:00,home,,0.8616,0.8616,0,6.1,pending
+2026-11-01,18639093,The Strongest - GV San José,Bolivian División Profesional,20:00,away,,0.7116,0.7116,0,6.1,pending
+2026-11-01,18639093,The Strongest - GV San José,Bolivian División Profesional,20:00,over15,,0.8197,0.8197,0,6.1,pending
+2026-11-01,18636891,Londrina - América Mineiro,Brazilian Serie B,20:00,home,,0.7613,0.7613,0,6.1,pending
+2026-11-01,18636891,Londrina - América Mineiro,Brazilian Serie B,20:00,over15,,0.6781,0.6781,0,6.1,pending
+2026-11-01,18641587,Lexington - Colorado Springs Switchbacks FC,USL Championship,20:00,home,,0.7922,0.7922,0,6.1,pending
+2026-11-01,18641587,Lexington - Colorado Springs Switchbacks FC,USL Championship,20:00,away,,0.7030,0.7030,0,6.1,pending
+2026-11-01,18641587,Lexington - Colorado Springs Switchbacks FC,USL Championship,20:00,over15,,0.7275,0.7275,0,6.1,pending
+2026-11-01,18638119,Danubio - Nacional,Uruguayan Primera División,20:30,away,,0.7244,0.7244,0,6.1,pending
+2026-11-01,15380473,Marseille - Toulouse,French Ligue 1,20:45,home,,0.7912,0.7912,0,6.1,pending
+2026-11-01,15380473,Marseille - Toulouse,French Ligue 1,20:45,away,,0.8049,0.8049,0,6.1,pending
+2026-11-01,15380473,Marseille - Toulouse,French Ligue 1,20:45,over15,,0.8143,0.8143,0,6.1,pending
+2026-11-01,15380470,Juventus - Napoli,Italian Serie A,20:45,home,,0.7931,0.7931,0,6.1,pending
+2026-11-01,15380470,Juventus - Napoli,Italian Serie A,20:45,away,,0.7820,0.7820,0,6.1,pending
+2026-11-01,15380470,Juventus - Napoli,Italian Serie A,20:45,over15,,0.8237,0.8237,0,6.1,pending
