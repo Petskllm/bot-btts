@@ -963,12 +963,12 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,15380498,KFUM - HamKam,Norwegian Eliteserien,17:00,home,,0.8391,0.8391,1,6.1,gagne
 2026-11-01,15380498,KFUM - HamKam,Norwegian Eliteserien,17:00,away,,0.7611,0.7611,1,6.1,gagne
 2026-11-01,15380498,KFUM - HamKam,Norwegian Eliteserien,17:00,over15,,0.8508,0.8508,0,6.1,gagne
-2026-11-01,15380498,KFUM - HamKam,Norwegian Eliteserien,17:00,buteur,B. Njie,0.6339,0.6339,0,6.1,pending
+2026-11-01,15380498,KFUM - HamKam,Norwegian Eliteserien,17:00,buteur,B. Njie,0.6339,0.6339,0,6.1,perdu
 2026-11-01,15380499,Sarpsborg 08 - Kristiansund,Norwegian Eliteserien,17:00,home,,0.8594,0.8594,0,6.1,gagne
 2026-11-01,15380499,Sarpsborg 08 - Kristiansund,Norwegian Eliteserien,17:00,away,,0.7672,0.7672,0,6.1,gagne
 2026-11-01,15380499,Sarpsborg 08 - Kristiansund,Norwegian Eliteserien,17:00,btts,,0.6663,0.6663,0,6.1,gagne
 2026-11-01,15380499,Sarpsborg 08 - Kristiansund,Norwegian Eliteserien,17:00,over15,,0.8541,0.8541,0,6.1,gagne
-2026-11-01,15380499,Sarpsborg 08 - Kristiansund,Norwegian Eliteserien,17:00,buteur,D. Karlsbakk,0.6601,0.6601,0,6.1,pending
+2026-11-01,15380499,Sarpsborg 08 - Kristiansund,Norwegian Eliteserien,17:00,buteur,D. Karlsbakk,0.6601,0.6601,0,6.1,perdu
 2026-11-01,15380500,Start - Lillestrøm,Norwegian Eliteserien,17:00,home,,0.7643,0.7643,0,6.1,perdu
 2026-11-01,15380500,Start - Lillestrøm,Norwegian Eliteserien,17:00,away,,0.7752,0.7752,0,6.1,gagne
 2026-11-01,15380500,Start - Lillestrøm,Norwegian Eliteserien,17:00,over15,,0.7935,0.7935,0,6.1,perdu
@@ -987,7 +987,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,home,,0.8288,0.8288,0,6.1,gagne
 2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,away,,0.7318,0.7318,0,6.1,perdu
 2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,over15,,0.8184,0.8184,0,6.1,gagne
-2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,buteur,E. Nuamah,0.6212,0.6212,0,6.1,pending
+2026-11-01,15328874,Olympique Lyonnais - Angers SCO,French Ligue 1,17:15,buteur,E. Nuamah,0.6212,0.6212,0,6.1,gagne
 2026-11-01,15380472,Paris FC - Monaco,French Ligue 1,17:15,home,,0.7480,0.7480,0,6.1,gagne
 2026-11-01,15380472,Paris FC - Monaco,French Ligue 1,17:15,away,,0.7540,0.7540,0,6.1,gagne
 2026-11-01,15380472,Paris FC - Monaco,French Ligue 1,17:15,over15,,0.7577,0.7577,0,6.1,gagne
@@ -998,7 +998,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,away,,0.7755,0.7755,0,6.1,gagne
 2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,btts,,0.6609,0.6011,0,6.1,gagne
 2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,over15,,0.8429,0.8152,1,6.1,gagne
-2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,buteur,Y. Ebnoutalib,0.6173,0.6173,0,6.1,pending
+2026-11-01,15380465,Eintracht Frankfurt - Hamburger SV,German Bundesliga,17:30,buteur,Y. Ebnoutalib,0.6173,0.6173,0,6.1,gagne
 2026-11-01,15380525,Liverpool - Arsenal,Premier League,17:30,home,,0.7835,0.7835,0,6.1,perdu
 2026-11-01,15380525,Liverpool - Arsenal,Premier League,17:30,away,,0.7773,0.7773,0,6.1,gagne
 2026-11-01,15380525,Liverpool - Arsenal,Premier League,17:30,over15,,0.8001,0.8001,0,6.1,perdu
@@ -1043,7 +1043,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,home,,0.9102,0.9102,0,6.1,gagne
 2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,away,,0.6885,0.6885,0,6.1,gagne
 2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,over15,,0.8758,0.8758,0,6.1,gagne
-2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,buteur,Luis Razo,0.6440,0.6440,0,6.1,pending
+2026-11-01,18641206,Leones Negros - Tepatitlán FC,Liga de Expansión MX,19:00,buteur,Luis Razo,0.6440,0.6440,0,6.1,perdu
 2026-11-01,15380503,Académico de Viseu - Rio Ave,Portuguese Primeira Liga,19:00,home,,0.7718,0.7718,0,6.1,gagne
 2026-11-01,15380503,Académico de Viseu - Rio Ave,Portuguese Primeira Liga,19:00,away,,0.6807,0.6807,0,6.1,gagne
 2026-11-01,15380503,Académico de Viseu - Rio Ave,Portuguese Primeira Liga,19:00,over15,,0.7302,0.7302,0,6.1,gagne
@@ -1056,7 +1056,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,away,,0.7748,0.7748,0,6.1,perdu
 2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,btts,,0.6699,0.6699,0,6.1,perdu
 2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,over15,,0.8652,0.8652,0,6.1,gagne
-2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,buteur,L. Haren,0.6650,0.6650,1,6.1,pending
+2026-11-01,15380501,Vålerenga - Tromsø,Norwegian Eliteserien,19:15,buteur,L. Haren,0.6650,0.6650,1,6.1,perdu
 2026-11-01,18637815,Cusco - Sport Boys,Peruvian Liga 1,19:15,home,,0.7722,0.7722,0,6.1,perdu
 2026-11-01,18637815,Cusco - Sport Boys,Peruvian Liga 1,19:15,away,,0.6852,0.6852,0,6.1,gagne
 2026-11-01,18637815,Cusco - Sport Boys,Peruvian Liga 1,19:15,over15,,0.7480,0.7480,0,6.1,perdu
@@ -1066,7 +1066,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,home,,0.8443,0.8443,1,6.1,gagne
 2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,away,,0.7204,0.7204,0,6.1,gagne
 2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,over15,,0.8300,0.8300,1,6.1,gagne
-2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,buteur,Dennis Johnsen,0.6054,0.6054,0,6.1,pending
+2026-11-01,18640327,Palermo - Vicenza,Italian Serie B,19:30,buteur,Dennis Johnsen,0.6054,0.6054,0,6.1,gagne
 2026-11-01,18639093,The Strongest - GV San José,Bolivian División Profesional,20:00,home,,0.8616,0.8616,0,6.1,gagne
 2026-11-01,18639093,The Strongest - GV San José,Bolivian División Profesional,20:00,away,,0.7116,0.7116,0,6.1,gagne
 2026-11-01,18639093,The Strongest - GV San José,Bolivian División Profesional,20:00,over15,,0.8197,0.8197,0,6.1,gagne
@@ -1131,17 +1131,17 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,home,,0.8211,0.8211,0,6.1,gagne
 2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,away,,0.6528,0.6528,0,6.1,gagne
 2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,over15,,0.7649,0.7649,0,6.1,gagne
-2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,buteur,Robson,0.6119,0.6119,0,6.1,pending
+2026-11-01,18636893,Novorizontino - Operário PR,Brazilian Serie B,22:30,buteur,Robson,0.6119,0.6119,0,6.1,perdu
 2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,home,,0.8118,0.8118,1,6.1,gagne
 2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,away,,0.8266,0.8266,1,6.1,gagne
 2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,btts,,0.6661,0.6661,0,6.1,gagne
 2026-11-01,15380608,Atlanta United - Toronto,US Major League Soccer,22:30,over15,,0.8670,0.8670,0,6.1,gagne
-2026-11-01,15380609,Nashville SC - New York RB,US Major League Soccer,22:30,home,,0.8104,0.8104,0,6.1,pending
-2026-11-01,15380609,Nashville SC - New York RB,US Major League Soccer,22:30,over15,,0.7293,0.7293,0,6.1,pending
-2026-11-01,18636525,Gimnasia y Tiro (Salta) - Quilmes,Argentine Primera Nacional,23:00,home,,0.7113,0.7113,0,6.1,pending
-2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,home,,0.8015,0.8015,1,6.1,pending
-2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,away,,0.7337,0.7337,0,6.1,pending
-2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,over15,,0.8216,0.7901,1,6.1,pending
+2026-11-01,15380609,Nashville SC - New York RB,US Major League Soccer,22:30,home,,0.8104,0.8104,0,6.1,gagne
+2026-11-01,15380609,Nashville SC - New York RB,US Major League Soccer,22:30,over15,,0.7293,0.7293,0,6.1,gagne
+2026-11-01,18636525,Gimnasia y Tiro (Salta) - Quilmes,Argentine Primera Nacional,23:00,home,,0.7113,0.7113,0,6.1,perdu
+2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,home,,0.8015,0.8015,1,6.1,perdu
+2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,away,,0.7337,0.7337,0,6.1,perdu
+2026-11-01,18641977,Saprissa - Alajuelense,Costa Rican Primera División,23:00,over15,,0.8216,0.7901,1,6.1,perdu
 2026-11-02,18642243,CD Guastatoya - Cobán Imperial,Guatemalan Liga Nacional,01:00,home,,0.7561,0.7561,0,6.1,pending
 2026-11-02,18642243,CD Guastatoya - Cobán Imperial,Guatemalan Liga Nacional,01:00,away,,0.7482,0.7482,0,6.1,pending
 2026-11-02,18642243,CD Guastatoya - Cobán Imperial,Guatemalan Liga Nacional,01:00,over15,,0.7725,0.7911,0,6.1,pending
@@ -1323,3 +1323,6 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-02,18635871,Platense - Central Córdoba (Santiago del Estero),Argentine Liga Profesional,23:00,home,,0.7430,0.7430,0,6.1,pending
 2026-11-02,18635871,Platense - Central Córdoba (Santiago del Estero),Argentine Liga Profesional,23:00,away,,0.6727,0.6727,0,6.1,pending
 2026-11-02,18635871,Platense - Central Córdoba (Santiago del Estero),Argentine Liga Profesional,23:00,over15,,0.7158,0.7158,0,6.1,pending
+2026-11-02,18639718,Tenerife - FC Andorra,Spanish La Liga 2,14:00,home,,0.7193,0.7193,0,6.1,pending
+2026-11-02,18639718,Tenerife - FC Andorra,Spanish La Liga 2,14:00,away,,0.7032,0.7032,0,6.1,pending
+2026-11-02,18639718,Tenerife - FC Andorra,Spanish La Liga 2,14:00,over15,,0.7165,0.7165,0,6.1,pending
