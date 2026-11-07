@@ -2144,3 +2144,91 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096777,Annan Athletic - Kelty Hearts,Scottish League Two,16:00,home,,0.7315,0.7315,0,6.1,pending
 2026-11-07,16096777,Annan Athletic - Kelty Hearts,Scottish League Two,16:00,away,,0.7791,0.7791,0,6.1,pending
 2026-11-07,16096777,Annan Athletic - Kelty Hearts,Scottish League Two,16:00,over15,,0.7619,0.7619,0,6.1,pending
+2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,home,,0.8316,0.8316,1,6.1,pending
+2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,away,,0.7470,0.7470,0,6.1,pending
+2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,btts,,0.6503,0.6238,0,6.1,pending
+2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,over15,,0.8495,0.8229,1,6.1,pending
+2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,buteur,S. Williamson,0.6246,0.6246,0,6.1,pending
+2026-11-07,16096779,Elgin City - Dumbarton,Scottish League Two,16:00,home,,0.8555,0.8555,0,6.1,pending
+2026-11-07,16096779,Elgin City - Dumbarton,Scottish League Two,16:00,away,,0.7158,0.7158,0,6.1,pending
+2026-11-07,16096779,Elgin City - Dumbarton,Scottish League Two,16:00,over15,,0.8383,0.8098,1,6.1,pending
+2026-11-07,16096780,Forfar Athletic - Edinburgh City,Scottish League Two,16:00,home,,0.7192,0.7192,0,6.1,pending
+2026-11-07,16096780,Forfar Athletic - Edinburgh City,Scottish League Two,16:00,away,,0.7396,0.7396,0,6.1,pending
+2026-11-07,16096780,Forfar Athletic - Edinburgh City,Scottish League Two,16:00,over15,,0.7487,0.7396,0,6.1,pending
+2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,home,,0.8964,0.8964,0,6.1,pending
+2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,away,,0.7900,0.7900,0,6.1,pending
+2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,btts,,0.7178,0.7033,0,6.1,pending
+2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,over15,,0.8556,0.8654,0,6.1,pending
+2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,buteur,L. Dobbie,0.6781,0.6781,1,6.1,pending
+2026-11-07,16096751,Dundee United - Motherwell,Scottish Premiership,16:00,home,,0.8061,0.8061,0,6.1,pending
+2026-11-07,16096751,Dundee United - Motherwell,Scottish Premiership,16:00,away,,0.7526,0.7526,0,6.1,pending
+2026-11-07,16096751,Dundee United - Motherwell,Scottish Premiership,16:00,over15,,0.7978,0.8062,0,6.1,pending
+2026-11-07,16096752,St. Johnstone - Dundee,Scottish Premiership,16:00,home,,0.7554,0.7554,0,6.1,pending
+2026-11-07,16096752,St. Johnstone - Dundee,Scottish Premiership,16:00,away,,0.7595,0.7595,0,6.1,pending
+2026-11-07,16096752,St. Johnstone - Dundee,Scottish Premiership,16:00,over15,,0.7923,0.7923,0,6.1,pending
+2026-11-07,16122907,Espanyol - Deportivo de La Coruña,Spanish La Liga,16:15,home,,0.6915,0.6915,0,6.1,pending
+2026-11-07,16122907,Espanyol - Deportivo de La Coruña,Spanish La Liga,16:15,away,,0.7664,0.7664,0,6.1,pending
+2026-11-07,16122907,Espanyol - Deportivo de La Coruña,Spanish La Liga,16:15,over15,,0.7462,0.7462,0,6.1,pending
+2026-11-07,18639724,Cádiz - Real Oviedo,Spanish La Liga 2,16:15,home,,0.7904,0.7904,0,6.1,pending
+2026-11-07,18639724,Cádiz - Real Oviedo,Spanish La Liga 2,16:15,away,,0.7606,0.7606,0,6.1,pending
+2026-11-07,18639724,Cádiz - Real Oviedo,Spanish La Liga 2,16:15,over15,,0.7984,0.7984,0,6.1,pending
+2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,home,,0.8668,0.8668,0,6.1,pending
+2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,away,,0.7894,0.7894,0,6.1,pending
+2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,btts,,0.7064,0.7064,0,6.1,pending
+2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,over15,,0.8736,0.8736,0,6.1,pending
+2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,buteur,Sebastian Karlsson Grach,0.6700,0.6700,0,6.1,pending
+2026-11-07,16096663,Fortuna Sittard - Telstar,Dutch Eredivisie,16:30,home,,0.7854,0.7854,0,6.1,pending
+2026-11-07,16096663,Fortuna Sittard - Telstar,Dutch Eredivisie,16:30,away,,0.7512,0.7512,0,6.1,pending
+2026-11-07,16096663,Fortuna Sittard - Telstar,Dutch Eredivisie,16:30,over15,,0.7691,0.7691,0,6.1,pending
+2026-11-07,16096679,Nacional - Académico de Viseu,Portuguese Primeira Liga,16:30,home,,0.6617,0.6617,0,6.1,pending
+2026-11-07,16096679,Nacional - Académico de Viseu,Portuguese Primeira Liga,16:30,away,,0.8068,0.8068,0,6.1,pending
+2026-11-07,16096679,Nacional - Académico de Viseu,Portuguese Primeira Liga,16:30,over15,,0.7523,0.7523,0,6.1,pending
+2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,home,,0.8308,0.8308,1,6.1,pending
+2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,away,,0.7880,0.7880,0,6.1,pending
+2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,over15,,0.8412,0.8412,1,6.1,pending
+2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,buteur,D. Weixelbraun,0.6206,0.6206,0,6.1,pending
+2026-11-07,16096688,Železničar Pančevo - Radnički Kragujevac,Serbian Super Liga,17:00,home,,0.7757,0.7757,0,6.1,pending
+2026-11-07,16096688,Železničar Pančevo - Radnički Kragujevac,Serbian Super Liga,17:00,away,,0.6821,0.6821,0,6.1,pending
+2026-11-07,16096688,Železničar Pančevo - Radnički Kragujevac,Serbian Super Liga,17:00,over15,,0.7351,0.7351,0,6.1,pending
+2026-11-07,16096696,Galatasaray - Amed,Turkish Super Lig,17:00,home,,0.7965,0.7965,0,6.1,pending
+2026-11-07,16096696,Galatasaray - Amed,Turkish Super Lig,17:00,away,,0.8045,0.8045,1,6.1,pending
+2026-11-07,16096696,Galatasaray - Amed,Turkish Super Lig,17:00,over15,,0.8358,0.8358,1,6.1,pending
+2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,home,,0.8123,0.8123,0,6.1,pending
+2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,away,,0.7312,0.7312,0,6.1,pending
+2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,over15,,0.8078,0.8078,0,6.1,pending
+2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,buteur,Juan,0.6015,0.6015,0,6.1,pending
+2026-11-07,18640333,Mantova - Hellas Verona,Italian Serie B,17:15,home,,0.7222,0.7222,0,6.1,pending
+2026-11-07,18640333,Mantova - Hellas Verona,Italian Serie B,17:15,away,,0.7728,0.7728,0,6.1,pending
+2026-11-07,18640333,Mantova - Hellas Verona,Italian Serie B,17:15,over15,,0.7772,0.7772,0,6.1,pending
+2026-11-07,16096670,Górnik Zabrze - Wieczysta Kraków,Polish Ekstraklasa,17:30,home,,0.7949,0.7949,0,6.1,pending
+2026-11-07,16096670,Górnik Zabrze - Wieczysta Kraków,Polish Ekstraklasa,17:30,away,,0.6632,0.6632,0,6.1,pending
+2026-11-07,16096670,Górnik Zabrze - Wieczysta Kraków,Polish Ekstraklasa,17:30,over15,,0.7677,0.7677,0,6.1,pending
+2026-11-07,18639318,Krasnodar - CSKA Moscow,Russian Premier League,17:30,home,,0.7226,0.7226,0,6.1,pending
+2026-11-07,18639318,Krasnodar - CSKA Moscow,Russian Premier League,17:30,away,,0.7618,0.7618,0,6.1,pending
+2026-11-07,18639318,Krasnodar - CSKA Moscow,Russian Premier League,17:30,over15,,0.7523,0.7523,0,6.1,pending
+2026-11-07,16096689,Degerfors - GAIS,Swedish Allsvenskan,17:30,home,,0.6614,0.6614,0,6.1,pending
+2026-11-07,16096689,Degerfors - GAIS,Swedish Allsvenskan,17:30,away,,0.7700,0.7700,0,6.1,pending
+2026-11-07,16096689,Degerfors - GAIS,Swedish Allsvenskan,17:30,over15,,0.7338,0.7338,0,6.1,pending
+2026-11-07,16096690,Örgryte - Västerås,Swedish Allsvenskan,17:30,home,,0.7402,0.7402,0,6.1,pending
+2026-11-07,16096690,Örgryte - Västerås,Swedish Allsvenskan,17:30,away,,0.8163,0.8163,0,6.1,pending
+2026-11-07,16096690,Örgryte - Västerås,Swedish Allsvenskan,17:30,over15,,0.8037,0.8037,0,6.1,pending
+2026-11-07,16096654,Istra 1961 - Rijeka,Croatia Prva HNL,18:00,home,,0.8000,0.8000,0,6.1,pending
+2026-11-07,16096654,Istra 1961 - Rijeka,Croatia Prva HNL,18:00,away,,0.7435,0.7435,0,6.1,pending
+2026-11-07,16096654,Istra 1961 - Rijeka,Croatia Prva HNL,18:00,over15,,0.7727,0.8032,0,6.1,pending
+2026-11-07,16096661,Zbrojovka Brno - Baník Ostrava,Czech First League,18:00,home,,0.7810,0.7810,0,6.1,pending
+2026-11-07,16096661,Zbrojovka Brno - Baník Ostrava,Czech First League,18:00,away,,0.6728,0.6728,0,6.1,pending
+2026-11-07,16096661,Zbrojovka Brno - Baník Ostrava,Czech First League,18:00,over15,,0.7242,0.7242,0,6.1,pending
+2026-11-07,16096662,OB - Viborg,Danish Superligaen,18:00,home,,0.7383,0.7383,0,6.1,pending
+2026-11-07,16096662,OB - Viborg,Danish Superligaen,18:00,away,,0.7650,0.7650,0,6.1,pending
+2026-11-07,16096662,OB - Viborg,Danish Superligaen,18:00,over15,,0.7781,0.7781,0,6.1,pending
+2026-11-07,16096643,Parma - Bologna,Italian Serie A,18:00,home,,0.6522,0.6522,0,6.1,pending
+2026-11-07,16096643,Parma - Bologna,Italian Serie A,18:00,away,,0.7679,0.7679,0,6.1,pending
+2026-11-07,16096643,Parma - Bologna,Italian Serie A,18:00,over15,,0.7119,0.7198,0,6.1,pending
+2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,home,,0.9020,0.9020,0,6.1,pending
+2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,away,,0.6698,0.6698,0,6.1,pending
+2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,over15,,0.8587,0.8587,0,6.1,pending
+2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,buteur,A. Chiakha,0.7213,0.7213,1,6.1,pending
+2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,home,,0.8046,0.8046,0,6.1,pending
+2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,away,,0.8696,0.8696,0,6.1,pending
+2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,btts,,0.7012,0.6926,0,6.1,pending
+2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,over15,,0.9012,0.8837,0,6.1,pending
