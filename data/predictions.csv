@@ -2394,11 +2394,11 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096878,Inter Miami - Charlotte,US Major League Soccer,22:00,away,,0.7927,0.7927,1,6.1,gagne
 2026-11-07,16096878,Inter Miami - Charlotte,US Major League Soccer,22:00,btts,,0.6579,0.6579,0,6.1,gagne
 2026-11-07,16096878,Inter Miami - Charlotte,US Major League Soccer,22:00,over15,,0.8681,0.8681,0,6.1,gagne
-2026-11-07,16096878,Inter Miami - Charlotte,US Major League Soccer,22:00,buteur,L. Messi,0.6330,0.6330,0,6.1,pending
+2026-11-07,16096878,Inter Miami - Charlotte,US Major League Soccer,22:00,buteur,L. Messi,0.6330,0.6330,0,6.1,perdu
 2026-11-07,16096879,Montréal - Vancouver Whitecaps,US Major League Soccer,22:00,home,,0.6522,0.6522,0,6.1,perdu
 2026-11-07,16096879,Montréal - Vancouver Whitecaps,US Major League Soccer,22:00,away,,0.8132,0.8132,0,6.1,gagne
 2026-11-07,16096879,Montréal - Vancouver Whitecaps,US Major League Soccer,22:00,over15,,0.7700,0.7700,0,6.1,gagne
-2026-11-07,16096879,Montréal - Vancouver Whitecaps,US Major League Soccer,22:00,buteur,B. White,0.6026,0.6026,0,6.1,pending
+2026-11-07,16096879,Montréal - Vancouver Whitecaps,US Major League Soccer,22:00,buteur,B. White,0.6026,0.6026,0,6.1,perdu
 2026-11-07,16096880,New York RB - Atlanta United,US Major League Soccer,22:00,home,,0.7410,0.7410,0,6.1,gagne
 2026-11-07,16096880,New York RB - Atlanta United,US Major League Soccer,22:00,away,,0.7880,0.7880,0,6.1,perdu
 2026-11-07,16096880,New York RB - Atlanta United,US Major League Soccer,22:00,over15,,0.7943,0.7943,0,6.1,gagne
@@ -2406,16 +2406,16 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096881,Orlando City - New England,US Major League Soccer,22:00,away,,0.8073,0.8073,1,6.1,perdu
 2026-11-07,16096881,Orlando City - New England,US Major League Soccer,22:00,btts,,0.6820,0.6820,0,6.1,perdu
 2026-11-07,16096881,Orlando City - New England,US Major League Soccer,22:00,over15,,0.8683,0.8683,0,6.1,perdu
-2026-11-07,16096881,Orlando City - New England,US Major League Soccer,22:00,buteur,M. Ojeda,0.6261,0.6261,0,6.1,pending
+2026-11-07,16096881,Orlando City - New England,US Major League Soccer,22:00,buteur,M. Ojeda,0.6261,0.6261,0,6.1,perdu
 2026-11-07,16096882,Philadelphia Union - Toronto,US Major League Soccer,22:00,home,,0.8695,0.8695,0,6.1,gagne
 2026-11-07,16096882,Philadelphia Union - Toronto,US Major League Soccer,22:00,away,,0.7293,0.7293,0,6.1,gagne
 2026-11-07,16096882,Philadelphia Union - Toronto,US Major League Soccer,22:00,over15,,0.8541,0.8541,0,6.1,gagne
-2026-11-07,16096882,Philadelphia Union - Toronto,US Major League Soccer,22:00,buteur,M. Iloski,0.6738,0.6738,0,6.1,pending
+2026-11-07,16096882,Philadelphia Union - Toronto,US Major League Soccer,22:00,buteur,M. Iloski,0.6738,0.6738,0,6.1,perdu
 2026-11-07,18637516,Once Caldas - Águilas Doradas,Colombian Primera A,22:05,home,,0.6654,0.6654,0,6.1,gagne
 2026-11-07,18637516,Once Caldas - Águilas Doradas,Colombian Primera A,22:05,away,,0.6569,0.6569,0,6.1,perdu
 2026-11-07,18639099,Always Ready - ABB,Bolivian División Profesional,22:15,home,,0.9143,0.9143,0,6.1,gagne
 2026-11-07,18639099,Always Ready - ABB,Bolivian División Profesional,22:15,over15,,0.8541,0.8541,0,6.1,gagne
-2026-11-07,18639099,Always Ready - ABB,Bolivian División Profesional,22:15,buteur,Enrique Triverio,0.7411,0.7411,1,6.1,pending
+2026-11-07,18639099,Always Ready - ABB,Bolivian División Profesional,22:15,buteur,Enrique Triverio,0.7411,0.7411,1,6.1,gagne
 2026-11-07,18638404,Leones - Guayaquil City FC,Ecuadorian LigaPro,22:30,home,,0.7936,0.7936,0,6.1,gagne
 2026-11-07,18638404,Leones - Guayaquil City FC,Ecuadorian LigaPro,22:30,away,,0.7507,0.7507,0,6.1,gagne
 2026-11-07,18638404,Leones - Guayaquil City FC,Ecuadorian LigaPro,22:30,over15,,0.7582,0.7743,0,6.1,gagne
@@ -2858,3 +2858,109 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,18640337,Vicenza - Cremonese,Italian Serie B,19:30,home,,0.7081,0.7081,0,6.1,pending
 2026-11-08,18640337,Vicenza - Cremonese,Italian Serie B,19:30,away,,0.7728,0.7728,0,6.1,pending
 2026-11-08,18640337,Vicenza - Cremonese,Italian Serie B,19:30,over15,,0.7700,0.7700,0,6.1,pending
+2026-11-08,18638401,Aucas - Independiente del Valle,Ecuadorian LigaPro,19:45,home,,0.6777,0.6777,0,6.1,pending
+2026-11-08,18638401,Aucas - Independiente del Valle,Ecuadorian LigaPro,19:45,away,,0.7933,0.7933,0,6.1,pending
+2026-11-08,18638401,Aucas - Independiente del Valle,Ecuadorian LigaPro,19:45,over15,,0.7910,0.7541,0,6.1,pending
+2026-11-08,18639101,Nacional Potosí - Real Potosí,Bolivian División Profesional,20:00,home,,0.7016,0.7016,0,6.1,pending
+2026-11-08,18639101,Nacional Potosí - Real Potosí,Bolivian División Profesional,20:00,away,,0.6821,0.6821,0,6.1,pending
+2026-11-08,18639101,Nacional Potosí - Real Potosí,Bolivian División Profesional,20:00,over15,,0.6976,0.6976,0,6.1,pending
+2026-11-08,18636904,Athletic - Atlético Goianiense,Brazilian Serie B,20:00,home,,0.7200,0.7200,0,6.1,pending
+2026-11-08,18636904,Athletic - Atlético Goianiense,Brazilian Serie B,20:00,away,,0.7048,0.7048,0,6.1,pending
+2026-11-08,18636904,Athletic - Atlético Goianiense,Brazilian Serie B,20:00,over15,,0.7112,0.7112,0,6.1,pending
+2026-11-08,18637534,Independiente Santa Fe - Deportivo Pasto,Colombian Primera A,20:00,home,,0.7191,0.7191,0,6.1,pending
+2026-11-08,18637534,Independiente Santa Fe - Deportivo Pasto,Colombian Primera A,20:00,over15,,0.6578,0.6578,0,6.1,pending
+2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,home,,0.8122,0.8122,1,6.1,pending
+2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,away,,0.8420,0.8420,1,6.1,pending
+2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,btts,,0.6840,0.6840,0,6.1,pending
+2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,over15,,0.8603,0.8603,0,6.1,pending
+2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,buteur,T. Chery,0.6375,0.6375,0,6.1,pending
+2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,home,,0.8119,0.8119,0,6.1,pending
+2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,away,,0.6896,0.6896,0,6.1,pending
+2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,over15,,0.7587,0.7603,0,6.1,pending
+2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,buteur,Jota Silva,0.6010,0.6010,0,6.1,pending
+2026-11-08,16096673,Lech Poznań - Zagłębie Lubin,Polish Ekstraklasa,20:15,home,,0.8375,0.8375,1,6.1,pending
+2026-11-08,16096673,Lech Poznań - Zagłębie Lubin,Polish Ekstraklasa,20:15,away,,0.7574,0.7574,0,6.1,pending
+2026-11-08,16096673,Lech Poznań - Zagłębie Lubin,Polish Ekstraklasa,20:15,over15,,0.8271,0.8271,1,6.1,pending
+2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,home,,0.7343,0.7343,0,6.1,pending
+2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,away,,0.8640,0.8640,0,6.1,pending
+2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,over15,,0.8103,0.8103,0,6.1,pending
+2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,buteur,A. Gouiri,0.6312,0.6312,0,6.1,pending
+2026-11-08,16122921,Fiorentina - Juventus,Italian Serie A,20:45,home,,0.7509,0.7509,0,6.1,pending
+2026-11-08,16122921,Fiorentina - Juventus,Italian Serie A,20:45,away,,0.8018,0.8018,1,6.1,pending
+2026-11-08,16122921,Fiorentina - Juventus,Italian Serie A,20:45,over15,,0.8337,0.8337,1,6.1,pending
+2026-11-08,18638656,Cerro Porteño - Deportivo Recoleta,Paraguayan Primera División,21:00,home,,0.7295,0.7295,0,6.1,pending
+2026-11-08,18638656,Cerro Porteño - Deportivo Recoleta,Paraguayan Primera División,21:00,over15,,0.7275,0.6794,0,6.1,pending
+2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,home,,0.7872,0.7872,0,6.1,pending
+2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,away,,0.8591,0.8591,0,6.1,pending
+2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,over15,,0.8828,0.8622,0,6.1,pending
+2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,buteur,Raphinha,0.6246,0.6246,0,6.1,pending
+2026-11-08,18637129,Unión La Calera - Huachipato,Chilean Primera División,21:30,home,,0.7180,0.7180,0,6.1,pending
+2026-11-08,18637129,Unión La Calera - Huachipato,Chilean Primera División,21:30,away,,0.6915,0.6915,0,6.1,pending
+2026-11-08,18637129,Unión La Calera - Huachipato,Chilean Primera División,21:30,over15,,0.6986,0.6986,0,6.1,pending
+2026-11-08,18637521,Águilas Doradas - Independiente Medellín,Colombian Primera A,21:30,home,,0.7546,0.7546,0,6.1,pending
+2026-11-08,18637521,Águilas Doradas - Independiente Medellín,Colombian Primera A,21:30,away,,0.7068,0.7068,0,6.1,pending
+2026-11-08,18637521,Águilas Doradas - Independiente Medellín,Colombian Primera A,21:30,over15,,0.7523,0.7523,0,6.1,pending
+2026-11-08,18637522,Atlético Bucaramanga - Fortaleza CEIF,Colombian Primera A,21:30,home,,0.7799,0.7799,0,6.1,pending
+2026-11-08,18637522,Atlético Bucaramanga - Fortaleza CEIF,Colombian Primera A,21:30,over15,,0.7431,0.7431,0,6.1,pending
+2026-11-08,18637523,Atlético Nacional - Once Caldas,Colombian Primera A,21:30,home,,0.7709,0.7709,0,6.1,pending
+2026-11-08,18637523,Atlético Nacional - Once Caldas,Colombian Primera A,21:30,away,,0.6674,0.6674,0,6.1,pending
+2026-11-08,18637523,Atlético Nacional - Once Caldas,Colombian Primera A,21:30,over15,,0.7347,0.7347,0,6.1,pending
+2026-11-08,18637524,Cúcuta Deportivo - Jaguares de Córdoba,Colombian Primera A,21:30,home,,0.7889,0.7889,0,6.1,pending
+2026-11-08,18637524,Cúcuta Deportivo - Jaguares de Córdoba,Colombian Primera A,21:30,over15,,0.7174,0.7174,0,6.1,pending
+2026-11-08,18637525,Deportivo Cali - Deportes Tolima,Colombian Primera A,21:30,home,,0.7756,0.7756,0,6.1,pending
+2026-11-08,18637525,Deportivo Cali - Deportes Tolima,Colombian Primera A,21:30,over15,,0.7017,0.7017,0,6.1,pending
+2026-11-08,18637527,Deportivo Pereira - América de Cali,Colombian Primera A,21:30,away,,0.7180,0.7180,0,6.1,pending
+2026-11-08,18637527,Deportivo Pereira - América de Cali,Colombian Primera A,21:30,over15,,0.6742,0.6742,0,6.1,pending
+2026-11-08,18637528,Internacional de Bogotá - Independiente Santa Fe,Colombian Primera A,21:30,home,,0.7551,0.7551,0,6.1,pending
+2026-11-08,18637528,Internacional de Bogotá - Independiente Santa Fe,Colombian Primera A,21:30,away,,0.7188,0.7188,0,6.1,pending
+2026-11-08,18637528,Internacional de Bogotá - Independiente Santa Fe,Colombian Primera A,21:30,over15,,0.7403,0.7403,0,6.1,pending
+2026-11-08,18637529,Llaneros FC - Boyacá Chicó FC,Colombian Primera A,21:30,home,,0.7463,0.7463,0,6.1,pending
+2026-11-08,18637529,Llaneros FC - Boyacá Chicó FC,Colombian Primera A,21:30,away,,0.6822,0.6822,0,6.1,pending
+2026-11-08,18637529,Llaneros FC - Boyacá Chicó FC,Colombian Primera A,21:30,over15,,0.7208,0.7208,0,6.1,pending
+2026-11-08,18637530,Millonarios - Alianza,Colombian Primera A,21:30,home,,0.7569,0.7569,0,6.1,pending
+2026-11-08,18637530,Millonarios - Alianza,Colombian Primera A,21:30,over15,,0.6987,0.6987,0,6.1,pending
+2026-11-08,18637829,Sport Boys - UTC,Peruvian Liga 1,21:30,home,,0.8384,0.8384,1,6.1,pending
+2026-11-08,18637829,Sport Boys - UTC,Peruvian Liga 1,21:30,away,,0.7462,0.7462,0,6.1,pending
+2026-11-08,18637829,Sport Boys - UTC,Peruvian Liga 1,21:30,over15,,0.8014,0.8014,1,6.1,pending
+2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,home,,0.6922,0.6922,0,6.1,pending
+2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,away,,0.8606,0.8606,0,6.1,pending
+2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,over15,,0.8369,0.8369,1,6.1,pending
+2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,buteur,V. Pavlidis,0.6617,0.6617,1,6.1,pending
+2026-11-08,16122966,Rio Ave - Sporting Braga,Portuguese Primeira Liga,21:30,home,,0.6970,0.6970,0,6.1,pending
+2026-11-08,16122966,Rio Ave - Sporting Braga,Portuguese Primeira Liga,21:30,away,,0.7880,0.7880,0,6.1,pending
+2026-11-08,16122966,Rio Ave - Sporting Braga,Portuguese Primeira Liga,21:30,over15,,0.7504,0.7504,0,6.1,pending
+2026-11-08,18642251,Cobán Imperial - Xelajú MC,Guatemalan Liga Nacional,22:00,home,,0.7956,0.7956,0,6.1,pending
+2026-11-08,18642251,Cobán Imperial - Xelajú MC,Guatemalan Liga Nacional,22:00,away,,0.7226,0.7226,0,6.1,pending
+2026-11-08,18642251,Cobán Imperial - Xelajú MC,Guatemalan Liga Nacional,22:00,over15,,0.7769,0.7963,0,6.1,pending
+2026-11-08,18641797,Platense - Génesis PN,Honduran Liga Nacional,22:00,home,,0.7561,0.7561,0,6.1,pending
+2026-11-08,18641797,Platense - Génesis PN,Honduran Liga Nacional,22:00,away,,0.8012,0.8012,0,6.1,pending
+2026-11-08,18641797,Platense - Génesis PN,Honduran Liga Nacional,22:00,over15,,0.7935,0.8158,0,6.1,pending
+2026-11-08,18638899,Portuguesa - Metropolitanos,Venezuelan Primera División,22:00,away,,0.7907,0.7907,0,6.1,pending
+2026-11-08,18638899,Portuguesa - Metropolitanos,Venezuelan Primera División,22:00,over15,,0.7351,0.7472,0,6.1,pending
+2026-11-08,18637531,Jaguares de Córdoba - Atlético Bucaramanga,Colombian Primera A,22:05,home,,0.7090,0.7090,0,6.1,pending
+2026-11-08,18637531,Jaguares de Córdoba - Atlético Bucaramanga,Colombian Primera A,22:05,away,,0.7644,0.7644,0,6.1,pending
+2026-11-08,18637531,Jaguares de Córdoba - Atlético Bucaramanga,Colombian Primera A,22:05,over15,,0.7469,0.7469,0,6.1,pending
+2026-11-08,18639102,Bolívar - The Strongest,Bolivian División Profesional,22:15,home,,0.8314,0.8314,1,6.1,pending
+2026-11-08,18639102,Bolívar - The Strongest,Bolivian División Profesional,22:15,away,,0.7645,0.7645,0,6.1,pending
+2026-11-08,18639102,Bolívar - The Strongest,Bolivian División Profesional,22:15,over15,,0.8236,0.8236,1,6.1,pending
+2026-11-08,18638402,Barcelona - LDU Quito,Ecuadorian LigaPro,22:30,home,,0.7319,0.7319,0,6.1,pending
+2026-11-08,18638402,Barcelona - LDU Quito,Ecuadorian LigaPro,22:30,away,,0.6786,0.6786,0,6.1,pending
+2026-11-08,18638402,Barcelona - LDU Quito,Ecuadorian LigaPro,22:30,over15,,0.7213,0.7309,0,6.1,pending
+2026-11-08,18638900,Deportivo La Guaira - Carabobo,Venezuelan Primera División,22:30,home,,0.6969,0.6969,0,6.1,pending
+2026-11-08,18638900,Deportivo La Guaira - Carabobo,Venezuelan Primera División,22:30,away,,0.8202,0.8202,0,6.1,pending
+2026-11-08,18638900,Deportivo La Guaira - Carabobo,Venezuelan Primera División,22:30,over15,,0.7777,0.7973,0,6.1,pending
+2026-11-08,18638900,Deportivo La Guaira - Carabobo,Venezuelan Primera División,22:30,buteur,Eric Ramírez,0.6108,0.6108,0,6.1,pending
+2026-11-08,18641986,Saprissa - Puntarenas FC,Costa Rican Primera División,23:00,home,,0.7830,0.7830,0,6.1,pending
+2026-11-08,18641986,Saprissa - Puntarenas FC,Costa Rican Primera División,23:00,away,,0.6604,0.6604,0,6.1,pending
+2026-11-08,18641986,Saprissa - Puntarenas FC,Costa Rican Primera División,23:00,over15,,0.7830,0.7447,0,6.1,pending
+2026-11-08,18636905,Ceará - América Mineiro,Brazilian Serie B,23:15,home,,0.7230,0.7230,0,6.1,pending
+2026-11-08,18636905,Ceará - América Mineiro,Brazilian Serie B,23:15,away,,0.6800,0.6800,0,6.1,pending
+2026-11-08,18636905,Ceará - América Mineiro,Brazilian Serie B,23:15,over15,,0.6896,0.6896,0,6.1,pending
+2026-11-08,18636906,Goiás - Ponte Preta,Brazilian Serie B,23:15,home,,0.8333,0.8333,1,6.1,pending
+2026-11-08,18636906,Goiás - Ponte Preta,Brazilian Serie B,23:15,over15,,0.7502,0.7502,1,6.1,pending
+2026-11-08,18636906,Goiás - Ponte Preta,Brazilian Serie B,23:15,buteur,Kadu,0.6267,0.6267,0,6.1,pending
+2026-11-08,18635879,Central Córdoba (Santiago del Estero) - Lanús,Argentine Liga Profesional,23:30,away,,0.7956,0.7956,0,6.1,pending
+2026-11-08,18635879,Central Córdoba (Santiago del Estero) - Lanús,Argentine Liga Profesional,23:30,over15,,0.6898,0.6898,0,6.1,pending
+2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,home,,0.7737,0.7737,0,6.1,pending
+2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,away,,0.7092,0.7092,0,6.1,pending
+2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,over15,,0.7798,0.7410,0,6.1,pending
