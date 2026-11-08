@@ -1,191 +1,147 @@
-"""
-TEST DE COUVERTURE DES STATS DE TIRS — SportAPI
-
-Question : est-ce que /fixtures/{id}/stats renvoie des tirs, et pour
-quelles ligues ?
-
-Coût : environ 50 requêtes (3 jours de matchs + ~45 stats de match).
-Lancement : manuel (workflow "Test stats de tirs"), jamais automatique.
-Ne modifie ni le bot ni le journal.
-
-Résultat : rapport dans les logs GitHub + résumé sur Telegram.
-"""
-
-import math
-import os
-import re
-import statistics
-import time
+# Test de couverture des stats de tirs (SportAPI). ~50 requetes.
+import os, re, time, statistics
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-
 import requests
 
-
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
-CHAT_ID = os.getenv("CHAT_ID", "").strip()
-API_KEY = os.getenv("API_KEY", "").strip()
-
-BASE_URL = "https://sportapi.ai/api"
-PARIS = ZoneInfo("Europe/Paris")
-
-DAYS = [1, 2, 3]            # jours passés utilisés pour trouver des matchs
-SAMPLE_SIZE = int(os.getenv("SAMPLE_SIZE", "45"))
-PER_LEAGUE = 3              # matchs testés par ligue (pour varier les ligues)
-
-MAX_CALLS = 70
-MIN_INTERVAL = 0.4
-TIMEOUT = 25
-MAX_RUNTIME_SECONDS = 600
-
-YOUTH_PATTERN = re.compile(
-    r"\bU[- ]?(1[5-9]|2[0-3])\b|\byouth\b|\bjuniors?\b"
-    r"|\bprimavera\b|\breserves?\b|\bamateurs?\b|\bII$",
-    re.IGNORECASE,
-)
-
-SESSION = requests.Session()
-SESSION.headers.update({
-    "X-Api-Key": API_KEY,
-    "User-Agent": "football-shots-check/1.0",
-})
-
-STARTED = time.monotonic()
-CALLS = 0
-LAST_CALL = None
-FIRST_RAW_SHOWN = False
+CHAT = os.getenv("CHAT_ID", "").strip()
+KEY = os.getenv("API_KEY", "").strip()
+BASE = "https://sportapi.ai/api"
+S = requests.Session()
+S.headers.update({"X-Api-Key": KEY})
+YOUTH = re.compile(r"\bU[- ]?(1[5-9]|2[0-3])\b|youth|primavera|reserve|\bII$", re.I)
+calls = 0
 
 
-def safe(value):
-    text = str(value)
-    for secret in (TOKEN, API_KEY, CHAT_ID):
-        if secret:
-            text = text.replace(secret, "[MASQUE]")
-    return text
-
-
-def number(value):
-    if value is None or isinstance(value, bool):
+def get(path):
+    global calls
+    if calls >= 70:
         return None
+    calls += 1
+    time.sleep(0.4)
     try:
-        value = float(value)
-    except (TypeError, ValueError):
+        r = S.get(f"{BASE}/{path}", timeout=25)
+    except requests.RequestException:
         return None
-    return value if math.isfinite(value) else None
+    if r.status_code in (401, 403):
+        raise SystemExit(f"Cle API refusee ({r.status_code})")
+    try:
+        return r.json() if r.ok else None
+    except ValueError:
+        return None
 
 
-def send_telegram(text):
-    if not TOKEN or not CHAT_ID:
-        print("Telegram non configure : resume non envoye.", flush=True)
-        return
-    for start in range(0, len(text), 3000):
-        try:
-            response = requests.post(
-                f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-                json={"chat_id": CHAT_ID, "text": text[start:start + 3000]},
-                timeout=TIMEOUT,
-            )
-            if not response.ok:
-                print("Telegram HTTP", response.status_code, flush=True)
-        except requests.RequestException:
-            print("Erreur reseau Telegram.", flush=True)
+def num(v):
+    return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
 
 
-def api_get(path):
-    """Payload JSON ou None. Compte chaque appel."""
-    global CALLS, LAST_CALL
+def blocks(x, out=None):
+    out = [] if out is None else out
+    if isinstance(x, dict):
+        if num(x.get("shots")) is not None:
+            out.append(x)
+        for v in x.values():
+            blocks(v, out)
+    elif isinstance(x, list):
+        for v in x:
+            blocks(v, out)
+    return out
 
-    for attempt in range(3):
-        if CALLS >= MAX_CALLS or time.monotonic() - STARTED > MAX_RUNTIME_SECONDS:
-            return None
 
-        if LAST_CALL is not None:
-            wait = MIN_INTERVAL - (time.monotonic() - LAST_CALL)
-            if wait > 0:
-                time.sleep(wait)
-
-        LAST_CALL = time.monotonic()
-        CALLS += 1
-
-        try:
-            response = SESSION.get(f"{BASE_URL}/{path}", timeout=TIMEOUT)
-        except requests.RequestException:
-            time.sleep(2 * (attempt + 1))
-            continue
-
-        if response.status_code == 429:
-            print("Limite de requetes atteinte : arret.", flush=True)
-            return None
-
-        if response.status_code in (401, 403):
-            raise SystemExit(f"Cle API refusee (HTTP {response.status_code}).")
-
-        if not response.ok:
-            return None
-
-        try:
-            return response.json()
-        except ValueError:
-            return None
-
+def flag(x):
+    if isinstance(x, dict):
+        if isinstance(x.get("available"), bool):
+            return x["available"]
+        x = list(x.values())
+    if isinstance(x, list):
+        for v in x:
+            f = flag(v)
+            if f is not None:
+                return f
     return None
 
 
-def fixtures_of(payload):
-    data = payload.get("data") if isinstance(payload, dict) else None
-    return [x for x in data if isinstance(x, dict)] if isinstance(data, list) else []
+def send(text):
+    if not TOKEN or not CHAT:
+        print("Telegram non configure")
+        return
+    for i in range(0, len(text), 3000):
+        try:
+            requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+                          json={"chat_id": CHAT, "text": text[i:i + 3000]}, timeout=25)
+        except requests.RequestException:
+            print("Erreur Telegram")
 
 
-def league_name(match):
-    for key in ("league_name", "league", "competition", "tournament"):
-        value = match.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-        if isinstance(value, dict) and value.get("name"):
-            return str(value["name"])
-    return f"ligue {match.get('league_id')}"
-
-
-def pick_sample(matches):
-    """Un échantillon réparti sur le plus de ligues possible."""
-    by_league = defaultdict(list)
-    for match in matches:
-        by_league[str(match.get("league_id"))].append(match)
-
-    leagues = sorted(by_league, key=lambda k: -len(by_league[k]))
+def main():
+    today = datetime.now(ZoneInfo("Europe/Paris")).date()
+    found = {}
+    for d in (1, 2, 3):
+        p = get(f"fixtures/date/{today - timedelta(days=d)}")
+        for m in (p or {}).get("data") or []:
+            if (isinstance(m, dict) and str(m.get("status")).upper() == "FT"
+                    and m.get("id") is not None
+                    and not YOUTH.search(f"{m.get('home_team')} {m.get('away_team')}")):
+                found[m["id"]] = m
+    print(len(found), "matchs termines")
+    if not found:
+        return send("TEST TIRS : aucun match termine trouve.")
+    by = defaultdict(list)
+    for m in found.values():
+        by[str(m.get("league_id"))].append(m)
     sample = []
+    for r in range(3):
+        for k in sorted(by, key=lambda k: -len(by[k])):
+            if len(sample) < 45 and r < len(by[k]):
+                sample.append(by[k][r])
+    rows, shown = [], False
+    for m in sample:
+        p = get(f"fixtures/{m['id']}/stats")
+        if p is not None and not shown:
+            shown = True
+            print("EXEMPLE:", str(p)[:1500])
+        b = blocks(p)[:2] if p is not None else []
+        if p is None:
+            st, tot, cad = "echec", None, None
+        elif len(b) < 2:
+            st, tot, cad = ("indisponible" if flag(p) is False else "vide"), None, None
+        else:
+            tot = b[0]["shots"] + b[1]["shots"]
+            c = [num(x.get("shots_on_target")) for x in b]
+            cad = sum(c) if None not in c else None
+            st = "ok" if tot > 0 or flag(p) else "zero"
+        name = str(m.get("league_name") or m.get("league") or f"ligue {m.get('league_id')}")
+        rows.append((name, st, tot, cad))
+        print(st, name, m.get("home_team"), m.get("away_team"), tot, cad)
+    ok = [r for r in rows if r[1] == "ok"]
+    n = len(rows)
+    L = ["TEST STATS DE TIRS", f"{n} matchs testes, {calls} requetes", "",
+         f"Stats de tirs disponibles : {len(ok)}/{n} ({len(ok) / max(n, 1):.0%})"]
+    bad = defaultdict(int)
+    for r in rows:
+        if r[1] != "ok":
+            bad[r[1]] += 1
+    if bad:
+        L.append("Absents : " + ", ".join(f"{k} {v}" for k, v in bad.items()))
+    if len(ok) >= 5:
+        t = [r[2] for r in ok]
+        L += ["", f"Tirs par match : moyenne {statistics.mean(t):.1f}, ecart-type {statistics.pstdev(t):.1f}, min {min(t):.0f}, max {max(t):.0f}",
+              "Part des matchs : " + " | ".join(f"{x}+ tirs {sum(v >= x for v in t) / len(t):.0%}" for x in (20, 25, 27, 30))]
+        c = [r[3] for r in ok if r[3] is not None]
+        if c:
+            L.append(f"Tirs cadres par match : moyenne {statistics.mean(c):.1f}")
+    lg = defaultdict(lambda: [0, 0])
+    for r in rows:
+        lg[r[0]][1] += 1
+        lg[r[0]][0] += r[1] == "ok"
+    L += ["", "Par ligue (dispo/testes) :"]
+    for k, (g, t) in sorted(lg.items(), key=lambda kv: -kv[1][1])[:20]:
+        L.append(f"- {k[:30]} : {g}/{t}")
+    send("\n".join(L))
+    print("\n".join(L))
 
-    for round_index in range(PER_LEAGUE):
-        for league in leagues:
-            if len(sample) >= SAMPLE_SIZE:
-                return sample
-            if round_index < len(by_league[league]):
-                sample.append(by_league[league][round_index])
 
-    return sample
-
-
-# ---------- lecture de la réponse /stats (forme inconnue : on cherche) ----------
-
-def find_team_blocks(node, found=None):
-    """Tous les dictionnaires qui contiennent une clé 'shots' numérique."""
-    if found is None:
-        found = []
-    if isinstance(node, dict):
-        if number(node.get("shots")) is not None:
-            found.append(node)
-        for value in node.values():
-            find_team_blocks(value, found)
-    elif isinstance(node, list):
-        for value in node:
-            find_team_blocks(value, found)
-    return found
-
-
-def find_flag(node, key="available"):
-    if isinstance(node, dict):
-        if key in node and isinstance(node[key], bool):
-            return node[key]
-        for value in node.values():
-            result = find
+main()
+print("FIN DU SCRIPT")
