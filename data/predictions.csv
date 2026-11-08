@@ -2126,7 +2126,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096772,Alloa Athletic - Airdrieonians,Scottish League One,16:00,home,,0.7693,0.7693,0,6.1,gagne
 2026-11-07,16096772,Alloa Athletic - Airdrieonians,Scottish League One,16:00,away,,0.8227,0.8227,0,6.1,gagne
 2026-11-07,16096772,Alloa Athletic - Airdrieonians,Scottish League One,16:00,over15,,0.7696,0.8172,0,6.1,gagne
-2026-11-07,16096772,Alloa Athletic - Airdrieonians,Scottish League One,16:00,buteur,L. McLeish,0.6139,0.6139,0,6.1,pending
+2026-11-07,16096772,Alloa Athletic - Airdrieonians,Scottish League One,16:00,buteur,L. McLeish,0.6139,0.6139,0,6.1,perdu
 2026-11-07,16096773,Cove Rangers - Hamilton Academical,Scottish League One,16:00,home,,0.7029,0.7029,0,6.1,gagne
 2026-11-07,16096773,Cove Rangers - Hamilton Academical,Scottish League One,16:00,away,,0.7806,0.7806,0,6.1,perdu
 2026-11-07,16096773,Cove Rangers - Hamilton Academical,Scottish League One,16:00,over15,,0.7573,0.7850,0,6.1,gagne
@@ -2137,10 +2137,10 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096775,Queen of the South - East Kilbride,Scottish League One,16:00,away,,0.8784,0.8784,0,6.1,gagne
 2026-11-07,16096775,Queen of the South - East Kilbride,Scottish League One,16:00,btts,,0.6979,0.6979,0,6.1,gagne
 2026-11-07,16096775,Queen of the South - East Kilbride,Scottish League One,16:00,over15,,0.8795,0.8795,0,6.1,gagne
-2026-11-07,16096775,Queen of the South - East Kilbride,Scottish League One,16:00,buteur,C. Elliott,0.6862,0.6862,1,6.1,pending
+2026-11-07,16096775,Queen of the South - East Kilbride,Scottish League One,16:00,buteur,C. Elliott,0.6862,0.6862,1,6.1,gagne
 2026-11-07,16096776,Ross County - Peterhead,Scottish League One,16:00,home,,0.8995,0.8995,0,6.1,gagne
 2026-11-07,16096776,Ross County - Peterhead,Scottish League One,16:00,over15,,0.8510,0.8510,0,6.1,gagne
-2026-11-07,16096776,Ross County - Peterhead,Scottish League One,16:00,buteur,B. Graham,0.7173,0.7173,1,6.1,pending
+2026-11-07,16096776,Ross County - Peterhead,Scottish League One,16:00,buteur,B. Graham,0.7173,0.7173,1,6.1,gagne
 2026-11-07,16096777,Annan Athletic - Kelty Hearts,Scottish League Two,16:00,home,,0.7315,0.7315,0,6.1,gagne
 2026-11-07,16096777,Annan Athletic - Kelty Hearts,Scottish League Two,16:00,away,,0.7791,0.7791,0,6.1,gagne
 2026-11-07,16096777,Annan Athletic - Kelty Hearts,Scottish League Two,16:00,over15,,0.7619,0.7619,0,6.1,gagne
@@ -2148,7 +2148,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,away,,0.7470,0.7470,0,6.1,gagne
 2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,btts,,0.6503,0.6238,0,6.1,gagne
 2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,over15,,0.8495,0.8229,1,6.1,gagne
-2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,buteur,S. Williamson,0.6246,0.6246,0,6.1,pending
+2026-11-07,16096778,Clyde - Spartans,Scottish League Two,16:00,buteur,S. Williamson,0.6246,0.6246,0,6.1,gagne
 2026-11-07,16096779,Elgin City - Dumbarton,Scottish League Two,16:00,home,,0.8555,0.8555,0,6.1,perdu
 2026-11-07,16096779,Elgin City - Dumbarton,Scottish League Two,16:00,away,,0.7158,0.7158,0,6.1,gagne
 2026-11-07,16096779,Elgin City - Dumbarton,Scottish League Two,16:00,over15,,0.8383,0.8098,1,6.1,gagne
@@ -2159,7 +2159,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,away,,0.7900,0.7900,0,6.1,perdu
 2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,btts,,0.7178,0.7033,0,6.1,perdu
 2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,over15,,0.8556,0.8654,0,6.1,gagne
-2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,buteur,L. Dobbie,0.6781,0.6781,1,6.1,pending
+2026-11-07,16096781,Stranraer - Stirling Albion,Scottish League Two,16:00,buteur,L. Dobbie,0.6781,0.6781,1,6.1,gagne
 2026-11-07,16096751,Dundee United - Motherwell,Scottish Premiership,16:00,home,,0.8061,0.8061,0,6.1,gagne
 2026-11-07,16096751,Dundee United - Motherwell,Scottish Premiership,16:00,away,,0.7526,0.7526,0,6.1,gagne
 2026-11-07,16096751,Dundee United - Motherwell,Scottish Premiership,16:00,over15,,0.7978,0.8062,0,6.1,gagne
@@ -2176,7 +2176,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,away,,0.7894,0.7894,0,6.1,gagne
 2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,btts,,0.7064,0.7064,0,6.1,gagne
 2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,over15,,0.8736,0.8736,0,6.1,gagne
-2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,buteur,Sebastian Karlsson Grach,0.6700,0.6700,0,6.1,pending
+2026-11-07,18640936,Den Bosch - Jong FC Utrecht,Dutch Eerste Divisie,16:30,buteur,Sebastian Karlsson Grach,0.6700,0.6700,0,6.1,perdu
 2026-11-07,16096663,Fortuna Sittard - Telstar,Dutch Eredivisie,16:30,home,,0.7854,0.7854,0,6.1,gagne
 2026-11-07,16096663,Fortuna Sittard - Telstar,Dutch Eredivisie,16:30,away,,0.7512,0.7512,0,6.1,gagne
 2026-11-07,16096663,Fortuna Sittard - Telstar,Dutch Eredivisie,16:30,over15,,0.7691,0.7691,0,6.1,gagne
@@ -2186,7 +2186,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,home,,0.8308,0.8308,1,6.1,gagne
 2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,away,,0.7880,0.7880,0,6.1,gagne
 2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,over15,,0.8412,0.8412,1,6.1,gagne
-2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,buteur,D. Weixelbraun,0.6206,0.6206,0,6.1,pending
+2026-11-07,16096647,Austria Lustenau - Grazer AK,Austrian Bundesliga,17:00,buteur,D. Weixelbraun,0.6206,0.6206,0,6.1,perdu
 2026-11-07,16096688,Železničar Pančevo - Radnički Kragujevac,Serbian Super Liga,17:00,home,,0.7757,0.7757,0,6.1,gagne
 2026-11-07,16096688,Železničar Pančevo - Radnički Kragujevac,Serbian Super Liga,17:00,away,,0.6821,0.6821,0,6.1,gagne
 2026-11-07,16096688,Železničar Pančevo - Radnički Kragujevac,Serbian Super Liga,17:00,over15,,0.7351,0.7351,0,6.1,gagne
@@ -2196,7 +2196,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,home,,0.8123,0.8123,0,6.1,gagne
 2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,away,,0.7312,0.7312,0,6.1,gagne
 2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,over15,,0.8078,0.8078,0,6.1,gagne
-2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,buteur,Juan,0.6015,0.6015,0,6.1,pending
+2026-11-07,16096697,Göztepe - İstanbul Başakşehir,Turkish Super Lig,17:00,buteur,Juan,0.6015,0.6015,0,6.1,gagne
 2026-11-07,18640333,Mantova - Hellas Verona,Italian Serie B,17:15,home,,0.7222,0.7222,0,6.1,perdu
 2026-11-07,18640333,Mantova - Hellas Verona,Italian Serie B,17:15,away,,0.7728,0.7728,0,6.1,perdu
 2026-11-07,18640333,Mantova - Hellas Verona,Italian Serie B,17:15,over15,,0.7772,0.7772,0,6.1,perdu
@@ -2227,12 +2227,12 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,home,,0.9020,0.9020,0,6.1,gagne
 2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,away,,0.6698,0.6698,0,6.1,gagne
 2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,over15,,0.8587,0.8587,0,6.1,gagne
-2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,buteur,A. Chiakha,0.7213,0.7213,1,6.1,pending
+2026-11-07,16096669,Rosenborg - Start,Norwegian Eliteserien,18:00,buteur,A. Chiakha,0.7213,0.7213,1,6.1,gagne
 2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,home,,0.8046,0.8046,0,6.1,gagne
 2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,away,,0.8696,0.8696,0,6.1,gagne
 2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,btts,,0.7012,0.6926,0,6.1,gagne
 2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,over15,,0.9012,0.8837,0,6.1,gagne
-2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,buteur,S. Essende,0.6739,0.6739,0,6.1,pending
+2026-11-07,16096691,Luzern - Young Boys,Swiss Super League,18:00,buteur,S. Essende,0.6739,0.6739,0,6.1,gagne
 2026-11-07,16096692,Vaduz - Sion,Swiss Super League,18:00,home,,0.8392,0.8392,1,6.1,perdu
 2026-11-07,16096692,Vaduz - Sion,Swiss Super League,18:00,away,,0.8166,0.8166,1,6.1,gagne
 2026-11-07,16096692,Vaduz - Sion,Swiss Super League,18:00,btts,,0.6833,0.6833,0,6.1,perdu
@@ -2247,14 +2247,14 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096640,Stuttgart - Werder Bremen,German Bundesliga,18:30,away,,0.8033,0.8033,0,6.1,perdu
 2026-11-07,16096640,Stuttgart - Werder Bremen,German Bundesliga,18:30,btts,,0.6568,0.6568,0,6.1,perdu
 2026-11-07,16096640,Stuttgart - Werder Bremen,German Bundesliga,18:30,over15,,0.8435,0.8435,1,6.1,perdu
-2026-11-07,16096640,Stuttgart - Werder Bremen,German Bundesliga,18:30,buteur,E. Demirović,0.6032,0.6032,0,6.1,pending
+2026-11-07,16096640,Stuttgart - Werder Bremen,German Bundesliga,18:30,buteur,E. Demirović,0.6032,0.6032,0,6.1,perdu
 2026-11-07,16096667,Aris - Panaitolikos,Greek Super League,18:30,home,,0.8419,0.8419,1,6.1,gagne
 2026-11-07,16096667,Aris - Panaitolikos,Greek Super League,18:30,away,,0.6802,0.6802,0,6.1,perdu
 2026-11-07,16096667,Aris - Panaitolikos,Greek Super League,18:30,over15,,0.8119,0.8119,1,6.1,gagne
-2026-11-07,16096667,Aris - Panaitolikos,Greek Super League,18:30,buteur,Fabiano,0.6374,0.6374,0,6.1,pending
+2026-11-07,16096667,Aris - Panaitolikos,Greek Super League,18:30,buteur,Fabiano,0.6374,0.6374,0,6.1,perdu
 2026-11-07,16096709,Nottingham Forest - Manchester City,Premier League,18:30,away,,0.8124,0.8124,0,6.1,gagne
 2026-11-07,16096709,Nottingham Forest - Manchester City,Premier League,18:30,over15,,0.7258,0.7258,0,6.1,gagne
-2026-11-07,16096709,Nottingham Forest - Manchester City,Premier League,18:30,buteur,E. Haaland,0.6017,0.6017,0,6.1,pending
+2026-11-07,16096709,Nottingham Forest - Manchester City,Premier League,18:30,buteur,E. Haaland,0.6017,0.6017,0,6.1,perdu
 2026-11-07,16122909,Osasuna - Athletic Club,Spanish La Liga,18:30,home,,0.6949,0.6949,0,6.1,gagne
 2026-11-07,16122909,Osasuna - Athletic Club,Spanish La Liga,18:30,away,,0.7947,0.7947,0,6.1,gagne
 2026-11-07,16122909,Osasuna - Athletic Club,Spanish La Liga,18:30,over15,,0.7673,0.7673,0,6.1,gagne
@@ -2268,7 +2268,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096664,ADO Den Haag - Sparta Rotterdam,Dutch Eredivisie,18:45,away,,0.8452,0.8452,1,6.1,gagne
 2026-11-07,16096664,ADO Den Haag - Sparta Rotterdam,Dutch Eredivisie,18:45,btts,,0.7205,0.7205,0,6.1,gagne
 2026-11-07,16096664,ADO Den Haag - Sparta Rotterdam,Dutch Eredivisie,18:45,over15,,0.8779,0.8779,0,6.1,gagne
-2026-11-07,16096664,ADO Den Haag - Sparta Rotterdam,Dutch Eredivisie,18:45,buteur,M. Zonneveld,0.6416,0.6416,0,6.1,pending
+2026-11-07,16096664,ADO Den Haag - Sparta Rotterdam,Dutch Eredivisie,18:45,buteur,M. Zonneveld,0.6416,0.6416,0,6.1,perdu
 2026-11-07,16096753,Aberdeen - Hibernian,Scottish Premiership,18:45,home,,0.6838,0.6838,0,6.1,perdu
 2026-11-07,16096753,Aberdeen - Hibernian,Scottish Premiership,18:45,away,,0.6977,0.6977,0,6.1,gagne
 2026-11-07,16096753,Aberdeen - Hibernian,Scottish Premiership,18:45,over15,,0.7216,0.6724,0,6.1,gagne
@@ -2304,7 +2304,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,18639098,GV San José - Real Oruro,Bolivian División Profesional,20:00,away,,0.7953,0.7953,0,6.1,gagne
 2026-11-07,18639098,GV San José - Real Oruro,Bolivian División Profesional,20:00,btts,,0.6698,0.6698,0,6.1,gagne
 2026-11-07,18639098,GV San José - Real Oruro,Bolivian División Profesional,20:00,over15,,0.8611,0.8611,0,6.1,gagne
-2026-11-07,18639098,GV San José - Real Oruro,Bolivian División Profesional,20:00,buteur,Alex Albino Cáceres,0.6517,0.6517,0,6.1,pending
+2026-11-07,18639098,GV San José - Real Oruro,Bolivian División Profesional,20:00,buteur,Alex Albino Cáceres,0.6517,0.6517,0,6.1,perdu
 2026-11-07,18636900,Avaí - São Bernardo,Brazilian Serie B,20:00,away,,0.7342,0.7342,0,6.1,gagne
 2026-11-07,18636900,Avaí - São Bernardo,Brazilian Serie B,20:00,over15,,0.6622,0.6622,0,6.1,gagne
 2026-11-07,18638405,Libertad (Ecuador) - Emelec,Ecuadorian LigaPro,20:00,home,,0.7962,0.7962,0,6.1,perdu
@@ -2335,17 +2335,17 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16096652,RAAL La Louvière - Cercle Brugge,Belgian Pro League,20:45,away,,0.7826,0.7826,1,6.1,gagne
 2026-11-07,16096652,RAAL La Louvière - Cercle Brugge,Belgian Pro League,20:45,btts,,0.6565,0.6400,0,6.1,perdu
 2026-11-07,16096652,RAAL La Louvière - Cercle Brugge,Belgian Pro League,20:45,over15,,0.8721,0.8496,0,6.1,perdu
-2026-11-07,16096652,RAAL La Louvière - Cercle Brugge,Belgian Pro League,20:45,buteur,M. Isah,0.6365,0.6365,0,6.1,pending
+2026-11-07,16096652,RAAL La Louvière - Cercle Brugge,Belgian Pro League,20:45,buteur,M. Isah,0.6365,0.6365,0,6.1,perdu
 2026-11-07,16096644,Roma - Sassuolo,Italian Serie A,20:45,home,,0.9097,0.9097,0,6.1,gagne
 2026-11-07,16096644,Roma - Sassuolo,Italian Serie A,20:45,away,,0.7703,0.7703,0,6.1,perdu
 2026-11-07,16096644,Roma - Sassuolo,Italian Serie A,20:45,btts,,0.6954,0.6954,0,6.1,perdu
 2026-11-07,16096644,Roma - Sassuolo,Italian Serie A,20:45,over15,,0.9030,0.9030,0,6.1,gagne
-2026-11-07,16096644,Roma - Sassuolo,Italian Serie A,20:45,buteur,D. Malen,0.7335,0.7335,1,6.1,pending
+2026-11-07,16096644,Roma - Sassuolo,Italian Serie A,20:45,buteur,D. Malen,0.7335,0.7335,1,6.1,perdu
 2026-11-07,16096665,Excelsior - Go Ahead Eagles,Dutch Eredivisie,21:00,home,,0.8399,0.8399,1,6.1,perdu
 2026-11-07,16096665,Excelsior - Go Ahead Eagles,Dutch Eredivisie,21:00,away,,0.8931,0.8931,0,6.1,gagne
 2026-11-07,16096665,Excelsior - Go Ahead Eagles,Dutch Eredivisie,21:00,btts,,0.7306,0.7306,1,6.1,perdu
 2026-11-07,16096665,Excelsior - Go Ahead Eagles,Dutch Eredivisie,21:00,over15,,0.9109,0.9109,0,6.1,perdu
-2026-11-07,16096665,Excelsior - Go Ahead Eagles,Dutch Eredivisie,21:00,buteur,S. Tengstedt,0.7076,0.7076,1,6.1,pending
+2026-11-07,16096665,Excelsior - Go Ahead Eagles,Dutch Eredivisie,21:00,buteur,S. Tengstedt,0.7076,0.7076,1,6.1,gagne
 2026-11-07,18295233,Peterborough United - Reading,FA Cup,21:00,home,,0.7309,0.7309,0,6.1,perdu
 2026-11-07,18295233,Peterborough United - Reading,FA Cup,21:00,away,,0.7559,0.7559,0,6.1,gagne
 2026-11-07,18295233,Peterborough United - Reading,FA Cup,21:00,over15,,0.7635,0.7635,0,6.1,gagne
@@ -2357,7 +2357,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,16122912,Valencia - Real Madrid,Spanish La Liga,21:00,home,,0.6837,0.6837,0,6.1,perdu
 2026-11-07,16122912,Valencia - Real Madrid,Spanish La Liga,21:00,away,,0.8638,0.8638,0,6.1,gagne
 2026-11-07,16122912,Valencia - Real Madrid,Spanish La Liga,21:00,over15,,0.8014,0.8014,0,6.1,gagne
-2026-11-07,16122912,Valencia - Real Madrid,Spanish La Liga,21:00,buteur,K. Mbappé,0.6659,0.6659,0,6.1,pending
+2026-11-07,16122912,Valencia - Real Madrid,Spanish La Liga,21:00,buteur,K. Mbappé,0.6659,0.6659,0,6.1,gagne
 2026-11-07,16096646,PSG - Troyes,French Ligue 1,21:05,home,,0.8771,0.8771,0,6.1,gagne
 2026-11-07,16096646,PSG - Troyes,French Ligue 1,21:05,over15,,0.8173,0.8173,0,6.1,perdu
 2026-11-07,18635884,Rosario Central - Estudiantes de Río Cuarto,Argentine Liga Profesional,21:30,home,,0.8103,0.8103,0,6.1,gagne
@@ -2369,7 +2369,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-07,18637825,FC Cajamarca - Alianza Atlético,Peruvian Liga 1,21:30,away,,0.8724,0.8724,0,6.1,perdu
 2026-11-07,18637825,FC Cajamarca - Alianza Atlético,Peruvian Liga 1,21:30,btts,,0.6939,0.6939,0,6.1,perdu
 2026-11-07,18637825,FC Cajamarca - Alianza Atlético,Peruvian Liga 1,21:30,over15,,0.8607,0.8607,0,6.1,gagne
-2026-11-07,18637825,FC Cajamarca - Alianza Atlético,Peruvian Liga 1,21:30,buteur,Cristian Penilla,0.6777,0.6777,1,6.1,pending
+2026-11-07,18637825,FC Cajamarca - Alianza Atlético,Peruvian Liga 1,21:30,buteur,Cristian Penilla,0.6777,0.6777,1,6.1,perdu
 2026-11-07,16096681,Sporting CP - Moreirense,Portuguese Primeira Liga,21:30,home,,0.8043,0.8043,0,6.1,gagne
 2026-11-07,16096681,Sporting CP - Moreirense,Portuguese Primeira Liga,21:30,away,,0.7363,0.7363,0,6.1,perdu
 2026-11-07,16096681,Sporting CP - Moreirense,Portuguese Primeira Liga,21:30,over15,,0.8061,0.8061,0,6.1,perdu
@@ -2741,3 +2741,120 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16096683,Partizan - Mačva Šabac,Serbian Super Liga,17:00,home,,0.8050,0.8050,0,6.1,pending
 2026-11-08,16096683,Partizan - Mačva Šabac,Serbian Super Liga,17:00,away,,0.6827,0.6827,0,6.1,pending
 2026-11-08,16096683,Partizan - Mačva Šabac,Serbian Super Liga,17:00,over15,,0.7671,0.7671,0,6.1,pending
+2026-11-08,16096704,Shakhtar Donetsk - Dynamo Kyiv,Ukraine Premier League,17:00,home,,0.7345,0.7345,0,6.1,pending
+2026-11-08,16096704,Shakhtar Donetsk - Dynamo Kyiv,Ukraine Premier League,17:00,away,,0.6554,0.6554,0,6.1,pending
+2026-11-08,16096704,Shakhtar Donetsk - Dynamo Kyiv,Ukraine Premier League,17:00,over15,,0.7061,0.7061,0,6.1,pending
+2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,home,,0.8801,0.8801,0,6.1,pending
+2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,away,,0.8604,0.8604,0,6.1,pending
+2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,btts,,0.7160,0.7012,0,6.1,pending
+2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,over15,,0.9111,0.8954,0,6.1,pending
+2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,buteur,K. Wilkinson,0.6374,0.6374,0,6.1,pending
+2026-11-08,18638406,Macará - Universidad Católica (Quito),Ecuadorian LigaPro,17:15,home,,0.7486,0.7486,0,6.1,pending
+2026-11-08,18638406,Macará - Universidad Católica (Quito),Ecuadorian LigaPro,17:15,over15,,0.6764,0.6781,0,6.1,pending
+2026-11-08,16122923,Angers SCO - Nice,French Ligue 1,17:15,home,,0.7262,0.7262,0,6.1,pending
+2026-11-08,16122923,Angers SCO - Nice,French Ligue 1,17:15,away,,0.7702,0.7702,0,6.1,pending
+2026-11-08,16122923,Angers SCO - Nice,French Ligue 1,17:15,over15,,0.7611,0.7611,0,6.1,pending
+2026-11-08,16122924,Brest - Olympique Lyonnais,French Ligue 1,17:15,home,,0.7920,0.7920,0,6.1,pending
+2026-11-08,16122924,Brest - Olympique Lyonnais,French Ligue 1,17:15,away,,0.7268,0.7268,0,6.1,pending
+2026-11-08,16122924,Brest - Olympique Lyonnais,French Ligue 1,17:15,over15,,0.7972,0.7972,0,6.1,pending
+2026-11-08,16122925,Le Havre - Lorient,French Ligue 1,17:15,home,,0.6636,0.6636,0,6.1,pending
+2026-11-08,16122925,Le Havre - Lorient,French Ligue 1,17:15,away,,0.7721,0.7721,0,6.1,pending
+2026-11-08,16122925,Le Havre - Lorient,French Ligue 1,17:15,over15,,0.7008,0.7008,0,6.1,pending
+2026-11-08,16122926,Le Mans - Monaco,French Ligue 1,17:15,home,,0.6985,0.6985,0,6.1,pending
+2026-11-08,16122926,Le Mans - Monaco,French Ligue 1,17:15,away,,0.7777,0.7777,0,6.1,pending
+2026-11-08,16122926,Le Mans - Monaco,French Ligue 1,17:15,over15,,0.7628,0.7628,0,6.1,pending
+2026-11-08,18640336,Carrarese - Sampdoria,Italian Serie B,17:15,home,,0.7571,0.7571,0,6.1,pending
+2026-11-08,18640336,Carrarese - Sampdoria,Italian Serie B,17:15,away,,0.6707,0.6707,0,6.1,pending
+2026-11-08,18640336,Carrarese - Sampdoria,Italian Serie B,17:15,over15,,0.7393,0.7393,0,6.1,pending
+2026-11-08,18638403,Deportivo Cuenca - Orense,Ecuadorian LigaPro,17:30,home,,0.7137,0.7137,0,6.1,pending
+2026-11-08,18638403,Deportivo Cuenca - Orense,Ecuadorian LigaPro,17:30,away,,0.6675,0.6675,0,6.1,pending
+2026-11-08,18638403,Deportivo Cuenca - Orense,Ecuadorian LigaPro,17:30,over15,,0.6883,0.6921,0,6.1,pending
+2026-11-08,16122915,Freiburg - Union Berlin,German Bundesliga,17:30,home,,0.9007,0.9007,0,6.1,pending
+2026-11-08,16122915,Freiburg - Union Berlin,German Bundesliga,17:30,away,,0.7206,0.7206,0,6.1,pending
+2026-11-08,16122915,Freiburg - Union Berlin,German Bundesliga,17:30,over15,,0.8704,0.8704,0,6.1,pending
+2026-11-08,16122954,OFI - Atromitos,Greek Super League,17:30,home,,0.7842,0.7842,0,6.1,pending
+2026-11-08,16122954,OFI - Atromitos,Greek Super League,17:30,away,,0.6833,0.6833,0,6.1,pending
+2026-11-08,16122954,OFI - Atromitos,Greek Super League,17:30,over15,,0.7713,0.7713,0,6.1,pending
+2026-11-08,16096674,Legia Warszawa - Raków Częstochowa,Polish Ekstraklasa,17:30,home,,0.8153,0.8153,0,6.1,pending
+2026-11-08,16096674,Legia Warszawa - Raków Częstochowa,Polish Ekstraklasa,17:30,away,,0.7123,0.7123,0,6.1,pending
+2026-11-08,16096674,Legia Warszawa - Raków Częstochowa,Polish Ekstraklasa,17:30,over15,,0.8082,0.8082,0,6.1,pending
+2026-11-08,16122983,Manchester United - Aston Villa,Premier League,17:30,home,,0.7684,0.7684,0,6.1,pending
+2026-11-08,16122983,Manchester United - Aston Villa,Premier League,17:30,away,,0.8082,0.8082,0,6.1,pending
+2026-11-08,16122983,Manchester United - Aston Villa,Premier League,17:30,over15,,0.8244,0.8244,0,6.1,pending
+2026-11-08,18641985,Cartaginés - Escorpiones Belén,Costa Rican Primera División,18:00,home,,0.8285,0.8285,0,6.1,pending
+2026-11-08,18641985,Cartaginés - Escorpiones Belén,Costa Rican Primera División,18:00,away,,0.7195,0.7195,0,6.1,pending
+2026-11-08,18641985,Cartaginés - Escorpiones Belén,Costa Rican Primera División,18:00,over15,,0.7934,0.7934,0,6.1,pending
+2026-11-08,16096657,Varaždin - Dinamo Zagreb,Croatia Prva HNL,18:00,home,,0.6963,0.6963,0,6.1,pending
+2026-11-08,16096657,Varaždin - Dinamo Zagreb,Croatia Prva HNL,18:00,away,,0.7206,0.7206,0,6.1,pending
+2026-11-08,16096657,Varaždin - Dinamo Zagreb,Croatia Prva HNL,18:00,over15,,0.7437,0.6985,0,6.1,pending
+2026-11-08,16122938,Viktoria Plzeň - Sparta Prague,Czech First League,18:00,home,,0.6978,0.6978,0,6.1,pending
+2026-11-08,16122938,Viktoria Plzeň - Sparta Prague,Czech First League,18:00,away,,0.7666,0.7666,0,6.1,pending
+2026-11-08,16122938,Viktoria Plzeň - Sparta Prague,Czech First League,18:00,over15,,0.6795,0.7406,0,6.1,pending
+2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,home,,0.8691,0.8691,0,6.1,pending
+2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,away,,0.7974,0.7974,0,6.1,pending
+2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,btts,,0.7350,0.6882,0,6.1,pending
+2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,over15,,0.8910,0.8717,0,6.1,pending
+2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,buteur,F. Etim,0.6732,0.6732,1,6.1,pending
+2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,home,,0.8179,0.8179,0,6.1,pending
+2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,away,,0.8805,0.8805,0,6.1,pending
+2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,btts,,0.6670,0.6965,0,6.1,pending
+2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,over15,,0.8612,0.8808,0,6.1,pending
+2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,buteur,T. Douvikas,0.6192,0.6192,0,6.1,pending
+2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,home,,0.7456,0.7456,0,6.1,pending
+2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,away,,0.7255,0.7255,0,6.1,pending
+2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,over15,,0.7431,0.7431,0,6.1,pending
+2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,home,,0.8742,0.8742,0,6.1,pending
+2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,away,,0.6669,0.6669,0,6.1,pending
+2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,over15,,0.8229,0.8229,0,6.1,pending
+2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,buteur,R. Florucz,0.6802,0.6802,1,6.1,pending
+2026-11-08,16122905,Celta Vigo - Levante,Spanish La Liga,18:30,home,,0.7673,0.7673,0,6.1,pending
+2026-11-08,16122905,Celta Vigo - Levante,Spanish La Liga,18:30,away,,0.6882,0.6882,0,6.1,pending
+2026-11-08,16122905,Celta Vigo - Levante,Spanish La Liga,18:30,over15,,0.7451,0.7451,0,6.1,pending
+2026-11-08,16122913,Villarreal - Getafe,Spanish La Liga,18:30,home,,0.7991,0.7991,0,6.1,pending
+2026-11-08,16122913,Villarreal - Getafe,Spanish La Liga,18:30,away,,0.7636,0.7636,0,6.1,pending
+2026-11-08,16122913,Villarreal - Getafe,Spanish La Liga,18:30,over15,,0.7838,0.7838,0,6.1,pending
+2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,home,,0.6980,0.6980,0,6.1,pending
+2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,away,,0.7388,0.7388,0,6.1,pending
+2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,over15,,0.7008,0.7008,0,6.1,pending
+2026-11-08,18639731,Sporting de Gijón - Real Valladolid,Spanish La Liga 2,18:30,home,,0.7414,0.7414,0,6.1,pending
+2026-11-08,18639731,Sporting de Gijón - Real Valladolid,Spanish La Liga 2,18:30,away,,0.7517,0.7517,0,6.1,pending
+2026-11-08,18639731,Sporting de Gijón - Real Valladolid,Spanish La Liga 2,18:30,over15,,0.7507,0.7507,0,6.1,pending
+2026-11-08,18639322,FC Baltika Kaliningrad - Dynamo Makhachkala,Russian Premier League,18:45,home,,0.8100,0.8100,0,6.1,pending
+2026-11-08,18639322,FC Baltika Kaliningrad - Dynamo Makhachkala,Russian Premier League,18:45,away,,0.6895,0.6895,0,6.1,pending
+2026-11-08,18639322,FC Baltika Kaliningrad - Dynamo Makhachkala,Russian Premier League,18:45,over15,,0.7800,0.7800,0,6.1,pending
+2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,home,,0.7580,0.7580,0,6.1,pending
+2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,away,,0.8285,0.8285,0,6.1,pending
+2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,over15,,0.8215,0.8215,0,6.1,pending
+2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,buteur,Marcelo Correa,0.6177,0.6177,0,6.1,pending
+2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,home,,0.8881,0.8881,0,6.1,pending
+2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,away,,0.7067,0.7067,0,6.1,pending
+2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,over15,,0.8666,0.8666,0,6.1,pending
+2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,buteur,Eduardo Vargas,0.7001,0.7001,1,6.1,pending
+2026-11-08,18782148,Leones Negros - Durango,Liga de Expansión MX,19:00,home,,0.7902,0.7902,0,6.1,pending
+2026-11-08,18782148,Leones Negros - Durango,Liga de Expansión MX,19:00,away,,0.7455,0.7455,0,6.1,pending
+2026-11-08,18782148,Leones Negros - Durango,Liga de Expansión MX,19:00,over15,,0.7704,0.7704,0,6.1,pending
+2026-11-08,18637828,Los Chankas - Alianza Lima,Peruvian Liga 1,19:00,home,,0.6870,0.6870,0,6.1,pending
+2026-11-08,18637828,Los Chankas - Alianza Lima,Peruvian Liga 1,19:00,away,,0.7956,0.7956,0,6.1,pending
+2026-11-08,18637828,Los Chankas - Alianza Lima,Peruvian Liga 1,19:00,over15,,0.7513,0.7513,0,6.1,pending
+2026-11-08,16122964,Vitória Guimarães - Porto,Portuguese Primeira Liga,19:00,home,,0.7055,0.7055,0,6.1,pending
+2026-11-08,16122964,Vitória Guimarães - Porto,Portuguese Primeira Liga,19:00,away,,0.7588,0.7588,0,6.1,pending
+2026-11-08,16122964,Vitória Guimarães - Porto,Portuguese Primeira Liga,19:00,over15,,0.7265,0.7265,0,6.1,pending
+2026-11-08,16096685,Vojvodina - Red Star Belgrade,Serbian Super Liga,19:00,home,,0.7646,0.7646,0,6.1,pending
+2026-11-08,16096685,Vojvodina - Red Star Belgrade,Serbian Super Liga,19:00,away,,0.7692,0.7692,0,6.1,pending
+2026-11-08,16096685,Vojvodina - Red Star Belgrade,Serbian Super Liga,19:00,over15,,0.7844,0.7904,0,6.1,pending
+2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,home,,0.8700,0.8700,0,6.1,pending
+2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,away,,0.6983,0.6983,0,6.1,pending
+2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,over15,,0.8420,0.8420,1,6.1,pending
+2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,buteur,D. Vlahović,0.6744,0.6744,1,6.1,pending
+2026-11-08,16122934,Sint-Truiden - Zulte Waregem,Belgian Pro League,19:15,home,,0.7789,0.7789,0,6.1,pending
+2026-11-08,16122934,Sint-Truiden - Zulte Waregem,Belgian Pro League,19:15,away,,0.7173,0.7173,0,6.1,pending
+2026-11-08,16122934,Sint-Truiden - Zulte Waregem,Belgian Pro League,19:15,over15,,0.7866,0.7866,0,6.1,pending
+2026-11-08,16122961,Fredrikstad - Brann,Norwegian Eliteserien,19:15,home,,0.7446,0.7446,0,6.1,pending
+2026-11-08,16122961,Fredrikstad - Brann,Norwegian Eliteserien,19:15,away,,0.7900,0.7900,0,6.1,pending
+2026-11-08,16122961,Fredrikstad - Brann,Norwegian Eliteserien,19:15,over15,,0.8011,0.8011,0,6.1,pending
+2026-11-08,16122916,Hoffenheim - Schalke 04,German Bundesliga,19:30,home,,0.7948,0.7948,0,6.1,pending
+2026-11-08,16122916,Hoffenheim - Schalke 04,German Bundesliga,19:30,away,,0.6998,0.6998,0,6.1,pending
+2026-11-08,16122916,Hoffenheim - Schalke 04,German Bundesliga,19:30,over15,,0.7807,0.7807,0,6.1,pending
+2026-11-08,18640337,Vicenza - Cremonese,Italian Serie B,19:30,home,,0.7081,0.7081,0,6.1,pending
+2026-11-08,18640337,Vicenza - Cremonese,Italian Serie B,19:30,away,,0.7728,0.7728,0,6.1,pending
+2026-11-08,18640337,Vicenza - Cremonese,Italian Serie B,19:30,over15,,0.7700,0.7700,0,6.1,pending
