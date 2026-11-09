@@ -2721,7 +2721,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122958,Lillestrøm - Aalesund,Norwegian Eliteserien,17:00,home,,0.7761,0.7761,0,6.1,gagne
 2026-11-08,16122958,Lillestrøm - Aalesund,Norwegian Eliteserien,17:00,away,,0.8339,0.8339,0,6.1,gagne
 2026-11-08,16122958,Lillestrøm - Aalesund,Norwegian Eliteserien,17:00,over15,,0.8399,0.8399,0,6.1,gagne
-2026-11-08,16122958,Lillestrøm - Aalesund,Norwegian Eliteserien,17:00,buteur,M. Christensen,0.6275,0.6275,0,6.1,pending
+2026-11-08,16122958,Lillestrøm - Aalesund,Norwegian Eliteserien,17:00,buteur,M. Christensen,0.6275,0.6275,0,6.1,perdu
 2026-11-08,16122959,Sandefjord - Molde,Norwegian Eliteserien,17:00,home,,0.7704,0.7704,1,6.1,gagne
 2026-11-08,16122959,Sandefjord - Molde,Norwegian Eliteserien,17:00,away,,0.8571,0.8571,0,6.1,gagne
 2026-11-08,16122959,Sandefjord - Molde,Norwegian Eliteserien,17:00,over15,,0.8481,0.8481,1,6.1,gagne
@@ -2729,7 +2729,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122960,Viking - KFUM,Norwegian Eliteserien,17:00,away,,0.7715,0.7715,0,6.1,gagne
 2026-11-08,16122960,Viking - KFUM,Norwegian Eliteserien,17:00,btts,,0.6959,0.6959,0,6.1,gagne
 2026-11-08,16122960,Viking - KFUM,Norwegian Eliteserien,17:00,over15,,0.8826,0.8826,0,6.1,gagne
-2026-11-08,16122960,Viking - KFUM,Norwegian Eliteserien,17:00,buteur,P. Christiansen,0.6492,0.6492,0,6.1,pending
+2026-11-08,16122960,Viking - KFUM,Norwegian Eliteserien,17:00,buteur,P. Christiansen,0.6492,0.6492,0,6.1,gagne
 2026-11-08,16122995,Celtic - Kilmarnock,Scottish Premiership,17:00,home,,0.8542,0.8542,0,6.1,gagne
 2026-11-08,16122995,Celtic - Kilmarnock,Scottish Premiership,17:00,away,,0.7504,0.7504,0,6.1,perdu
 2026-11-08,16122995,Celtic - Kilmarnock,Scottish Premiership,17:00,btts,,0.6548,0.6379,0,6.1,perdu
@@ -2737,7 +2737,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16123009,Motherwell Women - Celtic Women,Scottish SWPL 1,17:00,home,,0.6502,0.6502,0,6.1,gagne
 2026-11-08,16123009,Motherwell Women - Celtic Women,Scottish SWPL 1,17:00,away,,0.8791,0.8791,0,6.1,gagne
 2026-11-08,16123009,Motherwell Women - Celtic Women,Scottish SWPL 1,17:00,over15,,0.7854,0.8064,0,6.1,gagne
-2026-11-08,16123009,Motherwell Women - Celtic Women,Scottish SWPL 1,17:00,buteur,M. McAneny,0.6172,0.6172,0,6.1,pending
+2026-11-08,16123009,Motherwell Women - Celtic Women,Scottish SWPL 1,17:00,buteur,M. McAneny,0.6172,0.6172,0,6.1,perdu
 2026-11-08,16096683,Partizan - Mačva Šabac,Serbian Super Liga,17:00,home,,0.8050,0.8050,0,6.1,gagne
 2026-11-08,16096683,Partizan - Mačva Šabac,Serbian Super Liga,17:00,away,,0.6827,0.6827,0,6.1,gagne
 2026-11-08,16096683,Partizan - Mačva Šabac,Serbian Super Liga,17:00,over15,,0.7671,0.7671,0,6.1,gagne
@@ -2748,7 +2748,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,away,,0.8604,0.8604,0,6.1,perdu
 2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,btts,,0.7160,0.7012,0,6.1,perdu
 2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,over15,,0.9111,0.8954,0,6.1,perdu
-2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,buteur,K. Wilkinson,0.6374,0.6374,0,6.1,pending
+2026-11-08,16123011,Rangers Women - Hearts Women,Scottish SWPL 1,17:10,buteur,K. Wilkinson,0.6374,0.6374,0,6.1,gagne
 2026-11-08,18638406,Macará - Universidad Católica (Quito),Ecuadorian LigaPro,17:15,home,,0.7486,0.7486,0,6.1,gagne
 2026-11-08,18638406,Macará - Universidad Católica (Quito),Ecuadorian LigaPro,17:15,over15,,0.6764,0.6781,0,6.1,gagne
 2026-11-08,16122923,Angers SCO - Nice,French Ligue 1,17:15,home,,0.7262,0.7262,0,6.1,perdu
@@ -2794,19 +2794,19 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,away,,0.7974,0.7974,0,6.1,gagne
 2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,btts,,0.7350,0.6882,0,6.1,gagne
 2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,over15,,0.8910,0.8717,0,6.1,gagne
-2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,buteur,F. Etim,0.6732,0.6732,1,6.1,pending
+2026-11-08,16122942,Midtjylland - Sønderjyske,Danish Superligaen,18:00,buteur,F. Etim,0.6732,0.6732,1,6.1,perdu
 2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,home,,0.8179,0.8179,0,6.1,gagne
 2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,away,,0.8805,0.8805,0,6.1,perdu
 2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,btts,,0.6670,0.6965,0,6.1,perdu
 2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,over15,,0.8612,0.8808,0,6.1,gagne
-2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,buteur,T. Douvikas,0.6192,0.6192,0,6.1,pending
+2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,buteur,T. Douvikas,0.6192,0.6192,0,6.1,perdu
 2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,home,,0.7456,0.7456,0,6.1,pending
 2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,away,,0.7255,0.7255,0,6.1,pending
 2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,over15,,0.7431,0.7431,0,6.1,pending
 2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,home,,0.8742,0.8742,0,6.1,gagne
 2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,away,,0.6669,0.6669,0,6.1,perdu
 2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,over15,,0.8229,0.8229,0,6.1,perdu
-2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,buteur,R. Florucz,0.6802,0.6802,1,6.1,pending
+2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,buteur,R. Florucz,0.6802,0.6802,1,6.1,perdu
 2026-11-08,16122905,Celta Vigo - Levante,Spanish La Liga,18:30,home,,0.7673,0.7673,0,6.1,perdu
 2026-11-08,16122905,Celta Vigo - Levante,Spanish La Liga,18:30,away,,0.6882,0.6882,0,6.1,perdu
 2026-11-08,16122905,Celta Vigo - Levante,Spanish La Liga,18:30,over15,,0.7451,0.7451,0,6.1,perdu
@@ -2825,11 +2825,11 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,home,,0.7580,0.7580,0,6.1,gagne
 2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,away,,0.8285,0.8285,0,6.1,gagne
 2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,over15,,0.8215,0.8215,0,6.1,gagne
-2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,buteur,Marcelo Correa,0.6177,0.6177,0,6.1,pending
+2026-11-08,18637128,Ñublense - Colo Colo,Chilean Primera División,19:00,buteur,Marcelo Correa,0.6177,0.6177,0,6.1,perdu
 2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,home,,0.8881,0.8881,0,6.1,gagne
 2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,away,,0.7067,0.7067,0,6.1,gagne
 2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,over15,,0.8666,0.8666,0,6.1,gagne
-2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,buteur,Eduardo Vargas,0.7001,0.7001,1,6.1,pending
+2026-11-08,18637131,Universidad de Chile - Cobresal,Chilean Primera División,19:00,buteur,Eduardo Vargas,0.7001,0.7001,1,6.1,perdu
 2026-11-08,18782148,Leones Negros - Durango,Liga de Expansión MX,19:00,home,,0.7902,0.7902,0,6.1,gagne
 2026-11-08,18782148,Leones Negros - Durango,Liga de Expansión MX,19:00,away,,0.7455,0.7455,0,6.1,gagne
 2026-11-08,18782148,Leones Negros - Durango,Liga de Expansión MX,19:00,over15,,0.7704,0.7704,0,6.1,gagne
@@ -2845,7 +2845,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,home,,0.8700,0.8700,0,6.1,gagne
 2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,away,,0.6983,0.6983,0,6.1,perdu
 2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,over15,,0.8420,0.8420,1,6.1,gagne
-2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,buteur,D. Vlahović,0.6744,0.6744,1,6.1,pending
+2026-11-08,16122978,Beşiktaş - Gençlerbirliği,Turkish Super Lig,19:00,buteur,D. Vlahović,0.6744,0.6744,1,6.1,gagne
 2026-11-08,16122934,Sint-Truiden - Zulte Waregem,Belgian Pro League,19:15,home,,0.7789,0.7789,0,6.1,gagne
 2026-11-08,16122934,Sint-Truiden - Zulte Waregem,Belgian Pro League,19:15,away,,0.7173,0.7173,0,6.1,gagne
 2026-11-08,16122934,Sint-Truiden - Zulte Waregem,Belgian Pro League,19:15,over15,,0.7866,0.7866,0,6.1,gagne
@@ -2873,18 +2873,18 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,away,,0.8420,0.8420,1,6.1,gagne
 2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,btts,,0.6840,0.6840,0,6.1,gagne
 2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,over15,,0.8603,0.8603,0,6.1,gagne
-2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,buteur,T. Chery,0.6375,0.6375,0,6.1,pending
+2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,buteur,T. Chery,0.6375,0.6375,0,6.1,perdu
 2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,home,,0.8119,0.8119,0,6.1,gagne
 2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,away,,0.6896,0.6896,0,6.1,gagne
 2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,over15,,0.7587,0.7603,0,6.1,gagne
-2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,buteur,Jota Silva,0.6010,0.6010,0,6.1,pending
+2026-11-08,16122955,Olympiakos - PAOK,Greek Super League,20:00,buteur,Jota Silva,0.6010,0.6010,0,6.1,perdu
 2026-11-08,16096673,Lech Poznań - Zagłębie Lubin,Polish Ekstraklasa,20:15,home,,0.8375,0.8375,1,6.1,gagne
 2026-11-08,16096673,Lech Poznań - Zagłębie Lubin,Polish Ekstraklasa,20:15,away,,0.7574,0.7574,0,6.1,gagne
 2026-11-08,16096673,Lech Poznań - Zagłębie Lubin,Polish Ekstraklasa,20:15,over15,,0.8271,0.8271,1,6.1,gagne
 2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,home,,0.7343,0.7343,0,6.1,gagne
 2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,away,,0.8640,0.8640,0,6.1,gagne
 2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,over15,,0.8103,0.8103,0,6.1,gagne
-2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,buteur,A. Gouiri,0.6312,0.6312,0,6.1,pending
+2026-11-08,16122927,Lens - Marseille,French Ligue 1,20:45,buteur,A. Gouiri,0.6312,0.6312,0,6.1,gagne
 2026-11-08,16122921,Fiorentina - Juventus,Italian Serie A,20:45,home,,0.7509,0.7509,0,6.1,gagne
 2026-11-08,16122921,Fiorentina - Juventus,Italian Serie A,20:45,away,,0.8018,0.8018,1,6.1,gagne
 2026-11-08,16122921,Fiorentina - Juventus,Italian Serie A,20:45,over15,,0.8337,0.8337,1,6.1,gagne
@@ -2893,7 +2893,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,home,,0.7872,0.7872,0,6.1,gagne
 2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,away,,0.8591,0.8591,0,6.1,gagne
 2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,over15,,0.8828,0.8622,0,6.1,gagne
-2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,buteur,Raphinha,0.6246,0.6246,0,6.1,pending
+2026-11-08,16122904,Atletico Madrid - Barcelona,Spanish La Liga,21:00,buteur,Raphinha,0.6246,0.6246,0,6.1,perdu
 2026-11-08,18637129,Unión La Calera - Huachipato,Chilean Primera División,21:30,home,,0.7180,0.7180,0,6.1,gagne
 2026-11-08,18637129,Unión La Calera - Huachipato,Chilean Primera División,21:30,away,,0.6915,0.6915,0,6.1,perdu
 2026-11-08,18637129,Unión La Calera - Huachipato,Chilean Primera División,21:30,over15,,0.6986,0.6986,0,6.1,perdu
@@ -2925,7 +2925,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,home,,0.6922,0.6922,0,6.1,gagne
 2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,away,,0.8606,0.8606,0,6.1,gagne
 2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,over15,,0.8369,0.8369,1,6.1,gagne
-2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,buteur,V. Pavlidis,0.6617,0.6617,1,6.1,pending
+2026-11-08,16122965,Estrela - Benfica,Portuguese Primeira Liga,21:30,buteur,V. Pavlidis,0.6617,0.6617,1,6.1,gagne
 2026-11-08,16122966,Rio Ave - Sporting Braga,Portuguese Primeira Liga,21:30,home,,0.6970,0.6970,0,6.1,perdu
 2026-11-08,16122966,Rio Ave - Sporting Braga,Portuguese Primeira Liga,21:30,away,,0.7880,0.7880,0,6.1,gagne
 2026-11-08,16122966,Rio Ave - Sporting Braga,Portuguese Primeira Liga,21:30,over15,,0.7504,0.7504,0,6.1,perdu
@@ -2958,13 +2958,13 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,18636905,Ceará - América Mineiro,Brazilian Serie B,23:15,over15,,0.6896,0.6896,0,6.1,perdu
 2026-11-08,18636906,Goiás - Ponte Preta,Brazilian Serie B,23:15,home,,0.8333,0.8333,1,6.1,gagne
 2026-11-08,18636906,Goiás - Ponte Preta,Brazilian Serie B,23:15,over15,,0.7502,0.7502,1,6.1,perdu
-2026-11-08,18636906,Goiás - Ponte Preta,Brazilian Serie B,23:15,buteur,Kadu,0.6267,0.6267,0,6.1,pending
+2026-11-08,18636906,Goiás - Ponte Preta,Brazilian Serie B,23:15,buteur,Kadu,0.6267,0.6267,0,6.1,perdu
 2026-11-08,18635879,Central Córdoba (Santiago del Estero) - Lanús,Argentine Liga Profesional,23:30,away,,0.7956,0.7956,0,6.1,gagne
 2026-11-08,18635879,Central Córdoba (Santiago del Estero) - Lanús,Argentine Liga Profesional,23:30,over15,,0.6898,0.6898,0,6.1,gagne
 2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,home,,0.7737,0.7737,0,6.1,gagne
 2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,away,,0.7092,0.7092,0,6.1,perdu
 2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,over15,,0.7798,0.7410,0,6.1,gagne
-2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,buteur,A. Stepanov,0.6014,0.6014,0,6.1,pending
+2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,buteur,A. Stepanov,0.6014,0.6014,0,6.1,perdu
 2026-11-09,16123092,Ikorodu City - Inter Lagos,Nigerian Premier League,16:00,home,,0.7711,0.7711,1,6.1,pending
 2026-11-09,16123092,Ikorodu City - Inter Lagos,Nigerian Premier League,16:00,over15,,0.7115,0.7115,0,6.1,pending
 2026-11-09,18638407,Mushuc Runa - Delfín,Ecuadorian LigaPro,19:00,home,,0.7483,0.7483,1,6.1,pending
