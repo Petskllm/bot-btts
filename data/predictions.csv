@@ -2813,9 +2813,9 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122913,Villarreal - Getafe,Spanish La Liga,18:30,home,,0.7991,0.7991,0,6.1,gagne
 2026-11-08,16122913,Villarreal - Getafe,Spanish La Liga,18:30,away,,0.7636,0.7636,0,6.1,perdu
 2026-11-08,16122913,Villarreal - Getafe,Spanish La Liga,18:30,over15,,0.7838,0.7838,0,6.1,gagne
-2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,home,,0.6980,0.6980,0,6.1,pending
-2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,away,,0.7388,0.7388,0,6.1,pending
-2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,over15,,0.7008,0.7008,0,6.1,pending
+2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,home,,0.6980,0.6980,0,6.1,gagne
+2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,away,,0.7388,0.7388,0,6.1,perdu
+2026-11-08,18639730,Las Palmas - Eldense,Spanish La Liga 2,18:30,over15,,0.7008,0.7008,0,6.1,gagne
 2026-11-08,18639731,Sporting de Gijón - Real Valladolid,Spanish La Liga 2,18:30,home,,0.7414,0.7414,0,6.1,gagne
 2026-11-08,18639731,Sporting de Gijón - Real Valladolid,Spanish La Liga 2,18:30,away,,0.7517,0.7517,0,6.1,gagne
 2026-11-08,18639731,Sporting de Gijón - Real Valladolid,Spanish La Liga 2,18:30,over15,,0.7507,0.7507,0,6.1,gagne
@@ -2965,33 +2965,91 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,away,,0.7092,0.7092,0,6.1,perdu
 2026-11-08,18638661,Sportivo Trinidense - Sportivo Ameliano,Paraguayan Primera División,23:30,over15,,0.7798,0.7410,0,6.1,gagne
 2026-11-08,16122947,Utrecht - NEC,Dutch Eredivisie,20:00,buteur,A. Stepanov,0.6014,0.6014,0,6.1,perdu
-2026-11-09,16123092,Ikorodu City - Inter Lagos,Nigerian Premier League,16:00,home,,0.7711,0.7711,1,6.1,pending
-2026-11-09,16123092,Ikorodu City - Inter Lagos,Nigerian Premier League,16:00,over15,,0.7115,0.7115,0,6.1,pending
-2026-11-09,18638407,Mushuc Runa - Delfín,Ecuadorian LigaPro,19:00,home,,0.7483,0.7483,1,6.1,pending
-2026-11-09,18638407,Mushuc Runa - Delfín,Ecuadorian LigaPro,19:00,away,,0.7397,0.7397,1,6.1,pending
-2026-11-09,18638407,Mushuc Runa - Delfín,Ecuadorian LigaPro,19:00,over15,,0.6939,0.7575,0,6.1,pending
-2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,home,,0.7976,0.7976,1,6.1,pending
-2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,away,,0.8569,0.8569,0,6.1,pending
-2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,btts,,0.6805,0.6805,0,6.1,pending
-2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,over15,,0.8649,0.8649,0,6.1,pending
-2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,buteur,L. Haren,0.6054,0.6054,1,6.1,pending
+2026-11-09,16123092,Ikorodu City - Inter Lagos,Nigerian Premier League,16:00,home,,0.7711,0.7711,1,6.1,gagne
+2026-11-09,16123092,Ikorodu City - Inter Lagos,Nigerian Premier League,16:00,over15,,0.7115,0.7115,0,6.1,gagne
+2026-11-09,18638407,Mushuc Runa - Delfín,Ecuadorian LigaPro,19:00,home,,0.7483,0.7483,1,6.1,gagne
+2026-11-09,18638407,Mushuc Runa - Delfín,Ecuadorian LigaPro,19:00,away,,0.7397,0.7397,1,6.1,gagne
+2026-11-09,18638407,Mushuc Runa - Delfín,Ecuadorian LigaPro,19:00,over15,,0.6939,0.7575,0,6.1,gagne
+2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,home,,0.7976,0.7976,1,6.1,gagne
+2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,away,,0.8569,0.8569,0,6.1,perdu
+2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,btts,,0.6805,0.6805,0,6.1,perdu
+2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,over15,,0.8649,0.8649,0,6.1,perdu
+2026-11-09,16096668,Kristiansund - Vålerenga,Norwegian Eliteserien,19:00,buteur,L. Haren,0.6054,0.6054,1,6.1,perdu
 2026-11-09,18295235,Plymouth Parkway - Berkhamsted,FA Cup,20:30,home,,0.7356,0.7356,0,6.1,pending
 2026-11-09,18295235,Plymouth Parkway - Berkhamsted,FA Cup,20:30,away,,0.7949,0.7949,1,6.1,pending
 2026-11-09,18295235,Plymouth Parkway - Berkhamsted,FA Cup,20:30,over15,,0.8077,0.8077,1,6.1,pending
-2026-11-09,18639730,Las Palmas - Eldense,Spanish La Liga 2,20:30,home,,0.6980,0.6980,0,6.1,pending
-2026-11-09,18639730,Las Palmas - Eldense,Spanish La Liga 2,20:30,away,,0.7388,0.7388,1,6.1,pending
-2026-11-09,18639730,Las Palmas - Eldense,Spanish La Liga 2,20:30,over15,,0.7008,0.7008,0,6.1,pending
-2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,home,,0.7054,0.7054,0,6.1,pending
-2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,away,,0.8267,0.8267,1,6.1,pending
-2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,over15,,0.7932,0.7932,1,6.1,pending
-2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,buteur,D. Ogunleye,0.6156,0.6156,1,6.1,pending
-2026-11-09,18638660,Sportivo San Lorenzo - Rubio Ñú,Paraguayan Primera División,21:00,home,,0.7627,0.7627,1,6.1,pending
-2026-11-09,18638660,Sportivo San Lorenzo - Rubio Ñú,Paraguayan Primera División,21:00,away,,0.7543,0.7543,1,6.1,pending
-2026-11-09,18638660,Sportivo San Lorenzo - Rubio Ñú,Paraguayan Primera División,21:00,over15,,0.7540,0.7694,0,6.1,pending
-2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,home,,0.8282,0.8282,1,6.1,pending
-2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,away,,0.7737,0.7737,1,6.1,pending
-2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,over15,,0.7517,0.8256,0,6.1,pending
-2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,buteur,Bagner Delgado,0.6205,0.6205,1,6.1,pending
-2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,home,,0.7255,0.7255,0,6.1,pending
-2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,away,,0.7353,0.7353,1,6.1,pending
-2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,over15,,0.7723,0.7321,1,6.1,pending
+2026-11-09,18639730,Las Palmas - Eldense,Spanish La Liga 2,20:30,home,,0.6980,0.6980,0,6.1,gagne
+2026-11-09,18639730,Las Palmas - Eldense,Spanish La Liga 2,20:30,away,,0.7388,0.7388,1,6.1,perdu
+2026-11-09,18639730,Las Palmas - Eldense,Spanish La Liga 2,20:30,over15,,0.7008,0.7008,0,6.1,gagne
+2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,home,,0.7054,0.7054,0,6.1,gagne
+2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,away,,0.8267,0.8267,1,6.1,gagne
+2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,over15,,0.7932,0.7932,1,6.1,gagne
+2026-11-09,8071739,Chelmsford City - Ebbsfleet United,National League N / S,20:45,buteur,D. Ogunleye,0.6156,0.6156,1,6.1,perdu
+2026-11-09,18638660,Sportivo San Lorenzo - Rubio Ñú,Paraguayan Primera División,21:00,home,,0.7627,0.7627,1,6.1,gagne
+2026-11-09,18638660,Sportivo San Lorenzo - Rubio Ñú,Paraguayan Primera División,21:00,away,,0.7543,0.7543,1,6.1,gagne
+2026-11-09,18638660,Sportivo San Lorenzo - Rubio Ñú,Paraguayan Primera División,21:00,over15,,0.7540,0.7694,0,6.1,gagne
+2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,home,,0.8282,0.8282,1,6.1,gagne
+2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,away,,0.7737,0.7737,1,6.1,gagne
+2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,over15,,0.7517,0.8256,0,6.1,gagne
+2026-11-09,18638408,Técnico Universitario - Manta F.C.,Ecuadorian LigaPro,21:30,buteur,Bagner Delgado,0.6205,0.6205,1,6.1,perdu
+2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,home,,0.7255,0.7255,0,6.1,gagne
+2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,away,,0.7353,0.7353,1,6.1,perdu
+2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,over15,,0.7723,0.7321,1,6.1,gagne
+2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,home,,0.7870,0.7870,1,6.1,pending
+2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,away,,0.7248,0.7248,0,6.1,pending
+2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,over15,,0.7818,0.7818,1,6.1,pending
+2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,home,,0.8207,0.8207,1,6.1,pending
+2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,away,,0.7405,0.7405,0,6.1,pending
+2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,over15,,0.8121,0.8121,1,6.1,pending
+2026-11-10,16529233,Stockport County - Tranmere Rovers,English Football League Trophy,20:00,home,,0.8020,0.8020,1,6.1,pending
+2026-11-10,16529233,Stockport County - Tranmere Rovers,English Football League Trophy,20:00,over15,,0.7324,0.7324,1,6.1,pending
+2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,home,,0.7477,0.7477,0,6.1,pending
+2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,away,,0.7178,0.7178,0,6.1,pending
+2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,over15,,0.7647,0.7647,0,6.1,pending
+2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,home,,0.7678,0.7678,1,6.1,pending
+2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,away,,0.6558,0.6558,0,6.1,pending
+2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,over15,,0.7246,0.7246,1,6.1,pending
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,home,,0.8412,0.8412,1,6.1,pending
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,away,,0.7772,0.7772,1,6.1,pending
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,btts,,0.6686,0.6686,0,6.1,pending
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,over15,,0.8613,0.8613,0,6.1,pending
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,buteur,A. Bristrić,0.6366,0.6366,1,6.1,pending
+2026-11-10,16529241,Bristol Rovers - Reading,English Football League Trophy,20:00,home,,0.6502,0.6502,0,6.1,pending
+2026-11-10,16529241,Bristol Rovers - Reading,English Football League Trophy,20:00,away,,0.7758,0.7758,1,6.1,pending
+2026-11-10,16529241,Bristol Rovers - Reading,English Football League Trophy,20:00,over15,,0.7114,0.7114,0,6.1,pending
+2026-11-10,16529243,Plymouth Argyle - Swindon Town,English Football League Trophy,20:00,home,,0.7749,0.7749,1,6.1,pending
+2026-11-10,16529243,Plymouth Argyle - Swindon Town,English Football League Trophy,20:00,over15,,0.7070,0.7070,0,6.1,pending
+2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,home,,0.7721,0.7721,1,6.1,pending
+2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,away,,0.7385,0.7385,0,6.1,pending
+2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,over15,,0.7828,0.7828,1,6.1,pending
+2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,home,,0.7227,0.7227,0,6.1,pending
+2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,away,,0.7416,0.7416,0,6.1,pending
+2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,over15,,0.7325,0.7325,0,6.1,pending
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,home,,0.8557,0.8557,0,6.1,pending
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,away,,0.6798,0.6798,0,6.1,pending
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,over15,,0.8215,0.8215,1,6.1,pending
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,buteur,N. Powell,0.6551,0.6551,1,6.1,pending
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,home,,0.6650,0.6650,0,6.1,pending
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,away,,0.8406,0.8406,1,6.1,pending
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,over15,,0.8180,0.7859,1,6.1,pending
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,buteur,A. Collins,0.6358,0.6358,1,6.1,pending
+2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,home,,0.7901,0.7901,1,6.1,pending
+2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,away,,0.7152,0.7152,0,6.1,pending
+2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,over15,,0.7812,0.7812,1,6.1,pending
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,home,,0.8404,0.8404,1,6.1,pending
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,away,,0.7366,0.7366,0,6.1,pending
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,over15,,0.8264,0.8264,1,6.1,pending
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,buteur,R. Allan,0.6355,0.6355,1,6.1,pending
+2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,home,,0.6807,0.6807,0,6.1,pending
+2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,away,,0.7969,0.7969,1,6.1,pending
+2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,over15,,0.7700,0.7700,1,6.1,pending
+2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,home,,0.6573,0.6573,0,6.1,pending
+2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,away,,0.8151,0.8151,1,6.1,pending
+2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,over15,,0.7635,0.7635,1,6.1,pending
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,home,,0.9312,0.9312,0,6.1,pending
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,away,,0.6518,0.6518,0,6.1,pending
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,over15,,0.8889,0.8889,0,6.1,pending
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,buteur,N. Odokonyero,0.7706,0.7706,1,6.1,pending
+2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,home,,0.6609,0.6609,0,6.1,pending
+2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,away,,0.7691,0.7691,1,6.1,pending
+2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,over15,,0.6769,0.7376,0,6.1,pending
