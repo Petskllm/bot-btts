@@ -1411,9 +1411,9 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-03,17264689,Greenock Morton - Kelty Hearts,Scottish Challenge Cup,20:45,home,,0.7899,0.7899,1,6.1,perdu
 2026-11-03,17264689,Greenock Morton - Kelty Hearts,Scottish Challenge Cup,20:45,away,,0.7624,0.7624,0,6.1,gagne
 2026-11-03,17264689,Greenock Morton - Kelty Hearts,Scottish Challenge Cup,20:45,over15,,0.8083,0.8083,1,6.1,perdu
-2026-11-03,17264690,Hamilton Academical - Raith Rovers,Scottish Challenge Cup,20:45,home,,0.7319,0.7319,0,6.1,pending
-2026-11-03,17264690,Hamilton Academical - Raith Rovers,Scottish Challenge Cup,20:45,away,,0.7028,0.7028,0,6.1,pending
-2026-11-03,17264690,Hamilton Academical - Raith Rovers,Scottish Challenge Cup,20:45,over15,,0.7432,0.7432,0,6.1,pending
+2026-11-03,17264690,Hamilton Academical - Raith Rovers,Scottish Challenge Cup,20:45,home,,0.7319,0.7319,0,6.1,expire
+2026-11-03,17264690,Hamilton Academical - Raith Rovers,Scottish Challenge Cup,20:45,away,,0.7028,0.7028,0,6.1,expire
+2026-11-03,17264690,Hamilton Academical - Raith Rovers,Scottish Challenge Cup,20:45,over15,,0.7432,0.7432,0,6.1,expire
 2026-11-03,17264691,Inverness CT - Montrose,Scottish Challenge Cup,20:45,home,,0.7604,0.7604,0,6.1,gagne
 2026-11-03,17264691,Inverness CT - Montrose,Scottish Challenge Cup,20:45,away,,0.6944,0.6944,0,6.1,perdu
 2026-11-03,17264691,Inverness CT - Montrose,Scottish Challenge Cup,20:45,over15,,0.7639,0.7663,0,6.1,perdu
@@ -2995,61 +2995,110 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,home,,0.7255,0.7255,0,6.1,gagne
 2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,away,,0.7353,0.7353,1,6.1,perdu
 2026-11-09,18638659,Sportivo Luqueño - 2 de Mayo,Paraguayan Primera División,23:30,over15,,0.7723,0.7321,1,6.1,gagne
-2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,home,,0.7870,0.7870,1,6.1,pending
-2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,away,,0.7248,0.7248,0,6.1,pending
-2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,over15,,0.7818,0.7818,1,6.1,pending
-2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,home,,0.8207,0.8207,1,6.1,pending
-2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,away,,0.7405,0.7405,0,6.1,pending
-2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,over15,,0.8121,0.8121,1,6.1,pending
+2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,home,,0.7870,0.7870,1,6.1,gagne
+2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,away,,0.7248,0.7248,0,6.1,gagne
+2026-11-10,16529230,Crewe Alexandra - Wigan Athletic,English Football League Trophy,20:00,over15,,0.7818,0.7818,1,6.1,gagne
+2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,home,,0.8207,0.8207,1,6.1,gagne
+2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,away,,0.7405,0.7405,0,6.1,gagne
+2026-11-10,16529232,Mansfield Town - Chesterfield,English Football League Trophy,20:00,over15,,0.8121,0.8121,1,6.1,gagne
 2026-11-10,16529233,Stockport County - Tranmere Rovers,English Football League Trophy,20:00,home,,0.8020,0.8020,1,6.1,pending
 2026-11-10,16529233,Stockport County - Tranmere Rovers,English Football League Trophy,20:00,over15,,0.7324,0.7324,1,6.1,pending
-2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,home,,0.7477,0.7477,0,6.1,pending
-2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,away,,0.7178,0.7178,0,6.1,pending
-2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,over15,,0.7647,0.7647,0,6.1,pending
-2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,home,,0.7678,0.7678,1,6.1,pending
-2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,away,,0.6558,0.6558,0,6.1,pending
-2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,over15,,0.7246,0.7246,1,6.1,pending
-2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,home,,0.8412,0.8412,1,6.1,pending
-2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,away,,0.7772,0.7772,1,6.1,pending
-2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,btts,,0.6686,0.6686,0,6.1,pending
-2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,over15,,0.8613,0.8613,0,6.1,pending
-2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,buteur,A. Bristrić,0.6366,0.6366,1,6.1,pending
+2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,home,,0.7477,0.7477,0,6.1,perdu
+2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,away,,0.7178,0.7178,0,6.1,gagne
+2026-11-10,16529234,Burton Albion - Notts County,English Football League Trophy,20:00,over15,,0.7647,0.7647,0,6.1,gagne
+2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,home,,0.7678,0.7678,1,6.1,gagne
+2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,away,,0.6558,0.6558,0,6.1,perdu
+2026-11-10,16529238,Oxford United - Cheltenham Town,English Football League Trophy,20:00,over15,,0.7246,0.7246,1,6.1,gagne
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,home,,0.8412,0.8412,1,6.1,gagne
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,away,,0.7772,0.7772,1,6.1,gagne
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,btts,,0.6686,0.6686,0,6.1,gagne
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,over15,,0.8613,0.8613,0,6.1,gagne
+2026-11-10,16529239,Leicester City - Walsall,English Football League Trophy,20:00,buteur,A. Bristrić,0.6366,0.6366,1,6.1,perdu
 2026-11-10,16529241,Bristol Rovers - Reading,English Football League Trophy,20:00,home,,0.6502,0.6502,0,6.1,pending
 2026-11-10,16529241,Bristol Rovers - Reading,English Football League Trophy,20:00,away,,0.7758,0.7758,1,6.1,pending
 2026-11-10,16529241,Bristol Rovers - Reading,English Football League Trophy,20:00,over15,,0.7114,0.7114,0,6.1,pending
-2026-11-10,16529243,Plymouth Argyle - Swindon Town,English Football League Trophy,20:00,home,,0.7749,0.7749,1,6.1,pending
-2026-11-10,16529243,Plymouth Argyle - Swindon Town,English Football League Trophy,20:00,over15,,0.7070,0.7070,0,6.1,pending
-2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,home,,0.7721,0.7721,1,6.1,pending
-2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,away,,0.7385,0.7385,0,6.1,pending
-2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,over15,,0.7828,0.7828,1,6.1,pending
-2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,home,,0.7227,0.7227,0,6.1,pending
-2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,away,,0.7416,0.7416,0,6.1,pending
-2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,over15,,0.7325,0.7325,0,6.1,pending
-2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,home,,0.8557,0.8557,0,6.1,pending
-2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,away,,0.6798,0.6798,0,6.1,pending
-2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,over15,,0.8215,0.8215,1,6.1,pending
-2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,buteur,N. Powell,0.6551,0.6551,1,6.1,pending
-2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,home,,0.6650,0.6650,0,6.1,pending
-2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,away,,0.8406,0.8406,1,6.1,pending
-2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,over15,,0.8180,0.7859,1,6.1,pending
-2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,buteur,A. Collins,0.6358,0.6358,1,6.1,pending
-2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,home,,0.7901,0.7901,1,6.1,pending
-2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,away,,0.7152,0.7152,0,6.1,pending
-2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,over15,,0.7812,0.7812,1,6.1,pending
-2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,home,,0.8404,0.8404,1,6.1,pending
-2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,away,,0.7366,0.7366,0,6.1,pending
-2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,over15,,0.8264,0.8264,1,6.1,pending
-2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,buteur,R. Allan,0.6355,0.6355,1,6.1,pending
-2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,home,,0.6807,0.6807,0,6.1,pending
-2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,away,,0.7969,0.7969,1,6.1,pending
-2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,over15,,0.7700,0.7700,1,6.1,pending
-2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,home,,0.6573,0.6573,0,6.1,pending
-2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,away,,0.8151,0.8151,1,6.1,pending
-2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,over15,,0.7635,0.7635,1,6.1,pending
-2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,home,,0.9312,0.9312,0,6.1,pending
-2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,away,,0.6518,0.6518,0,6.1,pending
-2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,over15,,0.8889,0.8889,0,6.1,pending
-2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,buteur,N. Odokonyero,0.7706,0.7706,1,6.1,pending
-2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,home,,0.6609,0.6609,0,6.1,pending
-2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,away,,0.7691,0.7691,1,6.1,pending
-2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,over15,,0.6769,0.7376,0,6.1,pending
+2026-11-10,16529243,Plymouth Argyle - Swindon Town,English Football League Trophy,20:00,home,,0.7749,0.7749,1,6.1,gagne
+2026-11-10,16529243,Plymouth Argyle - Swindon Town,English Football League Trophy,20:00,over15,,0.7070,0.7070,0,6.1,gagne
+2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,home,,0.7721,0.7721,1,6.1,gagne
+2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,away,,0.7385,0.7385,0,6.1,gagne
+2026-11-10,16529244,Barnet - Leyton Orient,English Football League Trophy,20:00,over15,,0.7828,0.7828,1,6.1,gagne
+2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,home,,0.7227,0.7227,0,6.1,gagne
+2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,away,,0.7416,0.7416,0,6.1,gagne
+2026-11-10,16529245,Northampton Town - Gillingham,English Football League Trophy,20:00,over15,,0.7325,0.7325,0,6.1,gagne
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,home,,0.8557,0.8557,0,6.1,gagne
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,away,,0.6798,0.6798,0,6.1,perdu
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,over15,,0.8215,0.8215,1,6.1,gagne
+2026-11-10,16529231,Bradford City - York City,English Football League Trophy,20:30,buteur,N. Powell,0.6551,0.6551,1,6.1,gagne
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,home,,0.6650,0.6650,0,6.1,gagne
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,away,,0.8406,0.8406,1,6.1,gagne
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,over15,,0.8180,0.7859,1,6.1,gagne
+2026-11-10,16529246,Bromley - Milton Keynes Dons,English Football League Trophy,20:30,buteur,A. Collins,0.6358,0.6358,1,6.1,perdu
+2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,home,,0.7901,0.7901,1,6.1,gagne
+2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,away,,0.7152,0.7152,0,6.1,gagne
+2026-11-10,13597090,Morecambe - Hereford,National League N / S,20:45,over15,,0.7812,0.7812,1,6.1,gagne
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,home,,0.8404,0.8404,1,6.1,gagne
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,away,,0.7366,0.7366,0,6.1,gagne
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,over15,,0.8264,0.8264,1,6.1,gagne
+2026-11-10,13597092,Scarborough Athletic - Marine,National League N / S,20:45,buteur,R. Allan,0.6355,0.6355,1,6.1,perdu
+2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,home,,0.6807,0.6807,0,6.1,gagne
+2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,away,,0.7969,0.7969,1,6.1,gagne
+2026-11-10,16096726,Darlington - Oxford City,National League N / S,20:45,over15,,0.7700,0.7700,1,6.1,gagne
+2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,home,,0.6573,0.6573,0,6.1,perdu
+2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,away,,0.8151,0.8151,1,6.1,gagne
+2026-11-10,13597102,Hemel Hempstead Town - Torquay United,National League N / S,20:45,over15,,0.7635,0.7635,1,6.1,gagne
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,home,,0.9312,0.9312,0,6.1,gagne
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,away,,0.6518,0.6518,0,6.1,perdu
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,over15,,0.8889,0.8889,0,6.1,gagne
+2026-11-10,13597104,Salisbury - Braintree Town,National League N / S,20:45,buteur,N. Odokonyero,0.7706,0.7706,1,6.1,gagne
+2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,home,,0.6609,0.6609,0,6.1,gagne
+2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,away,,0.7691,0.7691,1,6.1,gagne
+2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,over15,,0.6769,0.7376,0,6.1,gagne
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,home,,0.8217,0.8217,1,6.1,pending
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,away,,0.7928,0.7928,0,6.1,pending
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,over15,,0.8168,0.8168,1,6.1,pending
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,buteur,J. Conijnenberg,0.6126,0.6126,0,6.1,pending
+2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,home,,0.7075,0.7075,0,6.1,pending
+2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,away,,0.7063,0.7063,0,6.1,pending
+2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,over15,,0.7274,0.7274,1,6.1,pending
+2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,home,,0.8160,0.8160,1,6.1,pending
+2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,away,,0.7803,0.7803,0,6.1,pending
+2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,over15,,0.8254,0.8254,1,6.1,pending
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,home,,0.7714,0.7714,1,6.1,pending
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,away,,0.8633,0.8633,0,6.1,pending
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,btts,,0.6627,0.6627,0,6.1,pending
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,over15,,0.8412,0.8412,1,6.1,pending
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,buteur,C. Paxton,0.6653,0.6653,1,6.1,pending
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,home,,0.8802,0.8802,0,6.1,pending
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,away,,0.6900,0.6900,0,6.1,pending
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,over15,,0.8324,0.8324,1,6.1,pending
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,buteur,Ornella Vignola,0.6888,0.6888,1,6.1,pending
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,home,,0.7854,0.7854,1,6.1,pending
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,away,,0.8269,0.8269,1,6.1,pending
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,btts,,0.6521,0.6496,0,6.1,pending
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,over15,,0.8739,0.8517,0,6.1,pending
+2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,home,,0.8725,0.8725,0,6.1,pending
+2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,away,,0.8048,0.8048,1,6.1,pending
+2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,btts,,0.7099,0.7099,0,6.1,pending
+2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,over15,,0.8785,0.8785,0,6.1,pending
+2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,buteur,S. Martinez,0.6778,0.6778,1,6.1,pending
+2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,away,,0.8709,0.8709,0,6.1,pending
+2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,over15,,0.7864,0.7864,1,6.1,pending
+2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,buteur,J. Slattery,0.6756,0.6756,1,6.1,pending
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,home,,0.9056,0.9056,0,6.1,pending
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,away,,0.7677,0.7677,1,6.1,pending
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,over15,,0.9029,0.8857,0,6.1,pending
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,buteur,M. Speckmaier,0.6731,0.6731,1,6.1,pending
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,home,,0.8472,0.8472,1,6.1,pending
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,away,,0.6954,0.6954,0,6.1,pending
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,over15,,0.7935,0.7935,1,6.1,pending
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,buteur,O. Tvedten,0.6441,0.6441,0,6.1,pending
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,home,,0.7867,0.7867,0,6.1,pending
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,away,,0.8167,0.8167,1,6.1,pending
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,over15,,0.8319,0.8319,1,6.1,pending
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,buteur,M. Katoto,0.6067,0.6067,0,6.1,pending
+2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,home,,0.7499,0.7499,1,6.1,pending
+2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,away,,0.7481,0.7481,1,6.1,pending
+2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,over15,,0.7473,0.7615,0,6.1,pending
+2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,home,,0.7827,0.7827,1,6.1,pending
+2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,away,,0.7067,0.7067,0,6.1,pending
+2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,over15,,0.7695,0.7695,1,6.1,pending
