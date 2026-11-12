@@ -3053,52 +3053,91 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,home,,0.6609,0.6609,0,6.1,gagne
 2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,away,,0.7691,0.7691,1,6.1,gagne
 2026-11-10,18642524,Cacahuatique - Luis Ángel Firpo,Salvadoran Primera División,22:30,over15,,0.6769,0.7376,0,6.1,gagne
-2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,home,,0.8217,0.8217,1,6.1,pending
-2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,away,,0.7928,0.7928,0,6.1,pending
-2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,over15,,0.8168,0.8168,1,6.1,pending
-2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,buteur,J. Conijnenberg,0.6126,0.6126,0,6.1,pending
-2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,home,,0.7075,0.7075,0,6.1,pending
-2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,away,,0.7063,0.7063,0,6.1,pending
-2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,over15,,0.7274,0.7274,1,6.1,pending
-2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,home,,0.8160,0.8160,1,6.1,pending
-2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,away,,0.7803,0.7803,0,6.1,pending
-2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,over15,,0.8254,0.8254,1,6.1,pending
-2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,home,,0.7714,0.7714,1,6.1,pending
-2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,away,,0.8633,0.8633,0,6.1,pending
-2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,btts,,0.6627,0.6627,0,6.1,pending
-2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,over15,,0.8412,0.8412,1,6.1,pending
-2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,buteur,C. Paxton,0.6653,0.6653,1,6.1,pending
-2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,home,,0.8802,0.8802,0,6.1,pending
-2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,away,,0.6900,0.6900,0,6.1,pending
-2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,over15,,0.8324,0.8324,1,6.1,pending
-2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,buteur,Ornella Vignola,0.6888,0.6888,1,6.1,pending
-2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,home,,0.7854,0.7854,1,6.1,pending
-2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,away,,0.8269,0.8269,1,6.1,pending
-2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,btts,,0.6521,0.6496,0,6.1,pending
-2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,over15,,0.8739,0.8517,0,6.1,pending
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,home,,0.8217,0.8217,1,6.1,gagne
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,away,,0.7928,0.7928,0,6.1,gagne
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,over15,,0.8168,0.8168,1,6.1,gagne
+2026-11-11,16857253,OH Leuven Women - HB Køge Women,UEFA Women's Champions League,18:45,buteur,J. Conijnenberg,0.6126,0.6126,0,6.1,gagne
+2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,home,,0.7075,0.7075,0,6.1,perdu
+2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,away,,0.7063,0.7063,0,6.1,gagne
+2026-11-11,16529229,Sheffield Wednesday - Accrington Stanley,English Football League Trophy,20:00,over15,,0.7274,0.7274,1,6.1,gagne
+2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,home,,0.8160,0.8160,1,6.1,gagne
+2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,away,,0.7803,0.7803,0,6.1,gagne
+2026-11-11,16529236,Barnsley - Oldham Athletic,English Football League Trophy,20:00,over15,,0.8254,0.8254,1,6.1,gagne
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,home,,0.7714,0.7714,1,6.1,gagne
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,away,,0.8633,0.8633,0,6.1,gagne
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,btts,,0.6627,0.6627,0,6.1,gagne
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,over15,,0.8412,0.8412,1,6.1,gagne
+2026-11-11,16857256,Birmingham City Women - Sunderland Women,Women's League Cup,20:00,buteur,C. Paxton,0.6653,0.6653,1,6.1,perdu
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,home,,0.8802,0.8802,0,6.1,gagne
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,away,,0.6900,0.6900,0,6.1,perdu
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,over15,,0.8324,0.8324,1,6.1,gagne
+2026-11-11,16857257,Everton Women - Durham Women,Women's League Cup,20:00,buteur,Ornella Vignola,0.6888,0.6888,1,6.1,perdu
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,home,,0.7854,0.7854,1,6.1,gagne
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,away,,0.8269,0.8269,1,6.1,gagne
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,btts,,0.6521,0.6496,0,6.1,gagne
+2026-11-11,16857258,Liverpool Women - Aston Villa Women,Women's League Cup,20:00,over15,,0.8739,0.8517,0,6.1,gagne
 2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,home,,0.8725,0.8725,0,6.1,pending
 2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,away,,0.8048,0.8048,1,6.1,pending
 2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,btts,,0.7099,0.7099,0,6.1,pending
 2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,over15,,0.8785,0.8785,0,6.1,pending
 2026-11-11,16857259,Tottenham Hotspur Women - Crystal Palace Women,Women's League Cup,20:00,buteur,S. Martinez,0.6778,0.6778,1,6.1,pending
-2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,away,,0.8709,0.8709,0,6.1,pending
-2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,over15,,0.7864,0.7864,1,6.1,pending
-2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,buteur,J. Slattery,0.6756,0.6756,1,6.1,pending
-2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,home,,0.9056,0.9056,0,6.1,pending
-2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,away,,0.7677,0.7677,1,6.1,pending
-2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,over15,,0.9029,0.8857,0,6.1,pending
-2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,buteur,M. Speckmaier,0.6731,0.6731,1,6.1,pending
-2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,home,,0.8472,0.8472,1,6.1,pending
-2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,away,,0.6954,0.6954,0,6.1,pending
-2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,over15,,0.7935,0.7935,1,6.1,pending
-2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,buteur,O. Tvedten,0.6441,0.6441,0,6.1,pending
-2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,home,,0.7867,0.7867,0,6.1,pending
-2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,away,,0.8167,0.8167,1,6.1,pending
-2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,over15,,0.8319,0.8319,1,6.1,pending
-2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,buteur,M. Katoto,0.6067,0.6067,0,6.1,pending
-2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,home,,0.7499,0.7499,1,6.1,pending
-2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,away,,0.7481,0.7481,1,6.1,pending
-2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,over15,,0.7473,0.7615,0,6.1,pending
-2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,home,,0.7827,0.7827,1,6.1,pending
-2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,away,,0.7067,0.7067,0,6.1,pending
-2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,over15,,0.7695,0.7695,1,6.1,pending
+2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,away,,0.8709,0.8709,0,6.1,perdu
+2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,over15,,0.7864,0.7864,1,6.1,perdu
+2026-11-11,16857260,Charlton Athletic Women - Ipswich Town Women,Women's League Cup,20:30,buteur,J. Slattery,0.6756,0.6756,1,6.1,perdu
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,home,,0.9056,0.9056,0,6.1,gagne
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,away,,0.7677,0.7677,1,6.1,gagne
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,over15,,0.9029,0.8857,0,6.1,gagne
+2026-11-11,14598463,Hearts Women - Montrose Women,Scottish SWPL 1,20:45,buteur,M. Speckmaier,0.6731,0.6731,1,6.1,perdu
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,home,,0.8472,0.8472,1,6.1,gagne
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,away,,0.6954,0.6954,0,6.1,gagne
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,over15,,0.7935,0.7935,1,6.1,gagne
+2026-11-11,16857261,Brighton & Hove Albion Women - Watford Women,Women's League Cup,20:45,buteur,O. Tvedten,0.6441,0.6441,0,6.1,perdu
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,home,,0.7867,0.7867,0,6.1,perdu
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,away,,0.8167,0.8167,1,6.1,gagne
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,over15,,0.8319,0.8319,1,6.1,gagne
+2026-11-11,16857255,Juventus Women - OL Lyonnes Women,UEFA Women's Champions League,21:00,buteur,M. Katoto,0.6067,0.6067,0,6.1,gagne
+2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,home,,0.7499,0.7499,1,6.1,gagne
+2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,away,,0.7481,0.7481,1,6.1,perdu
+2026-11-11,18642526,Fuerte San Francisco - Alianza FC,Salvadoran Primera División,22:30,over15,,0.7473,0.7615,0,6.1,perdu
+2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,home,,0.7827,0.7827,1,6.1,gagne
+2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,away,,0.7067,0.7067,0,6.1,gagne
+2026-11-11,18636913,Londrina - Náutico,Brazilian Serie B,23:00,over15,,0.7695,0.7695,1,6.1,gagne
+2026-11-12,16857252,Barcelona Women - Arsenal Women,UEFA Women's Champions League,18:45,home,,0.9236,0.9236,0,6.1,pending
+2026-11-12,16857252,Barcelona Women - Arsenal Women,UEFA Women's Champions League,18:45,away,,0.7242,0.7242,1,6.1,pending
+2026-11-12,16857252,Barcelona Women - Arsenal Women,UEFA Women's Champions League,18:45,over15,,0.8857,0.8857,0,6.1,pending
+2026-11-12,16939581,Cayman Islands - Guyana,Concacaf Nations League,20:00,away,,0.8795,0.8795,0,6.1,pending
+2026-11-12,16939581,Cayman Islands - Guyana,Concacaf Nations League,20:00,over15,,0.7685,0.7685,1,6.1,pending
+2026-11-12,16939554,Italy - France,UEFA Nations League,20:45,home,,0.7224,0.7224,0,6.1,pending
+2026-11-12,16939554,Italy - France,UEFA Nations League,20:45,away,,0.7584,0.7584,1,6.1,pending
+2026-11-12,16939554,Italy - France,UEFA Nations League,20:45,over15,,0.7412,0.7412,1,6.1,pending
+2026-11-12,16939555,Czech Republic - Spain,UEFA Nations League,20:45,away,,0.8497,0.8497,1,6.1,pending
+2026-11-12,16939555,Czech Republic - Spain,UEFA Nations League,20:45,over15,,0.7976,0.7976,1,6.1,pending
+2026-11-12,16939555,Czech Republic - Spain,UEFA Nations League,20:45,buteur,Lamine Yamal,0.6473,0.6473,1,6.1,pending
+2026-11-12,16939556,England - Croatia,UEFA Nations League,20:45,home,,0.8883,0.8883,0,6.1,pending
+2026-11-12,16939556,England - Croatia,UEFA Nations League,20:45,away,,0.7197,0.7197,0,6.1,pending
+2026-11-12,16939556,England - Croatia,UEFA Nations League,20:45,over15,,0.8578,0.8578,0,6.1,pending
+2026-11-12,16939556,England - Croatia,UEFA Nations League,20:45,buteur,H. Kane,0.6975,0.6975,1,6.1,pending
+2026-11-12,16939557,Albania - Finland,UEFA Nations League,20:45,home,,0.7146,0.7146,0,6.1,pending
+2026-11-12,16939557,Albania - Finland,UEFA Nations League,20:45,away,,0.7401,0.7401,1,6.1,pending
+2026-11-12,16939557,Albania - Finland,UEFA Nations League,20:45,over15,,0.7235,0.7235,1,6.1,pending
+2026-11-12,16939558,San Marino - Belarus,UEFA Nations League,20:45,away,,0.8455,0.8455,1,6.1,pending
+2026-11-12,16939558,San Marino - Belarus,UEFA Nations League,20:45,over15,,0.7444,0.7444,1,6.1,pending
+2026-11-12,16939558,San Marino - Belarus,UEFA Nations League,20:45,buteur,A. Kontsevoy,0.6070,0.6070,1,6.1,pending
+2026-11-12,16939560,Montenegro - Latvia,UEFA Nations League,20:45,home,,0.7500,0.7500,1,6.1,pending
+2026-11-12,16939560,Montenegro - Latvia,UEFA Nations League,20:45,over15,,0.6972,0.6972,0,6.1,pending
+2026-11-12,18642528,Águila - CD Municipal Limeño,Salvadoran Primera División,22:30,home,,0.8679,0.8679,0,6.1,pending
+2026-11-12,18642528,Águila - CD Municipal Limeño,Salvadoran Primera División,22:30,away,,0.7576,0.7576,1,6.1,pending
+2026-11-12,18642528,Águila - CD Municipal Limeño,Salvadoran Primera División,22:30,over15,,0.7916,0.8725,1,6.1,pending
+2026-11-12,18642528,Águila - CD Municipal Limeño,Salvadoran Primera División,22:30,buteur,Federico Andrada,0.6715,0.6715,1,6.1,pending
+2026-11-12,18642529,Atletico Balboa - INCA-Aruba,Salvadoran Primera División,22:30,home,,0.7563,0.7563,1,6.1,pending
+2026-11-12,18642529,Atletico Balboa - INCA-Aruba,Salvadoran Primera División,22:30,away,,0.6847,0.6847,0,6.1,pending
+2026-11-12,18642529,Atletico Balboa - INCA-Aruba,Salvadoran Primera División,22:30,over15,,0.7274,0.7274,1,6.1,pending
+2026-11-12,18636914,Ponte Preta - Operário PR,Brazilian Serie B,23:00,home,,0.7028,0.7028,0,6.1,pending
+2026-11-12,18636914,Ponte Preta - Operário PR,Brazilian Serie B,23:00,away,,0.7715,0.7715,1,6.1,pending
+2026-11-12,18636914,Ponte Preta - Operário PR,Brazilian Serie B,23:00,over15,,0.7583,0.7583,1,6.1,pending
+2026-11-12,18642253,Aurora FC - Deportivo Mixco,Guatemalan Liga Nacional,23:00,home,,0.7697,0.7697,1,6.1,pending
+2026-11-12,18642253,Aurora FC - Deportivo Mixco,Guatemalan Liga Nacional,23:00,away,,0.7442,0.7442,0,6.1,pending
+2026-11-12,18642253,Aurora FC - Deportivo Mixco,Guatemalan Liga Nacional,23:00,over15,,0.8116,0.7784,1,6.1,pending
+2026-11-12,18638902,Academia Puerto Cabello - Monagas SC,Venezuelan Primera División,23:00,home,,0.7500,0.7500,0,6.1,pending
+2026-11-12,18638902,Academia Puerto Cabello - Monagas SC,Venezuelan Primera División,23:00,away,,0.7613,0.7613,1,6.1,pending
+2026-11-12,18638902,Academia Puerto Cabello - Monagas SC,Venezuelan Primera División,23:00,over15,,0.8020,0.7671,1,6.1,pending
