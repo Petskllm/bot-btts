@@ -3141,3 +3141,75 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-12,18638902,Academia Puerto Cabello - Monagas SC,Venezuelan Primera División,23:00,home,,0.7500,0.7500,0,6.1,pending
 2026-11-12,18638902,Academia Puerto Cabello - Monagas SC,Venezuelan Primera División,23:00,away,,0.7613,0.7613,1,6.1,pending
 2026-11-12,18638902,Academia Puerto Cabello - Monagas SC,Venezuelan Primera División,23:00,over15,,0.8020,0.7671,1,6.1,pending
+2026-11-13,17265771,Shooting Stars - Bendel Insurance,Nigerian Premier League,18:00,home,,0.7774,0.7774,1,6.1,pending
+2026-11-13,17265771,Shooting Stars - Bendel Insurance,Nigerian Premier League,18:00,away,,0.6677,0.6677,0,6.1,pending
+2026-11-13,17265771,Shooting Stars - Bendel Insurance,Nigerian Premier League,18:00,over15,,0.7231,0.7231,1,6.1,pending
+2026-11-13,17096434,Moldova - Kazakhstan,UEFA Nations League,18:00,home,,0.7225,0.7225,0,6.1,pending
+2026-11-13,17096434,Moldova - Kazakhstan,UEFA Nations League,18:00,away,,0.7878,0.7878,1,6.1,pending
+2026-11-13,17096434,Moldova - Kazakhstan,UEFA Nations League,18:00,over15,,0.8053,0.8053,1,6.1,pending
+2026-11-13,17096476,Puerto Rico - Dominica,Concacaf Nations League,20:00,home,,0.8633,0.8633,0,6.1,pending
+2026-11-13,17096476,Puerto Rico - Dominica,Concacaf Nations League,20:00,over15,,0.7560,0.7560,0,6.1,pending
+2026-11-13,18639733,Leganés - Burgos,Spanish La Liga 2,20:30,home,,0.6960,0.6960,0,6.1,pending
+2026-11-13,18639733,Leganés - Burgos,Spanish La Liga 2,20:30,away,,0.8211,0.8211,1,6.1,pending
+2026-11-13,18639733,Leganés - Burgos,Spanish La Liga 2,20:30,over15,,0.7742,0.7742,1,6.1,pending
+2026-11-13,18877797,Montevideo City Torque - Racing (Montevideo),Uruguayan Primera División,20:30,home,,0.7676,0.7676,0,6.1,pending
+2026-11-13,18877797,Montevideo City Torque - Racing (Montevideo),Uruguayan Primera División,20:30,away,,0.6860,0.6860,0,6.1,pending
+2026-11-13,18877797,Montevideo City Torque - Racing (Montevideo),Uruguayan Primera División,20:30,over15,,0.7398,0.7398,0,6.1,pending
+2026-11-13,17096470,Ballymena United - Linfield,Northern Irish Premiership,20:45,home,,0.6814,0.6814,0,6.1,pending
+2026-11-13,17096470,Ballymena United - Linfield,Northern Irish Premiership,20:45,away,,0.7683,0.7683,0,6.1,pending
+2026-11-13,17096470,Ballymena United - Linfield,Northern Irish Premiership,20:45,over15,,0.7285,0.7512,0,6.1,pending
+2026-11-13,17096471,Coleraine - Portadown,Northern Irish Premiership,20:45,home,,0.8038,0.8038,1,6.1,pending
+2026-11-13,17096471,Coleraine - Portadown,Northern Irish Premiership,20:45,away,,0.6875,0.6875,0,6.1,pending
+2026-11-13,17096471,Coleraine - Portadown,Northern Irish Premiership,20:45,over15,,0.8000,0.7647,1,6.1,pending
+2026-11-13,17096472,Crusaders - Carrick Rangers,Northern Irish Premiership,20:45,home,,0.8033,0.8033,1,6.1,pending
+2026-11-13,17096472,Crusaders - Carrick Rangers,Northern Irish Premiership,20:45,away,,0.8295,0.8295,1,6.1,pending
+2026-11-13,17096472,Crusaders - Carrick Rangers,Northern Irish Premiership,20:45,btts,,0.6512,0.6249,0,6.1,pending
+2026-11-13,17096472,Crusaders - Carrick Rangers,Northern Irish Premiership,20:45,over15,,0.8711,0.8484,0,6.1,pending
+2026-11-13,17096472,Crusaders - Carrick Rangers,Northern Irish Premiership,20:45,buteur,D. Gibson,0.6142,0.6142,1,6.1,pending
+2026-11-13,17096473,Glentoran - Bangor,Northern Irish Premiership,20:45,home,,0.7277,0.7277,0,6.1,pending
+2026-11-13,17096473,Glentoran - Bangor,Northern Irish Premiership,20:45,over15,,0.6594,0.6594,0,6.1,pending
+2026-11-13,17096474,Larne - Dungannon Swifts,Northern Irish Premiership,20:45,home,,0.7736,0.7736,1,6.1,pending
+2026-11-13,17096474,Larne - Dungannon Swifts,Northern Irish Premiership,20:45,away,,0.6970,0.6970,0,6.1,pending
+2026-11-13,17096474,Larne - Dungannon Swifts,Northern Irish Premiership,20:45,over15,,0.7931,0.7566,1,6.1,pending
+2026-11-13,17096475,Limavady United - Cliftonville,Northern Irish Premiership,20:45,home,,0.7272,0.7272,0,6.1,pending
+2026-11-13,17096475,Limavady United - Cliftonville,Northern Irish Premiership,20:45,away,,0.8299,0.8299,1,6.1,pending
+2026-11-13,17096475,Limavady United - Cliftonville,Northern Irish Premiership,20:45,over15,,0.7975,0.7975,1,6.1,pending
+2026-11-13,18886321,Carrick Rangers - Crusaders,Northern Irish Premiership,20:45,home,,0.8252,0.8252,1,6.1,pending
+2026-11-13,18886321,Carrick Rangers - Crusaders,Northern Irish Premiership,20:45,away,,0.7360,0.7360,0,6.1,pending
+2026-11-13,18886321,Carrick Rangers - Crusaders,Northern Irish Premiership,20:45,over15,,0.8290,0.7988,1,6.1,pending
+2026-11-13,18886321,Carrick Rangers - Crusaders,Northern Irish Premiership,20:45,buteur,D. Gibson,0.6091,0.6091,1,6.1,pending
+2026-11-13,17096430,Netherlands - Greece,UEFA Nations League,20:45,home,,0.7596,0.7596,0,6.1,pending
+2026-11-13,17096430,Netherlands - Greece,UEFA Nations League,20:45,away,,0.6981,0.6981,0,6.1,pending
+2026-11-13,17096430,Netherlands - Greece,UEFA Nations League,20:45,over15,,0.7276,0.7276,0,6.1,pending
+2026-11-13,17096431,Serbia - Germany,UEFA Nations League,20:45,home,,0.6604,0.6604,0,6.1,pending
+2026-11-13,17096431,Serbia - Germany,UEFA Nations League,20:45,away,,0.8216,0.8216,1,6.1,pending
+2026-11-13,17096431,Serbia - Germany,UEFA Nations League,20:45,over15,,0.7844,0.7844,1,6.1,pending
+2026-11-13,17096432,Scotland - North Macedonia,UEFA Nations League,20:45,home,,0.7772,0.7772,1,6.1,pending
+2026-11-13,17096432,Scotland - North Macedonia,UEFA Nations League,20:45,over15,,0.7137,0.7137,0,6.1,pending
+2026-11-13,17096433,Slovenia - Switzerland,UEFA Nations League,20:45,away,,0.7786,0.7786,1,6.1,pending
+2026-11-13,17096433,Slovenia - Switzerland,UEFA Nations League,20:45,over15,,0.7223,0.7321,1,6.1,pending
+2026-11-13,17096436,Bulgaria - Iceland,UEFA Nations League,20:45,home,,0.6894,0.6894,0,6.1,pending
+2026-11-13,17096436,Bulgaria - Iceland,UEFA Nations League,20:45,away,,0.7010,0.7010,0,6.1,pending
+2026-11-13,17096436,Bulgaria - Iceland,UEFA Nations League,20:45,over15,,0.6796,0.6796,0,6.1,pending
+2026-11-13,17096438,Andorra - Gibraltar,UEFA Nations League,20:45,away,,0.7383,0.7383,0,6.1,pending
+2026-11-13,17096439,Liechtenstein - Azerbaijan,UEFA Nations League,20:45,away,,0.7770,0.7770,1,6.1,pending
+2026-11-13,17096439,Liechtenstein - Azerbaijan,UEFA Nations League,20:45,over15,,0.6595,0.6595,0,6.1,pending
+2026-11-13,18295985,Caernarfon Town - Holywell,Welsh Cup,20:45,home,,0.9222,0.9222,0,6.1,pending
+2026-11-13,18295985,Caernarfon Town - Holywell,Welsh Cup,20:45,away,,0.6734,0.6734,0,6.1,pending
+2026-11-13,18295985,Caernarfon Town - Holywell,Welsh Cup,20:45,over15,,0.8687,0.8687,0,6.1,pending
+2026-11-13,18295997,The New Saints - Briton Ferry Llansawel,Welsh Cup,20:45,home,,0.9257,0.9257,0,6.1,pending
+2026-11-13,18295997,The New Saints - Briton Ferry Llansawel,Welsh Cup,20:45,over15,,0.8262,0.8544,1,6.1,pending
+2026-11-13,16857263,Morocco - Niger,CAF Africa Cup of Nations Qualifiers,21:00,home,,0.8057,0.8057,1,6.1,pending
+2026-11-13,16857263,Morocco - Niger,CAF Africa Cup of Nations Qualifiers,21:00,over15,,0.7321,0.7321,1,6.1,pending
+2026-11-13,17096478,Grenada - St. Kitts and Nevis,Concacaf Nations League,21:00,home,,0.7329,0.7329,0,6.1,pending
+2026-11-13,17096478,Grenada - St. Kitts and Nevis,Concacaf Nations League,21:00,away,,0.8900,0.8900,0,6.1,pending
+2026-11-13,17096478,Grenada - St. Kitts and Nevis,Concacaf Nations League,21:00,over15,,0.8764,0.8764,0,6.1,pending
+2026-11-13,17096469,Strathspey Thistle - Deveronvale,Highland / Lowland,21:00,home,,0.8228,0.8228,1,6.1,pending
+2026-11-13,17096469,Strathspey Thistle - Deveronvale,Highland / Lowland,21:00,away,,0.8152,0.8152,1,6.1,pending
+2026-11-13,17096469,Strathspey Thistle - Deveronvale,Highland / Lowland,21:00,btts,,0.6567,0.6567,0,6.1,pending
+2026-11-13,17096469,Strathspey Thistle - Deveronvale,Highland / Lowland,21:00,over15,,0.8563,0.8563,0,6.1,pending
+2026-11-13,17096469,Strathspey Thistle - Deveronvale,Highland / Lowland,21:00,buteur,R. Thompson,0.6140,0.6140,1,6.1,pending
+2026-11-13,18886319,Gretna 2008 - Dalbeattie Star,Highland / Lowland,21:00,home,,0.8809,0.8809,0,6.1,pending
+2026-11-13,18886319,Gretna 2008 - Dalbeattie Star,Highland / Lowland,21:00,away,,0.7635,0.7635,0,6.1,pending
+2026-11-13,18886319,Gretna 2008 - Dalbeattie Star,Highland / Lowland,21:00,over15,,0.8811,0.8811,0,6.1,pending
+2026-11-13,18886319,Gretna 2008 - Dalbeattie Star,Highland / Lowland,21:00,buteur,I. Anderson,0.6897,0.6897,1,6.1,pending
