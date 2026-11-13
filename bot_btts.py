@@ -1,10 +1,11 @@
 import csv
+import json
 import math
-import unicodedata
 import os
 import re
 import time
-from collections import Counter, defaultdict
+import unicodedata
+from collections import Counter
 from datetime import datetime, timezone
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
@@ -12,23 +13,21 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.1
+# BOT FOOTBALL — SPORTAPI — VERSION 6.2
 #
 # Marchés :
-# - équipe +0,5 but (72-85 %)
+# - Domicile +0,5 but (72-85 %)
+# - Extérieur +0,5 but (72-85 %)
 # - BTTS Oui (72-85 %)
 # - Plus de 1,5 but (72-85 %)
-# - Buteur (60 % minimum) : EXPERIMENTAL, affiche a part
+# - Équipe : plus de 2,5 tirs cadrés (70 % minimum)
 #
-# Nouveautes 6.1 (par rapport a la 6.0) :
-# - Cote minimale affichee pour chaque pick (1 / proba + marge)
-# - Journal data/predictions.csv complet (tous les marches >= 65 %,
-#   publies ou non) + sauvegarde automatique par le workflow
-# - Verification des resultats : 1 requete par jour (fixtures/date)
-# - Buteur : nom compare sans accents / initiales, jamais "perdu"
-#   par defaut si les evenements sont indisponibles
-# - H2H : trie par date, appele seulement pres du filtre
-# - player_shots supprime (requetes inutiles)
+# Nouveautés 6.2 :
+# - Buteurs supprimés
+# - H2H supprimé
+# - Ajustement domicile/extérieur basé sur le journal v6.1
+# - Nouveau marché : plus de 2,5 tirs cadrés par équipe
+# - Cache disque des statistiques de tirs cadrés
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -40,15 +39,19 @@ PARIS = ZoneInfo("Europe/Paris")
 
 MIN_PROB = 0.72
 MAX_PROB = 0.85
-MIN_SCORER_PROB = 0.60
-MAX_SCORERS_SHOWN = 5
+
+# Tirs cadrés : ligne unique 2,5, filtre 70 %
+SOT_LINE = 2.5
+SOT_MIN_PROB = 0.70
+SOT_MAX_PROB = 0.92
+SOT_HISTORY_N = 5
+SOT_CACHE_FILE = "data/sot_stats_cache.json"
 
 ODDS_MARGIN = 1.03
 LOG_MIN_PROB = 0.65
 
 MAX_MATCHES = 15
-MAX_MARKETS = 2
-MAX_SCORERS_PER_MATCH = 1
+MAX_MARKETS = 3
 
 MAX_PER_LEAGUE = 12
 PRIORITY_LEAGUE_IDS = set()
@@ -75,19 +78,16 @@ MAX_HISTORY_DAYS = 240
 MAX_STALE_DAYS = 60
 DECAY = 0.90
 
-H2H_N = 5
-H2H_WEIGHT = 0.15
-MIN_H2H = 3
-H2H_WINDOW = 0.05
-
-TOP_SCORERS_N = 30
-SCORER_MIN_GOALS = 2
+# Ajustements mesurés sur le journal v6.1
+HOME_ADJUST = 0.02
+AWAY_ADJUST = -0.02
+HOME_PROB_CAP = 0.88
+AWAY_PROB_FLOOR = 0.60
 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 5
-MAX_EVENT_CALLS = 20
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.1"
+MODEL_VERSION = "6.2"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -105,14 +105,13 @@ FIELDS = [
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.1",
+    "User-Agent": "football-history-bot/6.2",
 })
 
 CACHE = {}
 TEAM_CACHE = {}
 STANDINGS_CACHE = {}
-TOP_SCORERS_CACHE = {}
-H2H_CACHE = {}
+SOT_CACHE = {}
 
 ERRORS = []
 REASONS = Counter()
@@ -289,6 +288,34 @@ def get_list(payload, key="data"):
     return value if isinstance(value, list) else []
 
 
+# ---------------- CACHE TIRS CADRÉS ----------------
+
+def load_sot_cache():
+    if SOT_CACHE:
+        return SOT_CACHE
+
+    if os.path.exists(SOT_CACHE_FILE):
+        try:
+            with open(SOT_CACHE_FILE, "r", encoding="utf-8") as file:
+                data = json.load(file)
+            if isinstance(data, dict):
+                SOT_CACHE.update(data)
+        except (OSError, ValueError):
+            pass
+
+    return SOT_CACHE
+
+
+def save_sot_cache():
+    os.makedirs(os.path.dirname(SOT_CACHE_FILE), exist_ok=True)
+
+    temp = SOT_CACHE_FILE + ".tmp"
+    with open(temp, "w", encoding="utf-8") as file:
+        json.dump(SOT_CACHE, file, ensure_ascii=False)
+
+    os.replace(temp, SOT_CACHE_FILE)
+
+
 # ---------------- OUTILS ----------------
 
 def number(value):
@@ -347,7 +374,6 @@ def league_label(fixture):
 
 
 def prioritise(fixtures):
-    counts = Counter(str(f.get("league_id")) for f in fixtures)
     ordered = sorted(
         fixtures,
         key=lambda f: (
@@ -552,50 +578,6 @@ def team_history(team_id, league_id, today):
     return history
 
 
-# ---------------- H2H ----------------
-
-def h2h_stats(home_id, away_id):
-    key = f"{home_id}-{away_id}"
-    if key in H2H_CACHE:
-        return H2H_CACHE[key]
-
-    payload = api_get(f"fixtures/h2h/{home_id}/{away_id}")
-    matches = [m for m in get_list(payload) if isinstance(m, dict)]
-    matches.sort(
-        key=lambda m: date_of(m) or datetime.min.date(),
-        reverse=True,
-    )
-
-    btts = []
-    over15 = []
-
-    for match in matches:
-        if str(match.get("status") or "").upper() != "FT":
-            continue
-
-        home_score = number(match.get("home_score"))
-        away_score = number(match.get("away_score"))
-        if home_score is None or away_score is None:
-            continue
-
-        btts.append(float(home_score > 0 and away_score > 0))
-        over15.append(float(home_score + away_score >= 2))
-
-        if len(btts) >= H2H_N:
-            break
-
-    result = None
-    if len(btts) >= MIN_H2H:
-        result = {
-            "btts": sum(btts) / len(btts),
-            "over15": sum(over15) / len(over15),
-            "n": len(btts),
-        }
-
-    H2H_CACHE[key] = result
-    return result
-
-
 # ---------------- MODELE EQUIPE ----------------
 
 def weighted_stats(matches):
@@ -656,12 +638,18 @@ def profile(history, venue, today):
     return result
 
 
-def estimate(home, away, h2h):
+def estimate(home, away):
     lambda_home = (home["gf"] + away["ga"]) / 2
     lambda_away = (away["gf"] + home["ga"]) / 2
 
     p_home = 1 - math.exp(-lambda_home)
     p_away = 1 - math.exp(-lambda_away)
+
+    # Ajustements v6.2 :
+    # domicile marque sous-estime, extérieur marque surestime.
+    p_home = min(p_home + HOME_ADJUST, HOME_PROB_CAP)
+    p_away = max(p_away + AWAY_ADJUST, AWAY_PROB_FLOOR)
+
     total = lambda_home + lambda_away
 
     btts = (
@@ -674,10 +662,6 @@ def estimate(home, away, h2h):
         + 0.25 * (home["over15"] + away["over15"]) / 2
     )
 
-    if h2h:
-        btts = (1 - H2H_WEIGHT) * btts + H2H_WEIGHT * h2h["btts"]
-        over15 = (1 - H2H_WEIGHT) * over15 + H2H_WEIGHT * h2h["over15"]
-
     return lambda_home, lambda_away, {
         "home": p_home,
         "away": p_away,
@@ -686,80 +670,152 @@ def estimate(home, away, h2h):
     }
 
 
-# ---------------- BUTEURS ----------------
+# ---------------- TIRS CADRÉS ----------------
 
-def top_scorers(league_id):
-    key = str(league_id)
-    if key in TOP_SCORERS_CACHE:
-        return TOP_SCORERS_CACHE[key]
+def match_sot(fixture_id):
+    """Renvoie (tirs cadrés domicile, tirs cadrés extérieur)."""
+    cache = load_sot_cache()
+    key = str(fixture_id)
 
-    payload = api_get(f"leagues/{league_id}/topscorers?limit={TOP_SCORERS_N}")
-    rows = get_list(payload)
+    if key in cache:
+        value = cache[key]
+        if isinstance(value, list) and len(value) == 2:
+            return tuple(value)
 
-    by_team = defaultdict(list)
-    for row in rows:
-        if not isinstance(row, dict):
+    payload = api_get(f"fixtures/{fixture_id}/stats")
+    if not isinstance(payload, dict):
+        return None
+
+    stats = payload.get("data")
+    if not isinstance(stats, dict):
+        stats = payload
+
+    home = None
+    away = None
+
+    for side in ("home", "away"):
+        block = stats.get(side)
+        if not isinstance(block, dict):
             continue
 
-        goals = number(row.get("goals"))
-        team_id = row.get("team_id")
-        player_name = row.get("player_name")
-
-        if goals is None or goals < SCORER_MIN_GOALS:
-            continue
-        if not team_id or not player_name:
+        value = number(block.get("shots_on_target"))
+        if value is None:
             continue
 
-        by_team[str(team_id)].append({
-            "name": str(player_name),
-            "team_id": str(team_id),
-            "goals": goals,
-        })
+        if side == "home":
+            home = value
+        else:
+            away = value
 
-    for team_id in by_team:
-        by_team[team_id].sort(key=lambda p: -p["goals"])
+    if home is None or away is None:
+        return None
 
-    TOP_SCORERS_CACHE[key] = by_team
-    return by_team
+    cache[key] = [home, away]
+    save_sot_cache()
+    return home, away
 
 
-def scorer_candidates(fixture, lambda_home, lambda_away):
-    scorers = top_scorers(fixture.get("league_id"))
-    candidates = []
+def sot_history(history):
+    sot_for = []
+    sot_against = []
 
-    team_goals = {
-        str(fixture["home_id"]): max(lambda_home, 0.05),
-        str(fixture["away_id"]): max(lambda_away, 0.05),
+    for match in history[:SOT_HISTORY_N]:
+        fixture_id = match.get("id")
+        if not fixture_id:
+            continue
+
+        result = match_sot(fixture_id)
+        if result is None:
+            continue
+
+        home_sot, away_sot = result
+
+        if match["venue"] == "home":
+            sot_for.append(home_sot)
+            sot_against.append(away_sot)
+        else:
+            sot_for.append(away_sot)
+            sot_against.append(home_sot)
+
+    return sot_for, sot_against
+
+
+def weighted_sot(values):
+    if not values:
+        return None
+
+    weights = [DECAY ** i for i in range(len(values))]
+    total = sum(weights)
+
+    return sum(w * v for w, v in zip(weights, values)) / total
+
+
+def sot_profile(history, venue, today):
+    recent = history[:HISTORY_N]
+    if len(recent) < MIN_HISTORY:
+        return None
+
+    if (today - recent[0]["date"]).days > MAX_STALE_DAYS:
+        return None
+
+    sot_for, sot_against = sot_history(recent)
+
+    if len(sot_for) < 3:
+        return None
+
+    overall_for = weighted_sot(sot_for)
+    overall_against = weighted_sot(sot_against)
+
+    local_for = []
+    local_against = []
+
+    for match, for_value, against_value in zip(recent, sot_for, sot_against):
+        if match["venue"] == venue:
+            local_for.append(for_value)
+            local_against.append(against_value)
+
+    if len(local_for) >= 3:
+        venue_weight = min(0.45, len(local_for) / (len(local_for) + 6))
+        for_value = weighted_sot(local_for)
+        against_value = weighted_sot(local_against)
+    else:
+        venue_weight = 0
+        for_value = overall_for
+        against_value = overall_against
+
+    n = len(sot_for)
+
+    result = {
+        "sot_for": (
+            (1 - venue_weight) * overall_for
+            + venue_weight * for_value
+        ),
+        "sot_against": (
+            (1 - venue_weight) * overall_against
+            + venue_weight * against_value
+        ),
     }
 
-    for side, team_id in (
-        ("home", str(fixture["home_id"])),
-        ("away", str(fixture["away_id"])),
-    ):
-        players = scorers.get(team_id, [])[:3]
-        total_goals = sum(p["goals"] for p in players) or 1
+    for key, prior in (("sot_for", 3.2), ("sot_against", 3.2)):
+        result[key] = (
+            result[key] * n + prior * PRIOR_K
+        ) / (n + PRIOR_K)
 
-        for player in players:
-            share = player["goals"] / total_goals
-            share = min(max(share, 0.15), 0.55)
+    result["sot_n"] = n
+    return result
 
-            probability = 1 - math.exp(-team_goals[team_id] * share)
 
-            candidates.append({
-                "side": side,
-                "player": player["name"],
-                "goals": player["goals"],
-                "probability": probability,
-            })
+def sot_probability(team, opponent):
+    """Probabilité que l'équipe dépasse 2,5 tirs cadrés."""
+    lambda_sot = (team["sot_for"] + opponent["sot_against"]) / 2
+    lambda_sot = max(lambda_sot, 0.30)
 
-    candidates.sort(key=lambda p: -p["probability"])
-    return candidates[:MAX_SCORERS_PER_MATCH]
+    return 1 - math.exp(-lambda_sot) * (1 + lambda_sot)
 
 
 # ---------------- COTE MINIMALE ----------------
 
 def min_odds(probability):
-    """Cote en dessous de laquelle le pari perd sur la duree (+ marge)."""
     if probability <= 0:
         return None
     return math.ceil(ODDS_MARGIN / probability * 100) / 100
@@ -821,7 +877,6 @@ def read_predictions_file():
         return rows
 
     if header == OLD_FIELDS:
-        # format 6.0 : on garde les lignes (elles etaient toutes publiees)
         for row in rows:
             row["prob_base"] = row.get("probability", "")
             row["published"] = 1
@@ -840,32 +895,6 @@ def write_predictions(rows):
         writer.writerows(rows)
 
 
-def normalize_name(value):
-    text = unicodedata.normalize("NFKD", str(value or ""))
-    text = "".join(c for c in text if not unicodedata.combining(c))
-    text = re.sub(r"[^a-z0-9 ]+", " ", text.lower())
-    return text.split()
-
-
-def same_player(a, b):
-    ta, tb = normalize_name(a), normalize_name(b)
-    if not ta or not tb:
-        return False
-    if ta == tb:
-        return True
-    if ta[-1] == tb[-1] and ta[0][0] == tb[0][0]:
-        return True
-    small, big = (ta, tb) if len(ta) <= len(tb) else (tb, ta)
-    return len(small) >= 2 and set(small) <= set(big)
-
-
-def is_goal_event(event):
-    kind = str(event.get("event_type") or "").lower()
-    return "goal" in kind and not any(
-        word in kind for word in ("own", "miss", "disallow", "cancel", "var")
-    )
-
-
 def outcome(market, home_score, away_score):
     if market == "home":
         return home_score > 0
@@ -881,6 +910,7 @@ def outcome(market, home_score, away_score):
 def settle_previous_predictions(today):
     rows = read_predictions()
     pending = []
+
     for row in rows:
         if row.get("result") not in ("pending", "", None):
             continue
@@ -916,8 +946,6 @@ def settle_previous_predictions(today):
                             "ABANDONED", "SUSPENDED"}:
                 dead.add(identifier)
 
-    event_calls = 0
-
     for row in pending:
         identifier = str(row.get("fixture_id"))
         age = (today - row["_date"]).days
@@ -934,23 +962,16 @@ def settle_previous_predictions(today):
         home_score, away_score = finished[identifier]
         market = row.get("market")
 
-        if market == "buteur":
-            if home_score + away_score == 0:
-                row["result"] = "perdu"
+        if market in ("sot_home", "sot_away"):
+            sot = match_sot(identifier)
+
+            if sot is None:
                 continue
-            if event_calls >= MAX_EVENT_CALLS:
-                continue
-            event_calls += 1
-            events = get_list(api_get(f"fixtures/{identifier}/events"))
-            if not events:
-                continue  # evenements indisponibles : on ne conclut pas
-            scored = any(
-                isinstance(e, dict)
-                and is_goal_event(e)
-                and same_player(e.get("player_name"), row.get("player"))
-                for e in events
-            )
-            row["result"] = "gagne" if scored else "perdu"
+
+            home_sot, away_sot = sot
+            value = home_sot if market == "sot_home" else away_sot
+
+            row["result"] = "gagne" if value > SOT_LINE else "perdu"
             continue
 
         won = outcome(market, home_score, away_score)
@@ -984,19 +1005,7 @@ def analyse(fixture, today):
     if home is None or away is None:
         return None
 
-    lambda_home, lambda_away, base = estimate(home, away, None)
-    probabilities = base
-
-    # H2H : poids faible, donc appele seulement si un marche H2H-sensible
-    # est proche de la fenetre de filtre.
-    near = any(
-        MIN_PROB - H2H_WINDOW <= base[m] <= MAX_PROB + H2H_WINDOW
-        for m in ("btts", "over15")
-    )
-    if near and budget_available():
-        h2h = h2h_stats(fixture["home_id"], fixture["away_id"])
-        if h2h:
-            _, _, probabilities = estimate(home, away, h2h)
+    lambda_home, lambda_away, probabilities = estimate(home, away)
 
     picks = sorted(
         (
@@ -1008,21 +1017,33 @@ def analyse(fixture, today):
         reverse=True,
     )[:MAX_MARKETS]
 
-    scorer = None
+    home_sot = sot_profile(home_history, "home", today)
+    away_sot = sot_profile(away_history, "away", today)
 
-    if lambda_home + lambda_away >= 1.20:
-        candidates = scorer_candidates(
-            fixture, lambda_home, lambda_away
-        )
+    sot_picks = []
 
-        if candidates and candidates[0]["probability"] >= MIN_SCORER_PROB:
-            scorer = candidates[0]
+    if home_sot and away_sot:
+        home_sot_prob = sot_probability(home_sot, away_sot)
+        away_sot_prob = sot_probability(away_sot, home_sot)
+
+        if SOT_MIN_PROB <= home_sot_prob <= SOT_MAX_PROB:
+            sot_picks.append(("sot_home", home_sot_prob))
+
+        if SOT_MIN_PROB <= away_sot_prob <= SOT_MAX_PROB:
+            sot_picks.append(("sot_away", away_sot_prob))
+
+    sot_picks.sort(key=lambda item: item[1], reverse=True)
+    picks.extend(sot_picks[:1])
 
     print(
         "MODELE :",
         fixture.get("home_team"), "-", fixture.get("away_team"),
         "probabilites :", probabilities,
-        "buteur :", scorer,
+        "tirs cadrés :",
+        {
+            "home": home_sot,
+            "away": away_sot,
+        },
         flush=True,
     )
 
@@ -1030,11 +1051,12 @@ def analyse(fixture, today):
         "fixture": fixture,
         "picks": picks,
         "probabilities": probabilities,
-        "base": base,
-        "scorer": scorer,
+        "base": probabilities,
         "best": picks[0][1] if picks else 0,
         "lambda_home": lambda_home,
         "lambda_away": lambda_away,
+        "home_sot": home_sot,
+        "away_sot": away_sot,
     }
 
 
@@ -1049,10 +1071,12 @@ def market_labels(fixture):
         "away": f"{away} +0,5 but",
         "btts": "BTTS Oui",
         "over15": "Plus de 1,5 but",
+        "sot_home": f"{home} : plus de 2,5 tirs cadrés",
+        "sot_away": f"{away} : plus de 2,5 tirs cadrés",
     }
 
 
-def build_message(selected, scorers, partial, analysed, total):
+def build_message(selected, partial, analysed, total):
     lines = [
         "⚽ PRONOSTICS DU JOUR",
         datetime.now(PARIS).strftime("📅 %d/%m/%Y"),
@@ -1104,26 +1128,6 @@ def build_message(selected, scorers, partial, analysed, total):
             "",
         ])
 
-    if scorers:
-        lines.append("🧪 BUTEURS (test, non validé)")
-        scorers = sorted(
-            scorers[:MAX_SCORERS_SHOWN],
-            key=lambda r: kickoff_of(r["fixture"]),
-        )
-        for result in scorers:
-            fixture = result["fixture"]
-            scorer = result["scorer"]
-            kickoff = kickoff_of(fixture).strftime("%H:%M")
-            lines.append(
-                f"• {scorer['player']} : {scorer['probability']:.0%}"
-                f" · 💰 min {fmt_odds(min_odds(scorer['probability']))}"
-            )
-            lines.append(
-                f"  {short_name(fixture.get('home_team'))} — "
-                f"{short_name(fixture.get('away_team'))} · {kickoff}"
-            )
-        lines.append("")
-
     lines.append(f"📈 {analysed}/{total} matchs analysés")
 
     if partial:
@@ -1138,8 +1142,7 @@ def build_message(selected, scorers, partial, analysed, total):
     return "\n".join(lines)
 
 
-def write_journal(all_results, selected, scorers, today):
-    """Enregistre TOUS les marches >= LOG_MIN_PROB (publies ou non)."""
+def write_journal(all_results, selected, today):
     rows = read_predictions()
     known = {
         (r["date"], r["fixture_id"], r["market"], r["player"])
@@ -1148,9 +1151,6 @@ def write_journal(all_results, selected, scorers, today):
     published = {
         (str(r["fixture"].get("id")), m)
         for r in selected for m, _ in r["picks"]
-    }
-    published_scorers = {
-        str(r["fixture"].get("id")) for r in scorers
     }
 
     for result in all_results:
@@ -1166,35 +1166,33 @@ def write_journal(all_results, selected, scorers, today):
             "result": "pending",
         }
 
-        for market, probability in result["probabilities"].items():
+        all_markets = dict(result["probabilities"])
+
+        if result.get("home_sot") and result.get("away_sot"):
+            all_markets["sot_home"] = sot_probability(
+                result["home_sot"], result["away_sot"]
+            )
+            all_markets["sot_away"] = sot_probability(
+                result["away_sot"], result["home_sot"]
+            )
+
+        for market, probability in all_markets.items():
             if probability < LOG_MIN_PROB:
                 continue
+
             key = (base_info["date"], fid, market, "")
             if key in known:
                 continue
+
             rows.append({
                 **base_info,
                 "market": market,
                 "player": "",
                 "probability": f"{probability:.4f}",
-                "prob_base": f"{result['base'][market]:.4f}",
+                "prob_base": f"{probability:.4f}",
                 "published": int((fid, market) in published),
             })
             known.add(key)
-
-        scorer = result["scorer"]
-        if scorer:
-            key = (base_info["date"], fid, "buteur", scorer["player"])
-            if key not in known:
-                rows.append({
-                    **base_info,
-                    "market": "buteur",
-                    "player": scorer["player"],
-                    "probability": f"{scorer['probability']:.4f}",
-                    "prob_base": f"{scorer['probability']:.4f}",
-                    "published": int(fid in published_scorers),
-                })
-                known.add(key)
 
     write_predictions(rows)
     print(f"JOURNAL : {len(rows)} lignes au total.", flush=True)
@@ -1288,10 +1286,9 @@ def main():
             continue
 
         analysed += 1
-
         all_results.append(result)
 
-        if result["picks"] or result["scorer"]:
+        if result["picks"]:
             results.append(result)
 
     if BLOCKED:
@@ -1307,16 +1304,8 @@ def main():
         if r["picks"] and kickoff_of(r["fixture"]) > publication_time
     ][:MAX_MATCHES]
 
-    scorers = sorted(
-        (
-            r for r in results
-            if r["scorer"] and kickoff_of(r["fixture"]) > publication_time
-        ),
-        key=lambda r: -r["scorer"]["probability"],
-    )[:MAX_SCORERS_SHOWN]
-
     try:
-        write_journal(all_results, selected, scorers, today)
+        write_journal(all_results, selected, today)
     except Exception as exc:
         error("Ecriture du journal impossible : " + type(exc).__name__)
 
@@ -1331,7 +1320,7 @@ def main():
     print("ERREURS :", ERRORS, flush=True)
 
     send_message(
-        build_message(selected, scorers, PARTIAL, analysed, len(eligible))
+        build_message(selected, PARTIAL, analysed, len(eligible))
     )
 
 
