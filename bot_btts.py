@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.2
+# BOT FOOTBALL — SPORTAPI — VERSION 6.2.1
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -22,11 +22,9 @@ import requests
 # - Plus de 1,5 but (72-85 %)
 # - Équipe : plus de 2,5 tirs cadrés (70 % minimum)
 #
-# Nouveautés 6.2 :
-# - Buteurs supprimés
-# - H2H supprimé
-# - Ajustement domicile/extérieur basé sur le journal v6.1
-# - Nouveau marché : plus de 2,5 tirs cadrés par équipe
+# Correction 6.2.1 :
+# - Les tirs cadrés sont associés aux identifiants réels des équipes
+# - Suppression buteurs et H2H
 # - Cache disque des statistiques de tirs cadrés
 # ============================================================
 
@@ -40,7 +38,6 @@ PARIS = ZoneInfo("Europe/Paris")
 MIN_PROB = 0.72
 MAX_PROB = 0.85
 
-# Tirs cadrés : ligne unique 2,5, filtre 70 %
 SOT_LINE = 2.5
 SOT_MIN_PROB = 0.70
 SOT_MAX_PROB = 0.92
@@ -78,7 +75,6 @@ MAX_HISTORY_DAYS = 240
 MAX_STALE_DAYS = 60
 DECAY = 0.90
 
-# Ajustements mesurés sur le journal v6.1
 HOME_ADJUST = 0.02
 AWAY_ADJUST = -0.02
 HOME_PROB_CAP = 0.88
@@ -87,7 +83,7 @@ AWAY_PROB_FLOOR = 0.60
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 5
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.2"
+MODEL_VERSION = "6.2.1"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -105,7 +101,7 @@ FIELDS = [
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.2",
+    "User-Agent": "football-history-bot/6.2.1",
 })
 
 CACHE = {}
@@ -645,8 +641,6 @@ def estimate(home, away):
     p_home = 1 - math.exp(-lambda_home)
     p_away = 1 - math.exp(-lambda_away)
 
-    # Ajustements v6.2 :
-    # domicile marque sous-estime, extérieur marque surestime.
     p_home = min(p_home + HOME_ADJUST, HOME_PROB_CAP)
     p_away = max(p_away + AWAY_ADJUST, AWAY_PROB_FLOOR)
 
@@ -672,13 +666,70 @@ def estimate(home, away):
 
 # ---------------- TIRS CADRÉS ----------------
 
-def match_sot(fixture_id):
-    """Renvoie (tirs cadrés domicile, tirs cadrés extérieur)."""
-    cache = load_sot_cache()
-    key = str(fixture_id)
+def extract_sot_from_stats(stats, home_id, away_id):
+    home_sot = None
+    away_sot = None
 
-    if key in cache:
-        value = cache[key]
+    if not isinstance(stats, dict):
+        return home_sot, away_sot
+
+    # Format 1 : dictionnaire home / away
+    if isinstance(stats.get("home"), dict) and isinstance(stats.get("away"), dict):
+        home_sot = number(
+            stats["home"].get("shots_on_target")
+            or stats["home"].get("shotsOnTarget")
+        )
+        away_sot = number(
+            stats["away"].get("shots_on_target")
+            or stats["away"].get("shotsOnTarget")
+        )
+
+        if home_sot is not None and away_sot is not None:
+            return home_sot, away_sot
+
+    # Format 2 : liste statistics
+    rows = stats.get("statistics")
+    if not isinstance(rows, list):
+        rows = stats.get("data")
+
+    if isinstance(rows, list):
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+
+            team = row.get("team")
+            if isinstance(team, dict):
+                team_id = str(team.get("id"))
+            else:
+                team_id = str(row.get("team_id") or row.get("teamId"))
+
+            value = number(
+                row.get("shots_on_target")
+                or row.get("shotsOnTarget")
+                or row.get("sot")
+            )
+
+            if value is None:
+                continue
+
+            if team_id == str(home_id):
+                home_sot = value
+            elif team_id == str(away_id):
+                away_sot = value
+
+    return home_sot, away_sot
+
+
+def match_sot(fixture):
+    """Renvoie (tirs cadrés domicile, tirs cadrés extérieur),
+    associés aux identifiants réels des équipes."""
+    cache = load_sot_cache()
+    fixture_id = str(fixture.get("id"))
+    home_id = str(fixture.get("home_id"))
+    away_id = str(fixture.get("away_id"))
+
+    if fixture_id in cache:
+        value = cache[fixture_id]
         if isinstance(value, list) and len(value) == 2:
             return tuple(value)
 
@@ -690,41 +741,42 @@ def match_sot(fixture_id):
     if not isinstance(stats, dict):
         stats = payload
 
-    home = None
-    away = None
+    home_sot, away_sot = extract_sot_from_stats(stats, home_id, away_id)
 
-    for side in ("home", "away"):
-        block = stats.get(side)
-        if not isinstance(block, dict):
-            continue
-
-        value = number(block.get("shots_on_target"))
-        if value is None:
-            continue
-
-        if side == "home":
-            home = value
-        else:
-            away = value
-
-    if home is None or away is None:
+    if home_sot is None or away_sot is None:
         return None
 
-    cache[key] = [home, away]
+    cache[fixture_id] = [home_sot, away_sot]
     save_sot_cache()
-    return home, away
+    return home_sot, away_sot
 
 
-def sot_history(history):
+def sot_history(history, current_fixture):
     sot_for = []
     sot_against = []
 
+    current_home_id = str(current_fixture.get("home_id"))
+    current_away_id = str(current_fixture.get("away_id"))
+
     for match in history[:SOT_HISTORY_N]:
-        fixture_id = match.get("id")
-        if not fixture_id:
+        match_id = match.get("id")
+        if not match_id:
             continue
 
-        result = match_sot(fixture_id)
+        if match["venue"] == "home":
+            historical_fixture = {
+                "id": match_id,
+                "home_id": current_home_id,
+                "away_id": current_away_id,
+            }
+        else:
+            historical_fixture = {
+                "id": match_id,
+                "home_id": current_away_id,
+                "away_id": current_home_id,
+            }
+
+        result = match_sot(historical_fixture)
         if result is None:
             continue
 
@@ -750,7 +802,7 @@ def weighted_sot(values):
     return sum(w * v for w, v in zip(weights, values)) / total
 
 
-def sot_profile(history, venue, today):
+def sot_profile(history, venue, today, current_fixture):
     recent = history[:HISTORY_N]
     if len(recent) < MIN_HISTORY:
         return None
@@ -758,7 +810,7 @@ def sot_profile(history, venue, today):
     if (today - recent[0]["date"]).days > MAX_STALE_DAYS:
         return None
 
-    sot_for, sot_against = sot_history(recent)
+    sot_for, sot_against = sot_history(recent, current_fixture)
 
     if len(sot_for) < 3:
         return None
@@ -806,7 +858,6 @@ def sot_profile(history, venue, today):
 
 
 def sot_probability(team, opponent):
-    """Probabilité que l'équipe dépasse 2,5 tirs cadrés."""
     lambda_sot = (team["sot_for"] + opponent["sot_against"]) / 2
     lambda_sot = max(lambda_sot, 0.30)
 
@@ -963,7 +1014,11 @@ def settle_previous_predictions(today):
         market = row.get("market")
 
         if market in ("sot_home", "sot_away"):
-            sot = match_sot(identifier)
+            sot = match_sot({
+                "id": identifier,
+                "home_id": row.get("home_id"),
+                "away_id": row.get("away_id"),
+            })
 
             if sot is None:
                 continue
@@ -1017,8 +1072,8 @@ def analyse(fixture, today):
         reverse=True,
     )[:MAX_MARKETS]
 
-    home_sot = sot_profile(home_history, "home", today)
-    away_sot = sot_profile(away_history, "away", today)
+    home_sot = sot_profile(home_history, "home", today, fixture)
+    away_sot = sot_profile(away_history, "away", today, fixture)
 
     sot_picks = []
 
