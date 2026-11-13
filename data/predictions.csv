@@ -3213,3 +3213,16 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-13,18886319,Gretna 2008 - Dalbeattie Star,Highland / Lowland,21:00,away,,0.7635,0.7635,0,6.1,pending
 2026-11-13,18886319,Gretna 2008 - Dalbeattie Star,Highland / Lowland,21:00,over15,,0.8811,0.8811,0,6.1,pending
 2026-11-13,18886319,Gretna 2008 - Dalbeattie Star,Highland / Lowland,21:00,buteur,I. Anderson,0.6897,0.6897,1,6.1,pending
+2026-11-13,17096430,Netherlands - Greece,UEFA Nations League,20:45,sot_home,,0.9451,0.9451,0,6.2,pending
+2026-11-13,17096430,Netherlands - Greece,UEFA Nations League,20:45,sot_away,,0.8559,0.8559,1,6.2,pending
+2026-11-13,17096431,Serbia - Germany,UEFA Nations League,20:45,sot_home,,0.8499,0.8499,1,6.2,pending
+2026-11-13,17096431,Serbia - Germany,UEFA Nations League,20:45,sot_away,,0.9485,0.9485,0,6.2,pending
+2026-11-13,17096432,Scotland - North Macedonia,UEFA Nations League,20:45,sot_home,,0.9531,0.9531,0,6.2,pending
+2026-11-13,17096432,Scotland - North Macedonia,UEFA Nations League,20:45,sot_away,,0.8005,0.8005,1,6.2,pending
+2026-11-13,17096433,Slovenia - Switzerland,UEFA Nations League,20:45,sot_home,,0.7294,0.7294,1,6.2,pending
+2026-11-13,17096433,Slovenia - Switzerland,UEFA Nations League,20:45,sot_away,,0.9548,0.9548,0,6.2,pending
+2026-11-13,17096436,Bulgaria - Iceland,UEFA Nations League,20:45,sot_home,,0.8525,0.8525,0,6.2,pending
+2026-11-13,17096436,Bulgaria - Iceland,UEFA Nations League,20:45,sot_away,,0.8776,0.8776,1,6.2,pending
+2026-11-13,17096438,Andorra - Gibraltar,UEFA Nations League,20:45,sot_home,,0.8246,0.8246,1,6.2,pending
+2026-11-13,17096438,Andorra - Gibraltar,UEFA Nations League,20:45,sot_away,,0.7880,0.7880,0,6.2,pending
+2026-11-13,17096439,Liechtenstein - Azerbaijan,UEFA Nations League,20:45,sot_away,,0.8819,0.8819,0,6.2,pending
