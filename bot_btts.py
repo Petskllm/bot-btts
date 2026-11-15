@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.2.1
+# BOT FOOTBALL — SPORTAPI — VERSION 6.2.2
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -26,6 +26,14 @@ import requests
 # - Les tirs cadrés sont associés aux identifiants réels des équipes
 # - Suppression buteurs et H2H
 # - Cache disque des statistiques de tirs cadrés
+#
+# Corrections 6.2.2 :
+# - Vérification des résultats : on traite les dates récentes (les vieilles
+#   lignes introuvables ne bloquent plus les nouvelles) et on les expire
+# - Probabilité tirs cadrés : vraie loi de Poisson pour "3 ou plus"
+# - Un match avec 0 tir cadré n'est plus traité comme une donnée absente
+# - Plus de plancher sur la probabilité "extérieur marque"
+# - Tirs cadrés : enregistrés dans le journal mais NON publiés (non validés)
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -81,9 +89,9 @@ HOME_PROB_CAP = 0.88
 AWAY_PROB_FLOOR = 0.60
 
 MAX_API_CALLS = 350
-MAX_SETTLE_DATES = 5
+MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.2.1"
+MODEL_VERSION = "6.2.2"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -101,7 +109,7 @@ FIELDS = [
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.2.1",
+    "User-Agent": "football-history-bot/6.2.2",
 })
 
 CACHE = {}
@@ -642,7 +650,7 @@ def estimate(home, away):
     p_away = 1 - math.exp(-lambda_away)
 
     p_home = min(p_home + HOME_ADJUST, HOME_PROB_CAP)
-    p_away = max(p_away + AWAY_ADJUST, AWAY_PROB_FLOOR)
+    p_away = max(p_away + AWAY_ADJUST, 0.0)
 
     total = lambda_home + lambda_away
 
@@ -666,6 +674,14 @@ def estimate(home, away):
 
 # ---------------- TIRS CADRÉS ----------------
 
+def first_number(row, *keys):
+    for key in keys:
+        value = number(row.get(key))
+        if value is not None:
+            return value
+    return None
+
+
 def extract_sot_from_stats(stats, home_id, away_id):
     home_sot = None
     away_sot = None
@@ -675,13 +691,11 @@ def extract_sot_from_stats(stats, home_id, away_id):
 
     # Format 1 : dictionnaire home / away
     if isinstance(stats.get("home"), dict) and isinstance(stats.get("away"), dict):
-        home_sot = number(
-            stats["home"].get("shots_on_target")
-            or stats["home"].get("shotsOnTarget")
+        home_sot = first_number(
+            stats["home"], "shots_on_target", "shotsOnTarget"
         )
-        away_sot = number(
-            stats["away"].get("shots_on_target")
-            or stats["away"].get("shotsOnTarget")
+        away_sot = first_number(
+            stats["away"], "shots_on_target", "shotsOnTarget"
         )
 
         if home_sot is not None and away_sot is not None:
@@ -703,10 +717,8 @@ def extract_sot_from_stats(stats, home_id, away_id):
             else:
                 team_id = str(row.get("team_id") or row.get("teamId"))
 
-            value = number(
-                row.get("shots_on_target")
-                or row.get("shotsOnTarget")
-                or row.get("sot")
+            value = first_number(
+                row, "shots_on_target", "shotsOnTarget", "sot"
             )
 
             if value is None:
@@ -861,7 +873,10 @@ def sot_probability(team, opponent):
     lambda_sot = (team["sot_for"] + opponent["sot_against"]) / 2
     lambda_sot = max(lambda_sot, 0.30)
 
-    return 1 - math.exp(-lambda_sot) * (1 + lambda_sot)
+    # P(X >= 3) pour la ligne "plus de 2,5"
+    return 1 - math.exp(-lambda_sot) * (
+        1 + lambda_sot + lambda_sot ** 2 / 2
+    )
 
 
 # ---------------- COTE MINIMALE ----------------
@@ -977,7 +992,13 @@ def settle_previous_predictions(today):
             row.pop("_date", None)
         return
 
-    dates = sorted({r["_date"] for r in pending})[:MAX_SETTLE_DATES]
+    dates = sorted(
+        {
+            r["_date"] for r in pending
+            if (today - r["_date"]).days <= PENDING_EXPIRY_DAYS + 1
+        },
+        reverse=True,
+    )[:MAX_SETTLE_DATES]
     finished = {}
     dead = set()
 
@@ -1021,6 +1042,8 @@ def settle_previous_predictions(today):
             })
 
             if sot is None:
+                if age > PENDING_EXPIRY_DAYS:
+                    row["result"] = "expire"
                 continue
 
             home_sot, away_sot = sot
@@ -1087,8 +1110,8 @@ def analyse(fixture, today):
         if SOT_MIN_PROB <= away_sot_prob <= SOT_MAX_PROB:
             sot_picks.append(("sot_away", away_sot_prob))
 
-    sot_picks.sort(key=lambda item: item[1], reverse=True)
-    picks.extend(sot_picks[:1])
+    # Tirs cadrés : enregistrés dans le journal (write_journal) mais non
+    # publiés tant que la calibration n'est pas validée.
 
     print(
         "MODELE :",
