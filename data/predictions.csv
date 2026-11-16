@@ -2458,10 +2458,10 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16123001,Durham Women - Sunderland Women,English WSL 2,13:00,away,,0.9047,0.9047,0,6.1,gagne
 2026-11-08,16123001,Durham Women - Sunderland Women,English WSL 2,13:00,over15,,0.8628,0.8628,0,6.1,gagne
 2026-11-08,16123001,Durham Women - Sunderland Women,English WSL 2,13:00,buteur,E. Hughes,0.7256,0.7256,1,6.1,perdu
-2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,home,,0.8518,0.8518,0,6.1,pending
-2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,away,,0.7475,0.7475,1,6.1,pending
-2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,over15,,0.8497,0.8497,1,6.1,pending
-2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,buteur,J. Birch,0.6501,0.6501,0,6.1,pending
+2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,home,,0.8518,0.8518,0,6.1,expire
+2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,away,,0.7475,0.7475,1,6.1,expire
+2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,over15,,0.8497,0.8497,1,6.1,expire
+2026-11-08,18295240,Stafford Rangers - Grimsby Town,FA Cup,13:00,buteur,J. Birch,0.6501,0.6501,0,6.1,expire
 2026-11-08,16096682,Novi Pazar - Mladost Lučani,Serbian Super Liga,13:00,home,,0.7933,0.7933,0,6.1,gagne
 2026-11-08,16096682,Novi Pazar - Mladost Lučani,Serbian Super Liga,13:00,away,,0.6737,0.6737,0,6.1,perdu
 2026-11-08,16096682,Novi Pazar - Mladost Lučani,Serbian Super Liga,13:00,over15,,0.7186,0.7572,0,6.1,gagne
@@ -2606,9 +2606,9 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122987,Tottenham Hotspur Women - Brighton & Hove Albion Women,Women's Super League,15:00,away,,0.8650,0.8650,0,6.1,gagne
 2026-11-08,16122987,Tottenham Hotspur Women - Brighton & Hove Albion Women,Women's Super League,15:00,over15,,0.8015,0.8841,0,6.1,gagne
 2026-11-08,16122987,Tottenham Hotspur Women - Brighton & Hove Albion Women,Women's Super League,15:00,buteur,K. Seike,0.6326,0.6326,0,6.1,perdu
-2026-11-08,18295239,Cray Wanderers - Stockport County,FA Cup,15:15,home,,0.6869,0.6869,0,6.1,pending
-2026-11-08,18295239,Cray Wanderers - Stockport County,FA Cup,15:15,away,,0.6616,0.6616,0,6.1,pending
-2026-11-08,18295239,Cray Wanderers - Stockport County,FA Cup,15:15,over15,,0.6661,0.6661,0,6.1,pending
+2026-11-08,18295239,Cray Wanderers - Stockport County,FA Cup,15:15,home,,0.6869,0.6869,0,6.1,expire
+2026-11-08,18295239,Cray Wanderers - Stockport County,FA Cup,15:15,away,,0.6616,0.6616,0,6.1,expire
+2026-11-08,18295239,Cray Wanderers - Stockport County,FA Cup,15:15,over15,,0.6661,0.6661,0,6.1,expire
 2026-11-08,16122914,Köln - Bayer Leverkusen,German Bundesliga,15:30,home,,0.8126,0.8126,0,6.1,gagne
 2026-11-08,16122914,Köln - Bayer Leverkusen,German Bundesliga,15:30,away,,0.7765,0.7765,0,6.1,gagne
 2026-11-08,16122914,Köln - Bayer Leverkusen,German Bundesliga,15:30,over15,,0.8251,0.8251,0,6.1,gagne
@@ -2800,9 +2800,9 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,btts,,0.6670,0.6965,0,6.1,perdu
 2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,over15,,0.8612,0.8808,0,6.1,gagne
 2026-11-08,16122920,Inter Milan - Como,Italian Serie A,18:00,buteur,T. Douvikas,0.6192,0.6192,0,6.1,perdu
-2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,home,,0.7456,0.7456,0,6.1,pending
-2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,away,,0.7255,0.7255,0,6.1,pending
-2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,over15,,0.7431,0.7431,0,6.1,pending
+2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,home,,0.7456,0.7456,0,6.1,expire
+2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,away,,0.7255,0.7255,0,6.1,expire
+2026-11-08,18295230,Oldham Athletic - Sheffield Wednesday,FA Cup,18:15,over15,,0.7431,0.7431,0,6.1,expire
 2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,home,,0.8742,0.8742,0,6.1,gagne
 2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,away,,0.6669,0.6669,0,6.1,perdu
 2026-11-08,16122933,Union Saint-Gilloise - Racing Genk,Belgian Pro League,18:30,over15,,0.8229,0.8229,0,6.1,perdu
@@ -3317,65 +3317,129 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-14,17157934,Romania - Poland,UEFA Nations League,20:45,home,,0.7527,0.7527,0,6.2.1,gagne
 2026-11-14,17157934,Romania - Poland,UEFA Nations League,20:45,away,,0.7953,0.7953,0,6.2.1,gagne
 2026-11-14,17157934,Romania - Poland,UEFA Nations League,20:45,over15,,0.7790,0.7790,0,6.2.1,gagne
-2026-11-15,18639740,Granada - Las Palmas,Spanish La Liga 2,16:15,home,,0.8377,0.8377,1,6.2.2,pending
-2026-11-15,18639740,Granada - Las Palmas,Spanish La Liga 2,16:15,away,,0.7113,0.7113,0,6.2.2,pending
-2026-11-15,18639740,Granada - Las Palmas,Spanish La Liga 2,16:15,over15,,0.8063,0.8063,1,6.2.2,pending
+2026-11-15,18639740,Granada - Las Palmas,Spanish La Liga 2,16:15,home,,0.8377,0.8377,1,6.2.2,gagne
+2026-11-15,18639740,Granada - Las Palmas,Spanish La Liga 2,16:15,away,,0.7113,0.7113,0,6.2.2,perdu
+2026-11-15,18639740,Granada - Las Palmas,Spanish La Liga 2,16:15,over15,,0.8063,0.8063,1,6.2.2,perdu
 2026-11-15,17265760,Partick Thistle Women - Spartans Women,Scottish SWPL 1,17:00,home,,0.8800,0.8800,0,6.2.2,pending
 2026-11-15,17265760,Partick Thistle Women - Spartans Women,Scottish SWPL 1,17:00,away,,0.7630,0.7630,1,6.2.2,pending
 2026-11-15,17265760,Partick Thistle Women - Spartans Women,Scottish SWPL 1,17:00,over15,,0.8732,0.8732,0,6.2.2,pending
-2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,home,,0.7367,0.7367,1,6.2.2,pending
-2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,away,,0.7897,0.7897,1,6.2.2,pending
-2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,over15,,0.7952,0.7952,1,6.2.2,pending
-2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,sot_home,,0.7535,0.7535,0,6.2.2,pending
-2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,sot_away,,0.6691,0.6691,0,6.2.2,pending
-2026-11-15,17265732,Belarus - Albania,UEFA Nations League,18:00,home,,0.7949,0.7949,1,6.2.2,pending
-2026-11-15,17265732,Belarus - Albania,UEFA Nations League,18:00,over15,,0.7292,0.7292,1,6.2.2,pending
-2026-11-15,17265732,Belarus - Albania,UEFA Nations League,18:00,sot_away,,0.7150,0.7150,0,6.2.2,pending
-2026-11-15,17265733,Finland - San Marino,UEFA Nations League,18:00,home,,0.8599,0.8599,0,6.2.2,pending
-2026-11-15,17265733,Finland - San Marino,UEFA Nations League,18:00,over15,,0.7839,0.7839,1,6.2.2,pending
-2026-11-15,17265733,Finland - San Marino,UEFA Nations League,18:00,sot_home,,0.8181,0.8181,0,6.2.2,pending
-2026-11-15,18639741,Eibar - Cádiz,Spanish La Liga 2,18:30,home,,0.8161,0.8161,1,6.2.2,pending
-2026-11-15,18639741,Eibar - Cádiz,Spanish La Liga 2,18:30,away,,0.7114,0.7114,0,6.2.2,pending
-2026-11-15,18639741,Eibar - Cádiz,Spanish La Liga 2,18:30,over15,,0.8088,0.8088,1,6.2.2,pending
-2026-11-15,18639742,Eldense - Sabadell,Spanish La Liga 2,18:30,home,,0.7309,0.7309,0,6.2.2,pending
-2026-11-15,18639742,Eldense - Sabadell,Spanish La Liga 2,18:30,away,,0.6701,0.6701,0,6.2.2,pending
-2026-11-15,18639742,Eldense - Sabadell,Spanish La Liga 2,18:30,over15,,0.7050,0.7050,0,6.2.2,pending
-2026-11-15,18826690,Deportivo Morón - Colegiales,Argentine Primera Nacional,19:00,home,,0.6787,0.6787,0,6.2.2,pending
-2026-11-15,18826690,Deportivo Morón - Colegiales,Argentine Primera Nacional,19:00,away,,0.6624,0.6624,0,6.2.2,pending
-2026-11-15,18826690,Deportivo Morón - Colegiales,Argentine Primera Nacional,19:00,over15,,0.6716,0.6716,0,6.2.2,pending
-2026-11-15,19008076,Leones Negros - Atlético Morelia,Liga de Expansión MX,19:00,home,,0.8122,0.8122,1,6.2.2,pending
-2026-11-15,19008076,Leones Negros - Atlético Morelia,Liga de Expansión MX,19:00,away,,0.7312,0.7312,1,6.2.2,pending
-2026-11-15,19008076,Leones Negros - Atlético Morelia,Liga de Expansión MX,19:00,over15,,0.8036,0.8036,1,6.2.2,pending
-2026-11-15,18637834,Comerciantes Unidos - Sport Boys,Peruvian Liga 1,19:00,home,,0.7750,0.7750,1,6.2.2,pending
-2026-11-15,18637834,Comerciantes Unidos - Sport Boys,Peruvian Liga 1,19:00,away,,0.7164,0.7164,0,6.2.2,pending
-2026-11-15,18637834,Comerciantes Unidos - Sport Boys,Peruvian Liga 1,19:00,over15,,0.7570,0.7570,1,6.2.2,pending
-2026-11-15,18877800,Danubio - Liverpool,Uruguayan Primera División,20:30,away,,0.7297,0.7297,0,6.2.2,pending
-2026-11-15,18877800,Danubio - Liverpool,Uruguayan Primera División,20:30,over15,,0.6860,0.6860,0,6.2.2,pending
-2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,home,,0.7473,0.7473,1,6.2.2,pending
-2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,away,,0.7236,0.7236,1,6.2.2,pending
-2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,over15,,0.7383,0.7383,1,6.2.2,pending
-2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,sot_home,,0.8313,0.8313,0,6.2.2,pending
-2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,sot_away,,0.8681,0.8681,0,6.2.2,pending
-2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,home,,0.8653,0.8653,0,6.2.2,pending
-2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,away,,0.7024,0.7024,0,6.2.2,pending
-2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,over15,,0.8207,0.8207,1,6.2.2,pending
-2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,sot_home,,0.8843,0.8843,0,6.2.2,pending
-2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,sot_away,,0.7192,0.7192,0,6.2.2,pending
-2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,home,,0.8202,0.8202,1,6.2.2,pending
-2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,away,,0.7726,0.7726,1,6.2.2,pending
-2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,over15,,0.8486,0.8486,1,6.2.2,pending
-2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,sot_home,,0.7739,0.7739,0,6.2.2,pending
-2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,home,,0.8421,0.8421,1,6.2.2,pending
-2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,away,,0.8294,0.8294,1,6.2.2,pending
-2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,btts,,0.6545,0.6545,0,6.2.2,pending
-2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,over15,,0.8778,0.8778,0,6.2.2,pending
-2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,sot_home,,0.7276,0.7276,0,6.2.2,pending
-2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,sot_away,,0.7198,0.7198,0,6.2.2,pending
-2026-11-15,18826693,Godoy Cruz Antonio Tomba - Tristán Suárez,Argentine Primera Nacional,21:00,home,,0.7811,0.7811,1,6.2.2,pending
-2026-11-15,18826693,Godoy Cruz Antonio Tomba - Tristán Suárez,Argentine Primera Nacional,21:00,over15,,0.6774,0.6774,0,6.2.2,pending
-2026-11-15,18642256,Deportivo San Pedro - Marquense,Guatemalan Liga Nacional,22:00,home,,0.7726,0.7726,1,6.2.2,pending
-2026-11-15,18642256,Deportivo San Pedro - Marquense,Guatemalan Liga Nacional,22:00,away,,0.6562,0.6562,0,6.2.2,pending
-2026-11-15,18642256,Deportivo San Pedro - Marquense,Guatemalan Liga Nacional,22:00,over15,,0.7310,0.7310,1,6.2.2,pending
-2026-11-15,18642533,C.D. Platense - Atletico Balboa,Salvadoran Primera División,22:00,home,,0.7650,0.7650,1,6.2.2,pending
-2026-11-15,18642533,C.D. Platense - Atletico Balboa,Salvadoran Primera División,22:00,away,,0.7610,0.7610,1,6.2.2,pending
-2026-11-15,18642533,C.D. Platense - Atletico Balboa,Salvadoran Primera División,22:00,over15,,0.7798,0.7798,1,6.2.2,pending
+2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,home,,0.7367,0.7367,1,6.2.2,gagne
+2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,away,,0.7897,0.7897,1,6.2.2,gagne
+2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,over15,,0.7952,0.7952,1,6.2.2,gagne
+2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,sot_home,,0.7535,0.7535,0,6.2.2,gagne
+2026-11-15,17265738,Arsenal Women - London City Lionesses Women,Women's Super League,17:30,sot_away,,0.6691,0.6691,0,6.2.2,perdu
+2026-11-15,17265732,Belarus - Albania,UEFA Nations League,18:00,home,,0.7949,0.7949,1,6.2.2,perdu
+2026-11-15,17265732,Belarus - Albania,UEFA Nations League,18:00,over15,,0.7292,0.7292,1,6.2.2,gagne
+2026-11-15,17265732,Belarus - Albania,UEFA Nations League,18:00,sot_away,,0.7150,0.7150,0,6.2.2,gagne
+2026-11-15,17265733,Finland - San Marino,UEFA Nations League,18:00,home,,0.8599,0.8599,0,6.2.2,gagne
+2026-11-15,17265733,Finland - San Marino,UEFA Nations League,18:00,over15,,0.7839,0.7839,1,6.2.2,gagne
+2026-11-15,17265733,Finland - San Marino,UEFA Nations League,18:00,sot_home,,0.8181,0.8181,0,6.2.2,gagne
+2026-11-15,18639741,Eibar - Cádiz,Spanish La Liga 2,18:30,home,,0.8161,0.8161,1,6.2.2,gagne
+2026-11-15,18639741,Eibar - Cádiz,Spanish La Liga 2,18:30,away,,0.7114,0.7114,0,6.2.2,gagne
+2026-11-15,18639741,Eibar - Cádiz,Spanish La Liga 2,18:30,over15,,0.8088,0.8088,1,6.2.2,gagne
+2026-11-15,18639742,Eldense - Sabadell,Spanish La Liga 2,18:30,home,,0.7309,0.7309,0,6.2.2,gagne
+2026-11-15,18639742,Eldense - Sabadell,Spanish La Liga 2,18:30,away,,0.6701,0.6701,0,6.2.2,perdu
+2026-11-15,18639742,Eldense - Sabadell,Spanish La Liga 2,18:30,over15,,0.7050,0.7050,0,6.2.2,gagne
+2026-11-15,18826690,Deportivo Morón - Colegiales,Argentine Primera Nacional,19:00,home,,0.6787,0.6787,0,6.2.2,gagne
+2026-11-15,18826690,Deportivo Morón - Colegiales,Argentine Primera Nacional,19:00,away,,0.6624,0.6624,0,6.2.2,gagne
+2026-11-15,18826690,Deportivo Morón - Colegiales,Argentine Primera Nacional,19:00,over15,,0.6716,0.6716,0,6.2.2,gagne
+2026-11-15,19008076,Leones Negros - Atlético Morelia,Liga de Expansión MX,19:00,home,,0.8122,0.8122,1,6.2.2,perdu
+2026-11-15,19008076,Leones Negros - Atlético Morelia,Liga de Expansión MX,19:00,away,,0.7312,0.7312,1,6.2.2,perdu
+2026-11-15,19008076,Leones Negros - Atlético Morelia,Liga de Expansión MX,19:00,over15,,0.8036,0.8036,1,6.2.2,perdu
+2026-11-15,18637834,Comerciantes Unidos - Sport Boys,Peruvian Liga 1,19:00,home,,0.7750,0.7750,1,6.2.2,gagne
+2026-11-15,18637834,Comerciantes Unidos - Sport Boys,Peruvian Liga 1,19:00,away,,0.7164,0.7164,0,6.2.2,gagne
+2026-11-15,18637834,Comerciantes Unidos - Sport Boys,Peruvian Liga 1,19:00,over15,,0.7570,0.7570,1,6.2.2,gagne
+2026-11-15,18877800,Danubio - Liverpool,Uruguayan Primera División,20:30,away,,0.7297,0.7297,0,6.2.2,gagne
+2026-11-15,18877800,Danubio - Liverpool,Uruguayan Primera División,20:30,over15,,0.6860,0.6860,0,6.2.2,gagne
+2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,home,,0.7473,0.7473,1,6.2.2,gagne
+2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,away,,0.7236,0.7236,1,6.2.2,gagne
+2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,over15,,0.7383,0.7383,1,6.2.2,gagne
+2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,sot_home,,0.8313,0.8313,0,6.2.2,gagne
+2026-11-15,17265728,Belgium - Italy,UEFA Nations League,20:45,sot_away,,0.8681,0.8681,0,6.2.2,gagne
+2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,home,,0.8653,0.8653,0,6.2.2,gagne
+2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,away,,0.7024,0.7024,0,6.2.2,gagne
+2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,over15,,0.8207,0.8207,1,6.2.2,gagne
+2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,sot_home,,0.8843,0.8843,0,6.2.2,gagne
+2026-11-15,17265729,France - Turkey,UEFA Nations League,20:45,sot_away,,0.7192,0.7192,0,6.2.2,gagne
+2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,home,,0.8202,0.8202,1,6.2.2,gagne
+2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,away,,0.7726,0.7726,1,6.2.2,gagne
+2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,over15,,0.8486,0.8486,1,6.2.2,gagne
+2026-11-15,17265730,Croatia - Czech Republic,UEFA Nations League,20:45,sot_home,,0.7739,0.7739,0,6.2.2,gagne
+2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,home,,0.8421,0.8421,1,6.2.2,gagne
+2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,away,,0.8294,0.8294,1,6.2.2,gagne
+2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,btts,,0.6545,0.6545,0,6.2.2,gagne
+2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,over15,,0.8778,0.8778,0,6.2.2,gagne
+2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,sot_home,,0.7276,0.7276,0,6.2.2,gagne
+2026-11-15,17265731,Spain - England,UEFA Nations League,20:45,sot_away,,0.7198,0.7198,0,6.2.2,gagne
+2026-11-15,18826693,Godoy Cruz Antonio Tomba - Tristán Suárez,Argentine Primera Nacional,21:00,home,,0.7811,0.7811,1,6.2.2,gagne
+2026-11-15,18826693,Godoy Cruz Antonio Tomba - Tristán Suárez,Argentine Primera Nacional,21:00,over15,,0.6774,0.6774,0,6.2.2,gagne
+2026-11-15,18642256,Deportivo San Pedro - Marquense,Guatemalan Liga Nacional,22:00,home,,0.7726,0.7726,1,6.2.2,gagne
+2026-11-15,18642256,Deportivo San Pedro - Marquense,Guatemalan Liga Nacional,22:00,away,,0.6562,0.6562,0,6.2.2,perdu
+2026-11-15,18642256,Deportivo San Pedro - Marquense,Guatemalan Liga Nacional,22:00,over15,,0.7310,0.7310,1,6.2.2,gagne
+2026-11-15,18642533,C.D. Platense - Atletico Balboa,Salvadoran Primera División,22:00,home,,0.7650,0.7650,1,6.2.2,gagne
+2026-11-15,18642533,C.D. Platense - Atletico Balboa,Salvadoran Primera División,22:00,away,,0.7610,0.7610,1,6.2.2,gagne
+2026-11-15,18642533,C.D. Platense - Atletico Balboa,Salvadoran Primera División,22:00,over15,,0.7798,0.7798,1,6.2.2,gagne
+2026-11-16,17339593,Zimbabwe - Equatorial Guinea,CAF Africa Cup of Nations Qualifiers,14:00,home,,0.6762,0.6762,0,6.2.2,pending
+2026-11-16,17339593,Zimbabwe - Equatorial Guinea,CAF Africa Cup of Nations Qualifiers,14:00,sot_away,,0.6755,0.6755,0,6.2.2,pending
+2026-11-16,17339574,Faroe Islands - Moldova,UEFA Nations League,16:00,home,,0.8092,0.8092,1,6.2.2,pending
+2026-11-16,17339574,Faroe Islands - Moldova,UEFA Nations League,16:00,away,,0.7094,0.7094,0,6.2.2,pending
+2026-11-16,17339574,Faroe Islands - Moldova,UEFA Nations League,16:00,over15,,0.8126,0.8126,1,6.2.2,pending
+2026-11-16,17339574,Faroe Islands - Moldova,UEFA Nations League,16:00,sot_home,,0.7056,0.7056,0,6.2.2,pending
+2026-11-16,17339574,Faroe Islands - Moldova,UEFA Nations League,16:00,sot_away,,0.7373,0.7373,0,6.2.2,pending
+2026-11-16,17339575,Kazakhstan - Slovakia,UEFA Nations League,16:00,home,,0.7393,0.7393,1,6.2.2,pending
+2026-11-16,17339575,Kazakhstan - Slovakia,UEFA Nations League,16:00,away,,0.7926,0.7926,1,6.2.2,pending
+2026-11-16,17339575,Kazakhstan - Slovakia,UEFA Nations League,16:00,over15,,0.8129,0.8129,1,6.2.2,pending
+2026-11-16,17339575,Kazakhstan - Slovakia,UEFA Nations League,16:00,sot_home,,0.6722,0.6722,0,6.2.2,pending
+2026-11-16,17339575,Kazakhstan - Slovakia,UEFA Nations League,16:00,sot_away,,0.8284,0.8284,0,6.2.2,pending
+2026-11-16,17339576,Estonia - Bulgaria,UEFA Nations League,18:00,home,,0.7190,0.7190,0,6.2.2,pending
+2026-11-16,17339576,Estonia - Bulgaria,UEFA Nations League,18:00,away,,0.7003,0.7003,0,6.2.2,pending
+2026-11-16,17339576,Estonia - Bulgaria,UEFA Nations League,18:00,over15,,0.6831,0.6831,0,6.2.2,pending
+2026-11-16,17339576,Estonia - Bulgaria,UEFA Nations League,18:00,sot_home,,0.8152,0.8152,0,6.2.2,pending
+2026-11-16,17339577,Iceland - Luxembourg,UEFA Nations League,18:00,home,,0.7696,0.7696,1,6.2.2,pending
+2026-11-16,17339577,Iceland - Luxembourg,UEFA Nations League,18:00,over15,,0.6777,0.6777,0,6.2.2,pending
+2026-11-16,17339577,Iceland - Luxembourg,UEFA Nations League,18:00,sot_home,,0.8253,0.8253,0,6.2.2,pending
+2026-11-16,17339579,Lithuania - Liechtenstein,UEFA Nations League,18:00,home,,0.7552,0.7552,1,6.2.2,pending
+2026-11-16,17339579,Lithuania - Liechtenstein,UEFA Nations League,18:00,sot_home,,0.7819,0.7819,0,6.2.2,pending
+2026-11-16,17339590,Andorra - Azerbaijan,Internationals,19:00,away,,0.6808,0.6808,0,6.2.2,pending
+2026-11-16,17339590,Andorra - Azerbaijan,Internationals,19:00,sot_away,,0.8042,0.8042,0,6.2.2,pending
+2026-11-16,18637840,UTC - Los Chankas,Peruvian Liga 1,19:00,home,,0.7894,0.7894,1,6.2.2,pending
+2026-11-16,18637840,UTC - Los Chankas,Peruvian Liga 1,19:00,away,,0.7197,0.7197,0,6.2.2,pending
+2026-11-16,18637840,UTC - Los Chankas,Peruvian Liga 1,19:00,over15,,0.7543,0.7543,1,6.2.2,pending
+2026-11-16,17339598,Guyana - Puerto Rico,Concacaf Nations League,20:00,home,,0.8800,0.8800,0,6.2.2,pending
+2026-11-16,17339598,Guyana - Puerto Rico,Concacaf Nations League,20:00,away,,0.7102,0.7102,0,6.2.2,pending
+2026-11-16,17339598,Guyana - Puerto Rico,Concacaf Nations League,20:00,over15,,0.8357,0.8357,1,6.2.2,pending
+2026-11-16,17339598,Guyana - Puerto Rico,Concacaf Nations League,20:00,sot_home,,0.7967,0.7967,0,6.2.2,pending
+2026-11-16,17339598,Guyana - Puerto Rico,Concacaf Nations League,20:00,sot_away,,0.7339,0.7339,0,6.2.2,pending
+2026-11-16,17339600,Cuba - Grenada,Concacaf Nations League,20:00,home,,0.8800,0.8800,0,6.2.2,pending
+2026-11-16,17339600,Cuba - Grenada,Concacaf Nations League,20:00,away,,0.6807,0.6807,0,6.2.2,pending
+2026-11-16,17339600,Cuba - Grenada,Concacaf Nations League,20:00,over15,,0.8937,0.8937,0,6.2.2,pending
+2026-11-16,17339600,Cuba - Grenada,Concacaf Nations League,20:00,sot_home,,0.9126,0.9126,0,6.2.2,pending
+2026-11-16,17339600,Cuba - Grenada,Concacaf Nations League,20:00,sot_away,,0.6743,0.6743,0,6.2.2,pending
+2026-11-16,18639743,Albacete - RC Celta Fortuna,Spanish La Liga 2,20:30,home,,0.8360,0.8360,1,6.2.2,pending
+2026-11-16,18639743,Albacete - RC Celta Fortuna,Spanish La Liga 2,20:30,away,,0.7216,0.7216,1,6.2.2,pending
+2026-11-16,18639743,Albacete - RC Celta Fortuna,Spanish La Liga 2,20:30,over15,,0.8260,0.8260,1,6.2.2,pending
+2026-11-16,17339570,Germany - Netherlands,UEFA Nations League,20:45,home,,0.8226,0.8226,1,6.2.2,pending
+2026-11-16,17339570,Germany - Netherlands,UEFA Nations League,20:45,away,,0.7778,0.7778,1,6.2.2,pending
+2026-11-16,17339570,Germany - Netherlands,UEFA Nations League,20:45,over15,,0.8325,0.8325,1,6.2.2,pending
+2026-11-16,17339570,Germany - Netherlands,UEFA Nations League,20:45,sot_home,,0.7257,0.7257,0,6.2.2,pending
+2026-11-16,17339570,Germany - Netherlands,UEFA Nations League,20:45,sot_away,,0.8499,0.8499,0,6.2.2,pending
+2026-11-16,17339571,Greece - Serbia,UEFA Nations League,20:45,home,,0.8155,0.8155,1,6.2.2,pending
+2026-11-16,17339571,Greece - Serbia,UEFA Nations League,20:45,away,,0.6645,0.6645,0,6.2.2,pending
+2026-11-16,17339571,Greece - Serbia,UEFA Nations League,20:45,over15,,0.7477,0.7477,1,6.2.2,pending
+2026-11-16,17339571,Greece - Serbia,UEFA Nations League,20:45,sot_home,,0.8091,0.8091,0,6.2.2,pending
+2026-11-16,17339571,Greece - Serbia,UEFA Nations League,20:45,sot_away,,0.7931,0.7931,0,6.2.2,pending
+2026-11-16,17339572,North Macedonia - Slovenia,UEFA Nations League,20:45,away,,0.7836,0.7836,1,6.2.2,pending
+2026-11-16,17339572,North Macedonia - Slovenia,UEFA Nations League,20:45,over15,,0.7323,0.7323,1,6.2.2,pending
+2026-11-16,17339572,North Macedonia - Slovenia,UEFA Nations League,20:45,sot_away,,0.8049,0.8049,0,6.2.2,pending
+2026-11-16,17339573,Switzerland - Scotland,UEFA Nations League,20:45,home,,0.7814,0.7814,1,6.2.2,pending
+2026-11-16,17339573,Switzerland - Scotland,UEFA Nations League,20:45,over15,,0.7200,0.7200,1,6.2.2,pending
+2026-11-16,17339573,Switzerland - Scotland,UEFA Nations League,20:45,sot_home,,0.7797,0.7797,0,6.2.2,pending
+2026-11-16,17339578,Gibraltar - Malta,UEFA Nations League,20:45,home,,0.7368,0.7368,1,6.2.2,pending
+2026-11-16,17339578,Gibraltar - Malta,UEFA Nations League,20:45,over15,,0.6820,0.6820,0,6.2.2,pending
+2026-11-16,17339578,Gibraltar - Malta,UEFA Nations League,20:45,sot_away,,0.7102,0.7102,0,6.2.2,pending
+2026-11-16,18637835,Cusco - ADT,Peruvian Liga 1,21:15,home,,0.7880,0.7880,1,6.2.2,pending
+2026-11-16,18637835,Cusco - ADT,Peruvian Liga 1,21:15,away,,0.6615,0.6615,0,6.2.2,pending
+2026-11-16,18637835,Cusco - ADT,Peruvian Liga 1,21:15,over15,,0.7468,0.7468,1,6.2.2,pending
+2026-11-16,18637836,Deportivo Moquegua - Atlético Grau,Peruvian Liga 1,21:15,home,,0.7534,0.7534,1,6.2.2,pending
+2026-11-16,18637836,Deportivo Moquegua - Atlético Grau,Peruvian Liga 1,21:15,away,,0.7311,0.7311,1,6.2.2,pending
+2026-11-16,18637836,Deportivo Moquegua - Atlético Grau,Peruvian Liga 1,21:15,over15,,0.7513,0.7513,1,6.2.2,pending
