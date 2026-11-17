@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.6.2
+# BOT FOOTBALL — SPORTAPI — VERSION 6.6.3
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -149,6 +149,14 @@ import requests
 # - Ticket : même présentation par jambe ("cote juste" ou vraie cote),
 #   puis la cote totale ou "cote 10 non atteinte (meilleur X)".
 # - Découpage Telegram par blocs de match, sous la limite de 4096.
+#
+# Version 6.6.3 (ticket : grands championnats seulement) :
+# - Les jambes du ticket ne viennent plus que des ligues de TICKET_LEAGUES
+#   (grands championnats + compétitions des sélections A), celles que
+#   Stake propose. Les petites ligues (Highland / Lowland, National
+#   League N / S...) sont exclues du ticket. Les pronos du jour ne
+#   changent pas (toutes les ligues). Tout le reste est identique.
+# - Liste modifiable ci-dessous (TICKET_LEAGUES, TICKET_LEAGUE_IDS).
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -267,6 +275,66 @@ FICHES_DIR = "data/fiches"
 TICKET_POOL_WIDE = 40
 TICKET_PER_MATCH = 2
 
+# ---- 6.6.3 : ligues autorisées dans le TICKET (pas dans les pronos) ----
+# Chaque ligne : (motif sur le nom de la ligue, pays ou None, motif exclu).
+# Le nom est comparé en minuscules sans accents ("Süper Lig" -> "super lig").
+# Si un pays est donné, la ligue doit être de ce pays (champ league_zone /
+# league_geo de SportAPI, ou pays/adjectif dans le nom) : "Premier League"
+# seul ne suffit donc pas (Nigerian Premier League refusée).
+# Pour ajouter une ligue : ajoute une ligne. Pour forcer un id SportAPI :
+# mets-le dans TICKET_LEAGUE_IDS.
+TICKET_LEAGUES = [
+    # --- championnats ---
+    (r"\bpremier league\b", "England", r"\b(2|u ?\d\d|women|cup)\b|national"),
+    (r"\bla ?liga\b|primera division", "Spain", r"\b(2|segunda|hypermotion|f)\b"),
+    (r"\bserie a\b", "Italy", r"women|femminile"),
+    (r"\bbundesliga\b", "Germany", r"\b2\b|2\. |women|frauen"),
+    (r"\bligue 1\b", "France", r"women|feminine"),
+    (r"\bchampionship\b", "England", r"national|women"),
+    (r"\bleague (one|two|1|2)\b", "England", r"national|women|premier"),
+    (r"\beredivisie\b", "Netherlands", r"women|vrouwen"),
+    (r"primeira liga|liga portugal", "Portugal", r"\b2\b|women"),
+    (r"pro league|jupiler|first division a", "Belgium", r"women|challenger"),
+    (r"\bpremiership\b", "Scotland", r"women|championship"),
+    (r"super lig", "Turkey", r"\b1\b|women"),
+    (r"pro league|professional league|roshn", "Saudi Arabia", r"\b(1|first)\b|women"),
+    (r"major league soccer|\bmls\b", "USA", r"next pro|women"),
+    (r"\bserie a\b|brasileirao", "Brazil", r"women|feminino"),
+    (r"liga profesional|primera division|superliga", "Argentina", r"nacional|women|reserv"),
+    # --- coupes d'Europe des clubs ---
+    (r"^(uefa )?(champions|europa|europa conference|conference) league", None, r"women|youth"),
+    # --- sélections A ---
+    (r"world cup", None, r"club|futsal|beach"),
+    (r"^uefa nations league", None, None),
+    (r"concacaf nations league.*\bleague a\b", None, None),
+    (r"^(uefa )?euro(pean championship)?\b", None, r"futsal"),
+    (r"africa cup of nations|\bafcon\b", None, None),
+    (r"copa america", None, None),
+    (r"^internationals?$|international friendl|^friendlies$|friendly international", None, r"club"),
+]
+TICKET_LEAGUE_IDS = set()     # ids SportAPI toujours acceptés (ex. {39, 140})
+TICKET_LEAGUE_EXCLUDE = (     # jamais dans le ticket, quelle que soit la ligne
+    r"women|feminin|\bu ?\d\d\b|youth|junior|reserve|amateur|futsal"
+    r"|beach|esoccer|\bii\b|highland|lowland|national league n"
+    r"|national league s|national league north|national league south"
+)
+COUNTRY_WORDS = {
+    "England": ("england", "english"),
+    "Spain": ("spain", "spanish"),
+    "Italy": ("italy", "italian"),
+    "Germany": ("germany", "german"),
+    "France": ("france", "french"),
+    "Netherlands": ("netherlands", "dutch", "holland"),
+    "Portugal": ("portugal", "portuguese"),
+    "Belgium": ("belgium", "belgian"),
+    "Scotland": ("scotland", "scottish"),
+    "Turkey": ("turkey", "turkiye", "turkish"),
+    "Saudi Arabia": ("saudi",),
+    "USA": ("usa", "united states", "american"),
+    "Brazil": ("brazil", "brasil", "brazilian"),
+    "Argentina": ("argentina", "argentine", "argentinian"),
+}
+
 # ---- 6.6.0 : cotes réelles (optionnel, The Odds API) ----
 ODDS_API_KEY = os.getenv("ODDS_API_KEY", "").strip()
 ODDS_BASE_URL = "https://api.the-odds-api.com/v4"
@@ -311,7 +379,7 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.6.2"
+MODEL_VERSION = "6.6.3"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -332,7 +400,7 @@ FIELDS = FIELDS_V63 + ["home_id", "away_id", "odds_taken"]
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.6.2",
+    "User-Agent": "football-history-bot/6.6.3",
 })
 
 CACHE = {}
@@ -1413,6 +1481,33 @@ def ticket_candidates(probabilities, extra, home_form, away_form, motivation=Non
     return candidates
 
 
+def ticket_league_ok(fixture):
+    """6.6.3 : la ligue du match est-elle autorisée dans le ticket ?"""
+    if fixture.get("league_id") is not None and fixture.get("league_id") in TICKET_LEAGUE_IDS:
+        return True
+    if str(fixture.get("league_id")) in {str(i) for i in TICKET_LEAGUE_IDS}:
+        return True
+    name = norm_text(fixture.get("league_name"))
+    if not name or re.search(TICKET_LEAGUE_EXCLUDE, name):
+        return False
+    zones = {norm_text(fixture.get(k)) for k in ("league_zone", "league_geo", "country")}
+    zones.discard("")
+    for pattern, country, exclude in TICKET_LEAGUES:
+        if not re.search(pattern, name):
+            continue
+        if exclude and re.search(exclude, name):
+            continue
+        if country is None:
+            return True
+        words = COUNTRY_WORDS.get(country, (country.lower(),))
+        if norm_text(country) in zones or any(w in zones for w in words):
+            return True
+        padded = f" {name} "
+        if any(f" {w} " in padded for w in words):
+            return True
+    return False
+
+
 def build_ticket(all_results, now):
     """4 jambes (4 matchs différents) : cote juste >= cible, meilleure forme."""
     pool = []
@@ -1421,6 +1516,9 @@ def build_ticket(all_results, now):
     for result in all_results:
         kickoff = kickoff_of(result["fixture"])
         if kickoff is None or kickoff <= now:
+            continue
+        # 6.6.3 : grands championnats et sélections A seulement
+        if not ticket_league_ok(result["fixture"]):
             continue
         for candidate in result.get("candidates", []):
             if TICKET_MIN_PROB <= candidate["prob"] <= TICKET_MAX_PROB:
