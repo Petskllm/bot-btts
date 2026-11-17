@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.6.1
+# BOT FOOTBALL — SPORTAPI — VERSION 6.6.2
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -137,6 +137,18 @@ import requests
 #   "Russia", "Bosnia-Herzegovina" -> "Bosnia"...) ; dans les libellés
 #   "match" (Dom-Ext), Town / United / City / FC sont retirés.
 # - Bilan : "📊 30j : 77% · ROI 0%" (plus de "-0%").
+#
+# Version 6.6.2 (affichage Telegram, modèle de Betpulse) :
+# - Retour à la présentation par heure (⏰ 14h) et par match :
+#   "N. Dom — Ext · HH:MM", "🏆 Ligue", une ligne par marché
+#   "• Marché : 83% · 💰 min 1,25" (ou "💰 cote 1,40 ✅ value" si vraie
+#   cote), "⚽ Buts projetés", et UNE ligne "⚠️ ..." seulement s'il y a
+#   une vraie alerte. Tous les marchés retenus du match sont affichés.
+# - Plus de forme récente / enjeu / classement dans Telegram (gardés dans
+#   la fiche data/fiches/).
+# - Ticket : même présentation par jambe ("cote juste" ou vraie cote),
+#   puis la cote totale ou "cote 10 non atteinte (meilleur X)".
+# - Découpage Telegram par blocs de match, sous la limite de 4096.
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -245,7 +257,7 @@ QUOTA_RESERVE = 15           # on s'arrête avant d'épuiser le quota
 ENRICH_RESERVE = 40          # appels gardés pour H2H / buteurs / cartons
 
 # ---- 6.6.0 : infos par pick ----
-SHOWN_MARKETS = 1            # une ligne par match dans le message
+SHOWN_MARKETS = 10           # 6.6.2 : tous les marchés retenus du match
 H2H_N = 5
 H2H_ALERT_MAX = 2            # l'équipe a marqué <= 2 fois sur 5 H2H -> alerte
 REST_ALERT_DAYS = 2
@@ -299,7 +311,7 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.6.1"
+MODEL_VERSION = "6.6.2"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -320,7 +332,7 @@ FIELDS = FIELDS_V63 + ["home_id", "away_id", "odds_taken"]
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.6.1",
+    "User-Agent": "football-history-bot/6.6.2",
 })
 
 CACHE = {}
@@ -376,29 +388,48 @@ def budget_available(reserve=0):
 
 # ---------------- TELEGRAM ----------------
 
+TELEGRAM_CHUNK = 4000  # limite Telegram 4096, avec marge
+
+
 def send_message(text):
     if not TOKEN or not CHAT_ID:
         raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
 
+    # 6.6.2 : on coupe entre deux blocs (ligne vide = fin d'un match),
+    # sous la limite Telegram (4096) ; ligne à ligne si un bloc est trop long.
     chunks = []
     current = ""
 
-    for line in text.splitlines(keepends=True):
-        while len(line) > 3000:
-            if current:
+    def push_piece(piece):
+        nonlocal current
+        if len(current) + len(piece) <= TELEGRAM_CHUNK:
+            current += piece
+            return
+        if current.strip():
+            chunks.append(current)
+        current = ""
+        if len(piece) <= TELEGRAM_CHUNK:
+            current = piece
+            return
+        for line in piece.splitlines(keepends=True):
+            while len(line) > TELEGRAM_CHUNK:
+                if current:
+                    chunks.append(current)
+                    current = ""
+                chunks.append(line[:TELEGRAM_CHUNK])
+                line = line[TELEGRAM_CHUNK:]
+            if len(current) + len(line) > TELEGRAM_CHUNK:
                 chunks.append(current)
                 current = ""
-            chunks.append(line[:3000])
-            line = line[3000:]
+            current += line
 
-        if len(current) + len(line) > 3000:
-            chunks.append(current)
-            current = ""
+    pieces = text.split("\n\n")
+    for position, piece in enumerate(pieces):
+        push_piece(piece + ("\n\n" if position < len(pieces) - 1 else ""))
 
-        current += line
-
-    if current:
+    if current.strip():
         chunks.append(current)
+    chunks = [c.strip("\n") or c for c in chunks]
 
     for chunk in chunks:
         send_chunk(chunk)
@@ -2419,10 +2450,10 @@ def enrich_pick(result, today):
                 scored = h2h[f"{side}_scored"]
                 if scored <= H2H_ALERT_MAX:
                     info["alerts"].append(
-                        f"H2H {display_name(names[side])} a marqué {scored}/{h2h['n']}"
+                        f"H2H : {display_name(names[side])} a marqué {scored}/{h2h['n']}"
                     )
             elif market == "over15" and h2h["over15"] <= H2H_ALERT_MAX:
-                info["alerts"].append(f"H2H +1,5 buts {h2h['over15']}/{h2h['n']}")
+                info["alerts"].append(f"H2H : +1,5 buts {h2h['over15']}/{h2h['n']}")
 
     # Buteur absent / expulsé au dernier match (indices, à vérifier)
     for s in ([side] if side else []):
@@ -2438,13 +2469,15 @@ def enrich_pick(result, today):
             played = lineup_names(match)
             if played is not None and last_name(scorer[0]) not in played:
                 info["scorer_absent"] = scorer
-                info["alerts"].append(f"{player_short(scorer[0])} absent")
+                info["alerts"].append(
+                    f"{player_short(scorer[0])} absent dernier match (à vérifier)"
+                )
         if budget_available():
             reds = red_cards_last_match(match)
             if reds:
                 info["reds"] = reds
                 info["alerts"].append(
-                    ", ".join(player_short(p) for p in reds) + " expulsé"
+                    ", ".join(player_short(p) for p in reds) + " expulsé dernier match"
                 )
     return info
 
@@ -2488,8 +2521,8 @@ def detail_lines(result, info):
         lines.append(f"Buteur {name} ({int(goals)} buts) absent de la compo du dernier match (à vérifier)")
     if info.get("reds"):
         lines.append(f"Expulsé(s) au dernier match : {', '.join(info['reds'])} (suspension possible)")
-    if info.get("odds"):
-        lines.append(f"Cote marché : {fmt_odds(info['odds'])}")
+    for market, price in (info.get("odds") or {}).items():
+        lines.append(f"Cote marché {market} : {fmt_odds(price)}")
     return lines
 
 
@@ -2624,18 +2657,27 @@ def market_price(event, market):
     return prices[len(prices) // 2]
 
 
-def real_odds(result):
-    """Cote réelle du pick affiché (None si pas de clé / pas de marché)."""
-    if not ODDS_API_KEY or not shown_picks(result):
-        return None
-    fixture = result["fixture"]
+def real_odds_for(fixture, markets):
+    """Vraies cotes {marché: cote} d'un match ({} si pas de clé / marché)."""
+    if not ODDS_API_KEY or not markets:
+        return {}
     key = odds_sport_key(fixture)
     if not key:
-        return None
+        return {}
     event = find_event(odds_events(key), fixture)
     if not event:
-        return None
-    return market_price(event, shown_picks(result)[0][0])
+        return {}
+    prices = {}
+    for market in markets:
+        price = market_price(event, market)
+        if price:
+            prices[market] = price
+    return prices
+
+
+def real_odds(result):
+    """Vraies cotes des marchés affichés d'un pick ({} si aucune)."""
+    return real_odds_for(result["fixture"], [m for m, _ in shown_picks(result)])
 
 
 # ---------------- ANALYSE ----------------
@@ -3019,61 +3061,125 @@ def fmt_short(value):
     return fmt_odds(value).rstrip("0").rstrip(",")
 
 
+def tg_labels(fixture):
+    """Libellés des marchés pour Telegram (noms de sélections raccourcis)."""
+    named = dict(fixture)
+    named["home_team"] = display_name(fixture.get("home_team"))
+    named["away_team"] = display_name(fixture.get("away_team"))
+    return market_labels(named)
+
+
+def tg_odds(probability, price):
+    """'💰 cote 1,40 ✅ value' si vraie cote, sinon '💰 min 1,25'."""
+    if price:
+        text = f"💰 cote {fmt_odds(price)}"
+        floor = min_odds(probability)
+        if floor is not None and price > floor:
+            text += " ✅ value"
+        return text
+    return f"💰 min {fmt_odds(min_odds(probability))}"
+
+
+def match_head(fixture):
+    start = kickoff_of(fixture)
+    head = (
+        f"{display_name(fixture.get('home_team'))} — "
+        f"{display_name(fixture.get('away_team'))} · {start.strftime('%H:%M')}"
+    )
+    league = league_label(fixture)
+    return start, head, (f"🏆 {league}" if league else None)
+
+
 def build_light_message(selected, partial, ticket=None, summary=None, enrich=None, today=None):
-    """Message Telegram ultra léger (format validé par Betpulse)."""
+    """Message Telegram (6.6.2) : présentation par heure et par match,
+    sans forme / enjeu. Les blocs sont séparés par une ligne vide, ce qui
+    permet de couper le message entre deux matchs."""
     enrich = enrich or {}
     day = today or datetime.now(PARIS).date()
-    lines = [f"⚽ PRONOS {day.strftime('%d/%m')}"]
+    blocks = [f"⚽ PRONOSTICS DU JOUR\n📅 {day.strftime('%d/%m/%Y')}"]
 
-    ordered = sorted(
-        selected,
-        key=lambda r: -(shown_picks(r)[0][1] if shown_picks(r) else 0),
-    )
+    ordered = sorted(selected, key=lambda r: (kickoff_of(r["fixture"]), -r["best"]))
+    current_hour = None
     index = 0
     for result in ordered:
+        picks = shown_picks(result)
+        if not picks:
+            continue
         fixture = result["fixture"]
         info = enrich.get(str(fixture.get("id"))) or {}
-        for market, probability in shown_picks(result):
-            index += 1
-            line = f"{index}. {light_label(fixture, market)} · {probability:.0%}"
-            odds = odds_text(probability, info.get("odds"))
-            if odds:
-                line += f" · {odds}"
-            lines.append(line)
+        prices = info.get("odds") if isinstance(info.get("odds"), dict) else {}
+        start, head, league = match_head(fixture)
+        index += 1
+        lines = []
+        if start.hour != current_hour:
+            current_hour = start.hour
+            lines.append(f"⏰ {current_hour:02d}h")
+        lines.append(f"{index}. {head}")
+        if league:
+            lines.append(league)
+        labels = tg_labels(fixture)
+        for market, probability in picks:
+            lines.append(
+                f"• {labels.get(market, market)} : {probability:.0%}"
+                f" · {tg_odds(probability, prices.get(market))}"
+            )
+        if result.get("lambda_home") is not None and result.get("lambda_away") is not None:
+            lines.append(
+                f"⚽ Buts projetés : {result['lambda_home']:.2f} — "
+                f"{result['lambda_away']:.2f}".replace(".", ",")
+            )
         alerts = info.get("alerts") or []
         if alerts:
-            lines.append("   ⚠️ " + ", ".join(alerts))
+            lines.append("⚠️ " + " · ".join(alerts))
+        blocks.append("\n".join(lines))
     if index == 0:
-        lines.append("Aucun prono solide aujourd'hui.")
+        blocks.append("Aucun prono solide aujourd'hui.")
 
-    lines.append("")
     if ticket:
+        ticket_odds = enrich.get("__ticket_odds__") or {}
+        for number_, leg in enumerate(ticket, 1):
+            fixture = leg["result"]["fixture"]
+            _, head, league = match_head(fixture)
+            probability = leg["prob"]
+            price = ticket_odds.get((str(fixture.get("id")), leg["market"]))
+            if price:
+                odds = f"cote {fmt_odds(price)}"
+                floor = min_odds(probability)
+                if floor is not None and price > floor:
+                    odds += " ✅ value"
+            else:
+                odds = f"cote juste {fmt_odds(1 / probability)}"
+            lines = (["🎟️ TICKET DU JOUR"] if number_ == 1 else []) + [f"{number_}. {head}"]
+            if league:
+                lines.append(league)
+            lines.append(
+                f"• {tg_labels(fixture).get(leg['market'], leg['market'])} :"
+                f" {probability:.0%} · {odds}"
+            )
+            blocks.append("\n".join(lines))
         fair = ticket_fair(ticket)
         if fair >= TICKET_TARGET_ODDS:
-            lines.append(f"🎟️ TICKET · cote {fmt_short(fair)}")
+            blocks.append(f"💰 Cote totale : {fmt_short(fair)}")
         else:
-            lines.append(
-                f"🎟️ TICKET · cote {TICKET_TARGET_ODDS:g} non atteinte"
+            blocks.append(
+                f"💰 Cote {TICKET_TARGET_ODDS:g} non atteinte"
                 f" (meilleur {fmt_short(fair)})"
             )
-        lines.append(" / ".join(
-            light_label(leg["result"]["fixture"], leg["market"], TICKET_LABELS)
-            for leg in ticket
-        ))
     else:
-        lines.append("🎟️ TICKET · pas assez de matchs")
+        blocks.append("🎟️ TICKET DU JOUR\nPas assez de matchs exploitables.")
 
+    footer = []
     if summary and summary.get("markets"):
         n = sum(s["n"] for s in summary["markets"].values())
         wins = sum(s["wins"] for s in summary["markets"].values())
         profit = sum(s["profit"] for s in summary["markets"].values())
         if n:
-            lines.append("")
-            lines.append(f"📊 {STATS_DAYS}j : {wins / n:.0%} · ROI {fmt_roi(profit / n)}")
-
+            footer.append(f"📊 {STATS_DAYS}j : {wins / n:.0%} · ROI {fmt_roi(profit / n)}")
     if partial:
-        lines.append("⚠️ Analyse partielle (quota API)")
-    return "\n".join(lines)
+        footer.append("⚠️ Analyse partielle (quota API)")
+    if footer:
+        blocks.append("\n".join(footer))
+    return "\n\n".join(blocks)
 
 
 def write_fiches(selected, enrich, ticket, partial, analysed, total, summary, now):
@@ -3318,12 +3424,23 @@ def run(now, today):
     for result in selected:
         try:
             info = enrich_pick(result, today)
-            price = real_odds(result)
-            if price:
-                info["odds"] = price
+            prices = real_odds(result)
+            if prices:
+                info["odds"] = prices
             enrich[str(result["fixture"].get("id"))] = info
         except Exception as exc:
             error(f"Infos pick impossibles : {type(exc).__name__} {exc}")
+
+    ticket_odds = {}
+    for leg in ticket or []:
+        try:
+            fixture = leg["result"]["fixture"]
+            price = real_odds_for(fixture, [leg["market"]]).get(leg["market"])
+            if price:
+                ticket_odds[(str(fixture.get("id")), leg["market"])] = price
+        except Exception as exc:
+            error(f"Cote ticket impossible : {type(exc).__name__} {exc}")
+    enrich["__ticket_odds__"] = ticket_odds
 
     try:
         write_journal(all_results, selected, today, ticket)
