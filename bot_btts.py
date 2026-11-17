@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.6.0
+# BOT FOOTBALL — SPORTAPI — VERSION 6.6.1
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -125,6 +125,18 @@ import requests
 #   Cote affichée seulement pour +1,5 / +2,5 buts et victoire (le marché
 #   "équipe +0,5 but" n'existe pas chez eux).
 # - Jamais d'info inventée : une ligne sans donnée n'est pas affichée.
+#
+# Version 6.6.1 (message Telegram, format choisi par Betpulse) :
+# - Chaque pick affiche la vraie cote (The Odds API) quand elle existe pour
+#   ce marché, sinon la cote min du bot précédée de "~" (estimation).
+#   "✅ value" seulement si la vraie cote dépasse la cote min du bot.
+# - Ticket : "🎟️ TICKET · cote X", jambes séparées par " / ".
+# - Une seule ligne d'alerte courte "⚠️ ..." : buteur absent, expulsé,
+#   mauvais H2H, et repos seulement si <= 2 jours (avant : 3, trop souvent).
+# - Noms courts : sélections nationales ("Football Union of Russia" ->
+#   "Russia", "Bosnia-Herzegovina" -> "Bosnia"...) ; dans les libellés
+#   "match" (Dom-Ext), Town / United / City / FC sont retirés.
+# - Bilan : "📊 30j : 77% · ROI 0%" (plus de "-0%").
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -236,7 +248,7 @@ ENRICH_RESERVE = 40          # appels gardés pour H2H / buteurs / cartons
 SHOWN_MARKETS = 1            # une ligne par match dans le message
 H2H_N = 5
 H2H_ALERT_MAX = 2            # l'équipe a marqué <= 2 fois sur 5 H2H -> alerte
-REST_ALERT_DAYS = 3
+REST_ALERT_DAYS = 2
 TOPSCORER_MIN_GOALS = 3
 LINEUP_MAX_AGE_DAYS = 14
 FICHES_DIR = "data/fiches"
@@ -287,7 +299,7 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.6.0"
+MODEL_VERSION = "6.6.1"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -308,7 +320,7 @@ FIELDS = FIELDS_V63 + ["home_id", "away_id", "odds_taken"]
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.6.0",
+    "User-Agent": "football-history-bot/6.6.1",
 })
 
 CACHE = {}
@@ -2396,7 +2408,7 @@ def enrich_pick(result, today):
     for s in ([side] if side else ["home", "away"]):
         rest = info[s].get("rest")
         if rest is not None and rest <= REST_ALERT_DAYS:
-            info["alerts"].append(f"😴 {names[s]} {rest} j de repos")
+            info["alerts"].append(f"{display_name(names[s])} {rest} j de repos")
 
     # H2H
     if budget_available():
@@ -2407,10 +2419,10 @@ def enrich_pick(result, today):
                 scored = h2h[f"{side}_scored"]
                 if scored <= H2H_ALERT_MAX:
                     info["alerts"].append(
-                        f"🤝 {names[side]} a marqué {scored}/{h2h['n']} en H2H"
+                        f"H2H {display_name(names[side])} a marqué {scored}/{h2h['n']}"
                     )
             elif market == "over15" and h2h["over15"] <= H2H_ALERT_MAX:
-                info["alerts"].append(f"🤝 +1,5 buts {h2h['over15']}/{h2h['n']} en H2H")
+                info["alerts"].append(f"H2H +1,5 buts {h2h['over15']}/{h2h['n']}")
 
     # Buteur absent / expulsé au dernier match (indices, à vérifier)
     for s in ([side] if side else []):
@@ -2426,12 +2438,14 @@ def enrich_pick(result, today):
             played = lineup_names(match)
             if played is not None and last_name(scorer[0]) not in played:
                 info["scorer_absent"] = scorer
-                info["alerts"].append(f"⚠️ {scorer[0]} absent dernier match")
+                info["alerts"].append(f"{player_short(scorer[0])} absent")
         if budget_available():
             reds = red_cards_last_match(match)
             if reds:
                 info["reds"] = reds
-                info["alerts"].append(f"🟥 {', '.join(reds)} expulsé dernier match")
+                info["alerts"].append(
+                    ", ".join(player_short(p) for p in reds) + " expulsé"
+                )
     return info
 
 
@@ -2911,22 +2925,94 @@ def build_message(selected, partial, analysed, total, ticket=None, summary=None)
     return "\n".join(lines)
 
 
+# 6.6.1 : noms officiels de fédérations -> nom court
+NATION_NAMES = {
+    "football union of russia": "Russia",
+    "bosnia-herzegovina": "Bosnia",
+    "bosnia and herzegovina": "Bosnia",
+    "bosnia & herzegovina": "Bosnia",
+    "republic of ireland": "Ireland",
+    "korea republic": "South Korea",
+    "korea dpr": "North Korea",
+    "ir iran": "Iran",
+    "china pr": "China",
+    "united states": "USA",
+    "cape verde islands": "Cape Verde",
+    "trinidad and tobago": "Trinidad",
+    "antigua and barbuda": "Antigua",
+    "st. kitts and nevis": "St Kitts",
+    "saint kitts and nevis": "St Kitts",
+    "st. vincent / grenadines": "St Vincent",
+    "st. vincent and the grenadines": "St Vincent",
+    "chinese taipei": "Taiwan",
+    "north macedonia": "Macedonia",
+    "central african republic": "Centrafrique",
+    "dr congo": "RD Congo",
+    "congo dr": "RD Congo",
+}
+CLUB_SUFFIXES = {"town", "united", "city", "fc", "afc", "cf"}
+
+
+def display_name(value):
+    """Nom affiché sur Telegram (fédérations raccourcies, sinon inchangé)."""
+    name = " ".join(str(value or "Equipe").split())
+    name = NATION_NAMES.get(name.lower(), name)
+    return short_name(name)
+
+
+def compact_name(value):
+    """Nom encore plus court pour les libellés "Dom-Ext" : sans Town,
+    United, City, FC... (gardé si le nom deviendrait vide)."""
+    name = display_name(value)
+    words = name.split()
+    while len(words) > 1 and words[-1].lower().strip(".") in CLUB_SUFFIXES:
+        words.pop()
+    while len(words) > 1 and words[0].lower().strip(".") in ("fc", "afc", "cf"):
+        words.pop(0)
+    return " ".join(words)
+
+
+def player_short(value):
+    """'J. Smith' -> 'Smith' (initiales retirées, nom gardé)."""
+    words = str(value or "").split()
+    kept = [w for w in words if not (len(w) <= 3 and w.endswith("."))]
+    return " ".join(kept or words)
+
+
 LIGHT_LABELS = {
     "home": "{home} +0,5", "away": "{away} +0,5",
-    "over15": "{home}-{away} +1,5 buts", "over25": "{home}-{away} +2,5 buts",
+    "over15": "{mhome}-{maway} +1,5", "over25": "{mhome}-{maway} +2,5",
     "home15": "{home} +1,5 but", "away15": "{away} +1,5 but",
     "win_home": "{home} gagne", "win_away": "{away} gagne",
-    "btts": "BTTS {home}-{away}",
+    "btts": "BTTS {mhome}-{maway}",
 }
-TICKET_LABELS = dict(LIGHT_LABELS, over15="{home}-{away} +1,5", over25="{home}-{away} +2,5")
+TICKET_LABELS = dict(LIGHT_LABELS, home15="{home} +1,5", away15="{away} +1,5")
 
 
 def light_label(fixture, market, labels=LIGHT_LABELS):
     template = labels.get(market, market)
     return template.format(
-        home=short_name(fixture.get("home_team")),
-        away=short_name(fixture.get("away_team")),
+        home=display_name(fixture.get("home_team")),
+        away=display_name(fixture.get("away_team")),
+        mhome=compact_name(fixture.get("home_team")),
+        maway=compact_name(fixture.get("away_team")),
     )
+
+
+def odds_text(probability, price):
+    """'cote 1,36 ✅ value' (vraie cote) ou 'cote ~1,25' (estimation bot)."""
+    floor = min_odds(probability)
+    if price:
+        text = f"cote {fmt_odds(price)}"
+        if floor is not None and price > floor:
+            text += " ✅ value"
+        return text
+    return f"cote ~{fmt_odds(floor)}" if floor is not None else ""
+
+
+def fmt_roi(value):
+    pct = round(value * 100)
+    return "0%" if pct == 0 else f"{pct:+d}%"
 
 
 def fmt_short(value):
@@ -2949,17 +3035,14 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
         info = enrich.get(str(fixture.get("id"))) or {}
         for market, probability in shown_picks(result):
             index += 1
-            line = (
-                f"{index}. {light_label(fixture, market)} · {probability:.0%}"
-                f" · min {fmt_odds(min_odds(probability))}"
-            )
-            price = info.get("odds")
-            if price:
-                line += f" · cote {fmt_odds(price)} ({probability * price - 1:+.0%})"
+            line = f"{index}. {light_label(fixture, market)} · {probability:.0%}"
+            odds = odds_text(probability, info.get("odds"))
+            if odds:
+                line += f" · {odds}"
             lines.append(line)
         alerts = info.get("alerts") or []
         if alerts:
-            lines.append("   " + " · ".join(alerts))
+            lines.append("   ⚠️ " + ", ".join(alerts))
     if index == 0:
         lines.append("Aucun prono solide aujourd'hui.")
 
@@ -2967,18 +3050,18 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
     if ticket:
         fair = ticket_fair(ticket)
         if fair >= TICKET_TARGET_ODDS:
-            lines.append(f"🎟️ TICKET (cote {fmt_short(fair)})")
+            lines.append(f"🎟️ TICKET · cote {fmt_short(fair)}")
         else:
             lines.append(
-                f"🎟️ TICKET : cote {TICKET_TARGET_ODDS:g} non atteinte"
+                f"🎟️ TICKET · cote {TICKET_TARGET_ODDS:g} non atteinte"
                 f" (meilleur {fmt_short(fair)})"
             )
-        lines.append(" · ".join(
+        lines.append(" / ".join(
             light_label(leg["result"]["fixture"], leg["market"], TICKET_LABELS)
             for leg in ticket
         ))
     else:
-        lines.append("🎟️ TICKET : pas assez de matchs")
+        lines.append("🎟️ TICKET · pas assez de matchs")
 
     if summary and summary.get("markets"):
         n = sum(s["n"] for s in summary["markets"].values())
@@ -2986,7 +3069,7 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
         profit = sum(s["profit"] for s in summary["markets"].values())
         if n:
             lines.append("")
-            lines.append(f"📒 {STATS_DAYS}j : {wins / n:.0%} réussite · ROI {profit / n:+.0%}")
+            lines.append(f"📊 {STATS_DAYS}j : {wins / n:.0%} · ROI {fmt_roi(profit / n)}")
 
     if partial:
         lines.append("⚠️ Analyse partielle (quota API)")
@@ -3008,7 +3091,7 @@ def write_fiches(selected, enrich, ticket, partial, analysed, total, summary, no
                 f"{kickoff_of(fixture).strftime('%H:%M')}"
             )
             extra.extend("  " + line for line in detail_lines(result, info))
-            extra.extend("  " + a for a in info.get("alerts") or [])
+            extra.extend("  ⚠️ " + a for a in info.get("alerts") or [])
             extra.append("")
         extra.append(f"Appels API ce lancement : {CALLS} · cache : {CACHE_HITS}")
         os.makedirs(FICHES_DIR, exist_ok=True)
