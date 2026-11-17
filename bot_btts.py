@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.4.0
+# BOT FOOTBALL — SPORTAPI — VERSION 6.6.0
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -77,6 +77,54 @@ import requests
 # 14. Enjeu (motivation) d'après le classement déjà lu (standings) :
 #     affiché, et un léger bonus/malus dans la note du ticket.
 #     Cotes bookmaker et blessures : voir TODO (endpoint non utilisé ici).
+#
+# Version 6.5.0 (d'après ton bilan 30 jours) :
+# - Enjeu / classement : affichés UNIQUEMENT pour un vrai championnat
+#   (format "league", pas de groupes, pas de phase/stage, saison en cours,
+#   tableau de 8 à 30 équipes, les 2 équipes dedans, au moins 3 matchs
+#   joués). Plus de "🔥 titre/Europe" sur les sélections, Ligue des nations,
+#   coupes, ni de "2e/1er sur 64". Dans le doute, la ligne n'est pas affichée.
+# - "Domicile +0,5" mis en avant (89 % réussi pour 81 % annoncé, ROI +14 %) :
+#   petit bonus de classement (MARKET_RANK_BONUS) dans les pronos et le
+#   ticket. La probabilité affichée et la cote min ne changent pas, et un
+#   pari doit toujours passer les filtres (72-85 %, forme, cote >= 1,25).
+#   "Extérieur +0,5" (ROI +6 %) reçoit un plus petit bonus.
+# - BTTS n'est plus proposé (1/3, ROI -53 %) ni dans les pronos ni dans le
+#   ticket. Il reste calculé et enregistré dans le journal (published = 0)
+#   pour suivre sa calibration ; les anciennes lignes BTTS restent lues.
+#
+# Version 6.6.0 (offre gratuite SportAPI, 3 lancements par jour) :
+# - Cache disque du jour (data/cache/, purgé après 3 jours) : équipes,
+#   classements, H2H, buteurs, compos... Les 2e et 3e lancements relisent
+#   le cache et ne paient presque plus d'appels. Les stats / compos /
+#   événements d'un match terminé sont gardés pour toujours (ils ne
+#   changent plus). Les matchs du jour sont redemandés avec ETag (304).
+# - Quota : lecture de X-RateLimit-Remaining / X-RateLimit-Month-Remaining.
+#   Budget du jour = quota du mois restant / jours restants (sinon 230),
+#   85 % pour le 1er lancement, le reste pour les suivants. Arrêt propre
+#   avant d'épuiser le quota (jamais de 429 "mois").
+# - Message Telegram ULTRA léger (format validé) : une ligne par pick,
+#   une ligne d'alerte seulement s'il y en a une, ticket en 2 lignes,
+#   bilan en 1 ligne. Le détail complet (forme, buts dom/ext, clean
+#   sheets, matchs sans marquer, repos, H2H, enjeu...) est écrit dans
+#   data/fiches/AAAA-MM-JJ_HHMM.txt.
+# - Infos par pick (sans appel en plus) : buts pour / contre à domicile
+#   et à l'extérieur (5 derniers), % clean sheets, % matchs sans marquer,
+#   jours de repos (+ alerte si <= 3 jours).
+# - H2H (5 derniers) pour les picks publiés seulement : alerte si l'équipe
+#   a peu marqué contre cet adversaire.
+# - Indices (jamais affirmés) : meilleur buteur absent de la compo du
+#   dernier match, joueur expulsé au dernier match. Seulement si le budget
+#   le permet, sinon rien n'est affiché.
+# - Ticket : toujours 4 matchs, cote 10 minimum ; recherche élargie
+#   (2 marchés max par match dans la sélection, puis réserve plus large)
+#   avant de dire "cote 10 non atteinte".
+# - Cotes réelles (optionnel) : seulement si la variable ODDS_API_KEY
+#   existe (The Odds API, 500 crédits gratuits / mois). Sinon aucune
+#   ligne et aucun appel. Max 7 appels (14 crédits) par jour, cache du jour.
+#   Cote affichée seulement pour +1,5 / +2,5 buts et victoire (le marché
+#   "équipe +0,5 but" n'existe pas chez eux).
+# - Jamais d'info inventée : une ligne sans donnée n'est pas affichée.
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -157,6 +205,75 @@ TOP_ZONE = 4             # 4 premiers : titre / Europe
 RELEGATION_ZONE = 3      # 3 derniers : maintien
 MOTIVATION_BONUS = 0.03  # bonus / malus sur la note du ticket
 
+# 6.5.0 : enjeu / classement seulement pour un vrai championnat
+STANDINGS_MIN_SIZE = 8
+STANDINGS_MAX_SIZE = 30   # "sur 64" = tableau de coupe / agrégé -> ignoré
+STANDINGS_MIN_PLAYED = 3
+NON_LEAGUE_PATTERN = re.compile(
+    r"cup|coupe|copa|coppa|pokal|beker|ta[cç]a|trophy|troph[ée]e|shield"
+    r"|super ?cup|supercoupe|nations|qualif|friendl|amica|world|mondial"
+    r"|euro|africa|afcon|\bcan\b|asian|gold cup|concacaf|conmebol|uefa|fifa"
+    r"|\bcaf\b|\bafc\b|\bofc\b|champions league|\bchampions\b|europa|conference league|libertadores"
+    r"|sudamericana|play-?offs?|barrage|group|groupe|international",
+    re.IGNORECASE,
+)
+
+# 6.5.0 : bonus de CLASSEMENT (pas de probabilité) selon ton bilan 30 jours
+MARKET_RANK_BONUS = {"home": 0.03, "away": 0.01}
+# 6.5.0 : marchés calculés et journalisés mais jamais proposés
+NOT_PROPOSED = {"btts"}
+
+# ---- 6.6.0 : cache disque + quota SportAPI (offre gratuite) ----
+DISK_CACHE_DIR = "data/cache"
+CACHE_KEEP_DAYS = 3
+PERMANENT_ENDPOINT = re.compile(r"^fixtures/\d+/(stats|lineups|events)$")
+DAILY_BUDGET_DEFAULT = 230   # 7 000 / mois ÷ 30 si l'API ne donne pas son quota
+FIRST_RUN_SHARE = 0.85       # le 1er lancement garde 15 % pour les suivants
+QUOTA_RESERVE = 15           # on s'arrête avant d'épuiser le quota
+ENRICH_RESERVE = 40          # appels gardés pour H2H / buteurs / cartons
+
+# ---- 6.6.0 : infos par pick ----
+SHOWN_MARKETS = 1            # une ligne par match dans le message
+H2H_N = 5
+H2H_ALERT_MAX = 2            # l'équipe a marqué <= 2 fois sur 5 H2H -> alerte
+REST_ALERT_DAYS = 3
+TOPSCORER_MIN_GOALS = 3
+LINEUP_MAX_AGE_DAYS = 14
+FICHES_DIR = "data/fiches"
+TICKET_POOL_WIDE = 40
+TICKET_PER_MATCH = 2
+
+# ---- 6.6.0 : cotes réelles (optionnel, The Odds API) ----
+ODDS_API_KEY = os.getenv("ODDS_API_KEY", "").strip()
+ODDS_BASE_URL = "https://api.the-odds-api.com/v4"
+ODDS_REGIONS = "eu"
+ODDS_MARKETS = "h2h,totals"          # 2 crédits par appel
+ODDS_MAX_CALLS_PER_DAY = 7           # 14 crédits / jour ≈ 420 / mois (< 500)
+ODDS_MIN_REMAINING = 30
+# (motif du nom de ligue SportAPI, pays SportAPI ou None, clé The Odds API)
+# Chaque clé est revérifiée à l'exécution dans /v4/sports (appel gratuit).
+ODDS_SPORT_KEYS = [
+    ("2 bundesliga", "Germany", "soccer_germany_bundesliga2"),
+    ("bundesliga", "Germany", "soccer_germany_bundesliga"),
+    ("premier league", "England", "soccer_epl"),
+    ("championship", "England", "soccer_efl_champ"),
+    ("league one", "England", "soccer_england_league1"),
+    ("league two", "England", "soccer_england_league2"),
+    ("ligue 1", "France", "soccer_france_ligue_one"),
+    ("ligue 2", "France", "soccer_france_ligue_two"),
+    ("serie a", "Italy", "soccer_italy_serie_a"),
+    ("serie b", "Italy", "soccer_italy_serie_b"),
+    ("segunda", "Spain", "soccer_spain_segunda_division"),
+    ("la liga", "Spain", "soccer_spain_la_liga"),
+    ("eredivisie", "Netherlands", "soccer_netherlands_eredivisie"),
+    ("primeira", "Portugal", "soccer_portugal_primeira_liga"),
+    ("premiership", "Scotland", "soccer_spl"),
+    ("super lig", "Turkey", "soccer_turkey_super_league"),
+    ("mls", "USA", "soccer_usa_mls"),
+    ("champions league", None, "soccer_uefa_champs_league"),
+    ("europa league", None, "soccer_uefa_europa_league"),
+]
+
 # ---- Bilan / envoi ----
 STATS_DAYS = 30
 SUMMARY_FILE = "data/bilan.csv"
@@ -170,7 +287,7 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.4.0"
+MODEL_VERSION = "6.6.0"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -191,12 +308,22 @@ FIELDS = FIELDS_V63 + ["home_id", "away_id", "odds_taken"]
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.4.0",
+    "User-Agent": "football-history-bot/6.6.0",
 })
 
 CACHE = {}
 TEAM_CACHE = {}
 STANDINGS_CACHE = {}
+STANDINGS_META = {}
+
+# 6.6.0 : cache disque / quota
+DISK = {"day": None, "data": {}, "etag": {}, "dirty": False}
+PERM = {"loaded": False, "data": {}, "dirty": False}
+USAGE = {}
+QUOTA = {}
+RUN_CAP = None
+CACHE_HITS = 0
+ABSENT = {"__absent__": True}
 SOT_CACHE = {}
 
 ERRORS = []
@@ -213,7 +340,7 @@ STARTED = time.monotonic()
 
 def safe(value):
     text = str(value)
-    for secret in (TOKEN, API_KEY, CHAT_ID):
+    for secret in (TOKEN, API_KEY, CHAT_ID, ODDS_API_KEY):
         if secret:
             text = text.replace(secret, "[MASQUE]")
     return text
@@ -226,10 +353,11 @@ def error(message):
         ERRORS.append(message)
 
 
-def budget_available():
+def budget_available(reserve=0):
+    cap = MAX_API_CALLS if RUN_CAP is None else min(MAX_API_CALLS, RUN_CAP)
     return (
         not BLOCKED
-        and CALLS < MAX_API_CALLS
+        and CALLS < cap - reserve
         and time.monotonic() - STARTED < MAX_RUNTIME_SECONDS
     )
 
@@ -343,13 +471,23 @@ def retry_pause(response):
 
 
 def api_get(endpoint):
-    global CALLS, LAST_CALL, BLOCKED, FAILS
+    global CALLS, LAST_CALL, BLOCKED, FAILS, CACHE_HITS
 
     if endpoint in CACHE:
         return CACHE[endpoint]
 
+    # 6.6.0 : cache disque (jour / permanent)
+    found, cached, etag = disk_lookup(endpoint)
+    if found and not is_fresh(endpoint):
+        CACHE_HITS += 1
+        CACHE[endpoint] = cached
+        return cached
+
     for attempt in range(MAX_RETRIES + 1):
         if not budget_available():
+            if found:  # copie un peu ancienne plutôt que rien
+                CACHE[endpoint] = cached
+                return cached
             return None
 
         if LAST_CALL is not None:
@@ -362,16 +500,30 @@ def api_get(endpoint):
         print(f"API {CALLS}/{MAX_API_CALLS} : {endpoint}", flush=True)
 
         try:
-            response = SESSION.get(
-                f"{BASE_URL}/{endpoint}",
-                timeout=TIMEOUT,
-            )
+            if found and etag:
+                response = SESSION.get(
+                    f"{BASE_URL}/{endpoint}",
+                    timeout=TIMEOUT,
+                    headers={"If-None-Match": etag},
+                )
+            else:
+                response = SESSION.get(
+                    f"{BASE_URL}/{endpoint}",
+                    timeout=TIMEOUT,
+                )
         except requests.RequestException:
             error(f"{endpoint} : erreur reseau.")
             if attempt < MAX_RETRIES:
                 time.sleep(2 * (attempt + 1))
                 continue
             return failed(endpoint)
+
+        read_quota(response)
+
+        if response.status_code == 304 and found:
+            FAILS = 0
+            CACHE[endpoint] = cached
+            return cached
 
         if response.status_code == 429:
             pause = retry_pause(response)
@@ -394,6 +546,7 @@ def api_get(endpoint):
             # ce n'est PAS une panne -> pas d'échec d'affilée.
             REASONS["Ressource absente (404)"] += 1
             CACHE[endpoint] = None
+            disk_store(endpoint, None)
             return None
 
         if response.status_code >= 500 and attempt < MAX_RETRIES:
@@ -417,9 +570,217 @@ def api_get(endpoint):
 
         FAILS = 0
         CACHE[endpoint] = payload
+        disk_store(endpoint, payload, response.headers.get("ETag") if hasattr(response, "headers") else None)
         return payload
 
     return None
+
+
+# ---------------- CACHE DISQUE / QUOTA (6.6.0) ----------------
+
+def paris_today():
+    return datetime.now(PARIS).date()
+
+
+def read_json(path, default):
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data if isinstance(data, type(default)) else default
+    except (OSError, ValueError):
+        return default
+
+
+def write_json(path, data):
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        temp = path + ".tmp"
+        with open(temp, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False)
+        os.replace(temp, path)
+    except (OSError, TypeError, ValueError) as exc:
+        error(f"Ecriture {path} impossible : {type(exc).__name__}")
+
+
+def day_cache_path(day):
+    return os.path.join(DISK_CACHE_DIR, f"{day.isoformat()}.json")
+
+
+def load_disk_cache(day=None):
+    day = day or paris_today()
+    if DISK["day"] == day.isoformat():
+        return
+    data = read_json(day_cache_path(day), {})
+    DISK.update({
+        "day": day.isoformat(),
+        "data": data.get("data", {}) if isinstance(data.get("data"), dict) else {},
+        "etag": data.get("etag", {}) if isinstance(data.get("etag"), dict) else {},
+        "dirty": False,
+    })
+    if not PERM["loaded"]:
+        perm = read_json(os.path.join(DISK_CACHE_DIR, "permanent.json"), {})
+        PERM.update({"loaded": True, "data": perm, "dirty": False})
+    purge_disk_cache(day)
+
+
+def purge_disk_cache(day):
+    """Supprime les caches du jour plus vieux que CACHE_KEEP_DAYS."""
+    try:
+        names = os.listdir(DISK_CACHE_DIR)
+    except OSError:
+        return
+    for name in names:
+        match = re.match(r"^(\d{4}-\d{2}-\d{2})\.json$", name)
+        if not match:
+            continue
+        try:
+            age = (day - datetime.fromisoformat(match.group(1)).date()).days
+        except ValueError:
+            continue
+        if age > CACHE_KEEP_DAYS:
+            try:
+                os.remove(os.path.join(DISK_CACHE_DIR, name))
+            except OSError:
+                pass
+
+
+def save_disk_cache():
+    if DISK["day"] and DISK["dirty"]:
+        write_json(
+            day_cache_path(datetime.fromisoformat(DISK["day"]).date()),
+            {"data": DISK["data"], "etag": DISK["etag"]},
+        )
+        DISK["dirty"] = False
+    if PERM["loaded"] and PERM["dirty"]:
+        write_json(os.path.join(DISK_CACHE_DIR, "permanent.json"), PERM["data"])
+        PERM["dirty"] = False
+
+
+def is_fresh(endpoint):
+    """Données qui bougent dans la journée : liste des matchs d'aujourd'hui
+    et d'hier (scores). Redemandées à chaque lancement (avec ETag)."""
+    match = re.match(r"^fixtures/date/(\d{4}-\d{2}-\d{2})$", endpoint)
+    if not match:
+        return False
+    try:
+        day = datetime.fromisoformat(match.group(1)).date()
+    except ValueError:
+        return True
+    return (paris_today() - day).days <= 1
+
+
+def disk_lookup(endpoint):
+    """Renvoie (trouvé, payload, etag)."""
+    load_disk_cache()
+    if endpoint in PERM["data"]:
+        return True, PERM["data"][endpoint], None
+    if endpoint in DISK["data"]:
+        value = DISK["data"][endpoint]
+        payload = None if value == ABSENT else value
+        return True, payload, DISK["etag"].get(endpoint)
+    return False, None, None
+
+
+def disk_store(endpoint, payload, etag=None):
+    load_disk_cache()
+    if payload is not None and PERMANENT_ENDPOINT.match(endpoint):
+        # stats / compos / événements : on ne garde que les matchs terminés
+        if payload.get("available") is not False:
+            PERM["data"][endpoint] = payload
+            PERM["dirty"] = True
+            return
+    DISK["data"][endpoint] = ABSENT if payload is None else payload
+    if etag:
+        DISK["etag"][endpoint] = etag
+    DISK["dirty"] = True
+    if len(DISK["data"]) % 25 == 0:
+        save_disk_cache()
+
+
+def header_number(response, name):
+    headers = getattr(response, "headers", None) or {}
+    try:
+        value = headers.get(name)
+    except AttributeError:
+        return None
+    return number(value)
+
+
+def read_quota(response):
+    """Lit le quota restant et resserre le budget de ce lancement."""
+    global RUN_CAP
+    day_left = header_number(response, "X-RateLimit-Remaining")
+    month_left = header_number(response, "X-RateLimit-Month-Remaining")
+    if day_left is not None:
+        QUOTA["day"] = int(day_left)
+    if month_left is not None:
+        QUOTA["month"] = int(month_left)
+        if not USAGE.get("share_from_api"):
+            # 1re lecture du jour : part du jour = quota du mois / jours restants
+            now = datetime.now(timezone.utc)
+            days_left = month_days_left(now)
+            used = int(USAGE.get("calls", 0)) + CALLS
+            USAGE["share"] = int((QUOTA["month"] + used) / days_left)
+            USAGE["share_from_api"] = True
+            RUN_CAP = run_allowance()
+    limits = []
+    if "day" in QUOTA:
+        limits.append(CALLS + QUOTA["day"] - QUOTA_RESERVE)
+    if "month" in QUOTA:
+        limits.append(CALLS + QUOTA["month"] - QUOTA_RESERVE)
+    if limits:
+        RUN_CAP = max(0, min([RUN_CAP if RUN_CAP is not None else MAX_API_CALLS] + limits))
+
+
+def month_days_left(now):
+    """Jours restants dans le mois (UTC), aujourd'hui compris."""
+    if now.month == 12:
+        first_next = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc)
+    else:
+        first_next = datetime(now.year, now.month + 1, 1, tzinfo=timezone.utc)
+    return max(1, (first_next.date() - now.date()).days)
+
+
+def usage_path():
+    return os.path.join(DISK_CACHE_DIR, "usage.json")
+
+
+def run_allowance():
+    """Appels permis pour CE lancement d'après la part du jour."""
+    share = int(USAGE.get("share") or DAILY_BUDGET_DEFAULT)
+    before = int(USAGE.get("calls_before_run", 0))
+    target = share if before > 0 else int(share * FIRST_RUN_SHARE)
+    return max(0, min(MAX_API_CALLS, target - before))
+
+
+def init_budget(day=None):
+    """À appeler au début de main : charge l'usage du jour et fixe RUN_CAP."""
+    global RUN_CAP
+    day = (day or datetime.now(timezone.utc).date()).isoformat()
+    data = read_json(usage_path(), {})
+    if data.get("day") != day:
+        data = {"day": day, "calls": 0, "runs": 0,
+                "odds_calls": 0, "odds_remaining": data.get("odds_remaining")}
+    USAGE.clear()
+    USAGE.update(data)
+    USAGE["calls_before_run"] = int(USAGE.get("calls", 0))
+    RUN_CAP = run_allowance()
+    print(
+        f"BUDGET : {RUN_CAP} appels pour ce lancement "
+        f"(deja {USAGE['calls_before_run']} aujourd'hui, part du jour "
+        f"{USAGE.get('share') or DAILY_BUDGET_DEFAULT})",
+        flush=True,
+    )
+
+
+def save_usage():
+    if not USAGE:
+        return
+    USAGE["calls"] = int(USAGE.get("calls_before_run", 0)) + CALLS
+    USAGE["runs"] = int(USAGE.get("runs", 0)) + 1
+    data = {k: v for k, v in USAGE.items() if k != "calls_before_run"}
+    data.update({"quota_day": QUOTA.get("day"), "quota_month": QUOTA.get("month")})
+    write_json(usage_path(), data)
 
 
 def get_list(payload, key="data"):
@@ -563,6 +924,15 @@ def standings_row(league_id, team_id):
     if key not in STANDINGS_CACHE:
         payload = api_get(f"standings/{league_id}")
         STANDINGS_CACHE[key] = get_list(payload)
+        # 6.5.0 : on garde aussi le format / la saison / les groupes
+        if isinstance(payload, dict):
+            STANDINGS_META[key] = {
+                "format": payload.get("format"),
+                "season": payload.get("season"),
+                "stage": payload.get("stage"),
+                "groups": payload.get("groups"),
+                "league": payload.get("league"),
+            }
 
     for row in STANDINGS_CACHE[key]:
         if not isinstance(row, dict):
@@ -986,10 +1356,11 @@ def ticket_candidates(probabilities, extra, home_form, away_form, motivation=Non
     candidates = []
     for market, form_rate in form.items():
         p = prob.get(market)
-        if p is None or market in blocked:
+        if p is None or market in blocked or market in NOT_PROPOSED:
             continue
         score = (1 - TICKET_FORM_WEIGHT) * p + TICKET_FORM_WEIGHT * form_rate
         score += motivation_adjust(market, motivation)
+        score += MARKET_RANK_BONUS.get(market, 0.0)
         candidates.append({
             "market": market,
             "prob": p,
@@ -1003,6 +1374,7 @@ def build_ticket(all_results, now):
     """4 jambes (4 matchs différents) : cote juste >= cible, meilleure forme."""
     pool = []
 
+    legs = []
     for result in all_results:
         kickoff = kickoff_of(result["fixture"])
         if kickoff is None or kickoff <= now:
@@ -1012,8 +1384,42 @@ def build_ticket(all_results, now):
                 pool.append((result, candidate))
 
     pool.sort(key=lambda item: -item[1]["score"])
-    pool = pool[:TICKET_POOL]
 
+    # 6.6.0 : au plus TICKET_PER_MATCH marchés par match dans la sélection
+    # (sinon un même match occupe la place de matchs différents)
+    per_match = Counter()
+    trimmed = []
+    for item in pool:
+        fid = str(item[0]["fixture"].get("id"))
+        if per_match[fid] >= TICKET_PER_MATCH:
+            continue
+        per_match[fid] += 1
+        trimmed.append(item)
+
+    for size in (TICKET_POOL, TICKET_POOL_WIDE):
+        legs = best_combo(trimmed[:size])
+        if legs and legs[0]["_ok"]:
+            break
+        if len(trimmed) <= size:
+            break
+    if not legs:
+        return []
+    for leg in legs:
+        leg.pop("_ok", None)
+    legs.sort(key=lambda leg: kickoff_of(leg["result"]["fixture"]))
+    return legs
+
+
+def ticket_fair(legs):
+    product = 1.0
+    for leg in legs:
+        product *= leg["prob"]
+    return 1 / product if product > 0 else 0
+
+
+def best_combo(pool):
+    """Meilleure combinaison de TICKET_LEGS matchs différents : la mieux
+    notée parmi celles à cote juste >= cible, sinon la mieux notée."""
     best_ok = None
     best_any = None
 
@@ -1037,19 +1443,98 @@ def build_ticket(all_results, now):
             best_any = (mean_score, combo)
 
     if best_ok is not None:
-        combo = best_ok[1]
+        combo, ok = best_ok[1], True
     elif best_any is not None:
-        combo = best_any[1]
+        combo, ok = best_any[1], False
     else:
         return []
 
-    legs = [{"result": r, **c} for r, c in combo]
-    legs.sort(key=lambda leg: kickoff_of(leg["result"]["fixture"]))
-    return legs
+    return [{"result": r, **c, "_ok": ok} for r, c in combo]
 
 
 def ordinal(rank):
     return "1er" if rank == 1 else f"{rank}e"
+
+
+def season_is_current(season, today):
+    """'2026/27' ou '2026' -> saison en cours ? (inconnu -> True)."""
+    years = [int(y) for y in re.findall(r"(?<!\d)(\d{4})(?!\d)", str(season or ""))]
+    short = re.match(r"^\s*(\d{4})\s*[/-]\s*(\d{2})\s*$", str(season or ""))
+    if not years:
+        return True
+    if short or len(years) >= 2:
+        # saison à cheval : commence en juillet/août
+        start = years[0]
+        expected = today.year if today.month >= 7 else today.year - 1
+        return start >= expected
+    year = years[0]
+    return year == today.year or (today.month <= 2 and year == today.year - 1)
+
+
+def standings_ok(fixture, today=None):
+    """6.5.0 : le classement lu est-il bien celui d'un vrai championnat
+    pour CE match ? Sinon (coupe, sélections, groupes, vieille saison,
+    tableau agrégé), on n'affiche ni enjeu ni classement."""
+    today = today or datetime.now(PARIS).date()
+    league_id = fixture.get("league_id")
+    key = str(league_id)
+    if league_id is None:
+        return False
+
+    names = [str(fixture.get("league_name") or ""), league_label(fixture) or ""]
+    if fixture.get("stage"):
+        return False
+    if any(NON_LEAGUE_PATTERN.search(name) for name in names if name):
+        return False
+
+    if key not in STANDINGS_CACHE:
+        if not budget_available():
+            return False
+        try:
+            standings_row(league_id, fixture.get("home_id"))
+        except Exception as exc:
+            error(f"Classement illisible : {type(exc).__name__} {exc}")
+            return False
+
+    rows = [r for r in STANDINGS_CACHE.get(key, []) if isinstance(r, dict)]
+    if not STANDINGS_MIN_SIZE <= len(rows) <= STANDINGS_MAX_SIZE:
+        return False
+
+    meta = STANDINGS_META.get(key) or {}
+    fmt = meta.get("format")
+    if fmt is not None and str(fmt).lower() != "league":
+        return False
+    if meta.get("stage"):
+        return False
+    if isinstance(meta.get("groups"), list) and meta["groups"]:
+        return False
+    if any(r.get("group") for r in rows):
+        return False
+    league = meta.get("league")
+    if isinstance(league, dict) and NON_LEAGUE_PATTERN.search(str(league.get("name") or "")):
+        return False
+    if not season_is_current(meta.get("season"), today):
+        return False
+
+    for side in ("home_id", "away_id"):
+        row = next(
+            (r for r in rows if isinstance(r.get("team"), dict)
+             and str(r["team"].get("id")) == str(fixture.get(side))),
+            None,
+        )
+        if row is None:
+            return False
+        played = first_number(row, "played", "games", "matches_played")
+        if played is not None and played < STANDINGS_MIN_PLAYED:
+            return False
+        # Forme du tableau trop ancienne -> tableau d'une autre saison
+        form = row.get("form")
+        if isinstance(form, list) and form:
+            dates = [date_of(m) for m in form if isinstance(m, dict)]
+            dates = [d for d in dates if d is not None]
+            if dates and (today - max(dates)).days > MAX_STALE_DAYS:
+                return False
+    return True
 
 
 def motivation_of(fixture):
@@ -1062,6 +1547,9 @@ def motivation_of(fixture):
     result = {"home": None, "away": None}
     league_id = fixture.get("league_id")
     if league_id is None:
+        return result
+    # 6.5.0 : pas d'enjeu si ce n'est pas un vrai championnat
+    if not standings_ok(fixture):
         return result
 
     for side in ("home", "away"):
@@ -1120,6 +1608,10 @@ def standing_text(fixture):
     """Classement des deux équipes (si l'API le fournit), sinon chaîne vide."""
     league_id = fixture.get("league_id")
     texts = []
+
+    # 6.5.0 : pas de "2e/1er sur 64" tiré d'un tableau de coupe
+    if not standings_ok(fixture):
+        return ""
 
     for side in ("home_id", "away_id"):
         if not budget_available():
@@ -1754,6 +2246,384 @@ def print_summary(summary):
         print(f"Brier : {summary['brier']:.4f} sur {summary['n']} lignes", flush=True)
 
 
+# ---------------- INFOS PAR PICK (6.6.0) ----------------
+
+def norm_text(value):
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9 ]+", " ", text.lower()).strip()
+
+
+def last_name(value):
+    tokens = [t for t in norm_text(value).split() if len(t) > 1]
+    return tokens[-1] if tokens else ""
+
+
+def team_details(history, venue, today):
+    """Stats sans appel en plus, à partir de l'historique déjà chargé."""
+    if not history:
+        return {}
+    details = {}
+    local = [m for m in history if m["venue"] == venue][:5]
+    if len(local) >= 3:
+        details["venue_n"] = len(local)
+        details["venue_gf"] = sum(m["gf"] for m in local) / len(local)
+        details["venue_ga"] = sum(m["ga"] for m in local) / len(local)
+    last = history[:10]
+    if len(last) >= 5:
+        details["n"] = len(last)
+        details["clean_sheets"] = sum(m["ga"] == 0 for m in last) / len(last)
+        details["failed_to_score"] = sum(m["gf"] == 0 for m in last) / len(last)
+    rest = (today - history[0]["date"]).days
+    if 0 < rest <= 60:
+        details["rest"] = rest
+    return details
+
+
+def market_side(market):
+    if market in ("home", "home15", "win_home", "sot_home"):
+        return "home"
+    if market in ("away", "away15", "win_away", "sot_away"):
+        return "away"
+    return None
+
+
+def h2h_info(fixture):
+    """5 derniers face-à-face (point de vue du match du jour)."""
+    home_id, away_id = fixture.get("home_id"), fixture.get("away_id")
+    payload = api_get(f"fixtures/h2h/{home_id}/{away_id}")
+    rows = []
+    for match in get_list(payload):
+        if not isinstance(match, dict):
+            continue
+        if str(match.get("status") or "").upper() not in ("FT", "AET", "PENS"):
+            continue
+        hs, as_ = number(match.get("home_score")), number(match.get("away_score"))
+        if hs is None or as_ is None:
+            continue
+        if str(match.get("home_id")) == str(home_id):
+            gh, ga = hs, as_
+        elif str(match.get("home_id")) == str(away_id):
+            gh, ga = as_, hs
+        else:
+            continue
+        rows.append((str(match.get("date") or ""), int(gh), int(ga)))
+    rows.sort(reverse=True)
+    rows = rows[:H2H_N]
+    if len(rows) < 3:
+        return None
+    return {
+        "n": len(rows),
+        "home_scored": sum(gh > 0 for _, gh, _ in rows),
+        "away_scored": sum(ga > 0 for _, _, ga in rows),
+        "over15": sum(gh + ga >= 2 for _, gh, ga in rows),
+        "scores": [f"{gh}-{ga}" for _, gh, ga in rows],
+    }
+
+
+def top_scorer(league_id, team_id):
+    payload = api_get(f"leagues/{league_id}/topscorers?limit=100")
+    best = None
+    for row in get_list(payload):
+        if not isinstance(row, dict) or str(row.get("team_id")) != str(team_id):
+            continue
+        goals = number(row.get("goals"))
+        if goals is None or goals < TOPSCORER_MIN_GOALS:
+            continue
+        if best is None or goals > best[1]:
+            best = (row.get("player_name"), goals)
+    return best
+
+
+def last_match(history, today):
+    """Dernier match de l'équipe avec un identifiant, s'il est récent."""
+    for match in history[:1]:
+        if match.get("id") and (today - match["date"]).days <= LINEUP_MAX_AGE_DAYS:
+            return match
+    return None
+
+
+def lineup_names(match):
+    """Noms des joueurs ayant joué le dernier match (titulaires + entrés)."""
+    payload = api_get(f"fixtures/{match['id']}/lineups")
+    if not isinstance(payload, dict) or payload.get("available") is False:
+        return None
+    data = payload.get("data")
+    side = data.get(match["venue"]) if isinstance(data, dict) else None
+    if not isinstance(side, dict):
+        return None
+    names = set()
+    starters = side.get("starters") if isinstance(side.get("starters"), list) else []
+    subs = side.get("subs") if isinstance(side.get("subs"), list) else []
+    for player in starters:
+        if isinstance(player, dict):
+            names.add(last_name(player.get("name")))
+    for player in subs:
+        if isinstance(player, dict) and (number(player.get("mins_played")) or 0) > 0:
+            names.add(last_name(player.get("name")))
+    names.discard("")
+    return names if len(starters) >= 7 else None
+
+
+def red_cards_last_match(match):
+    payload = api_get(f"fixtures/{match['id']}/events")
+    players = []
+    for event in get_list(payload):
+        if not isinstance(event, dict):
+            continue
+        kind = str(event.get("event_type") or "").lower()
+        if "red" in kind and str(event.get("team_side")) == match["venue"]:
+            if event.get("player_name"):
+                players.append(str(event["player_name"]))
+    return players
+
+
+def enrich_pick(result, today):
+    """Infos + alertes pour un pick publié. Ne renvoie que des données
+    réellement lues ; chaque bloc est sauté si le budget manque."""
+    fixture = result["fixture"]
+    market = shown_picks(result)[0][0] if shown_picks(result) else None
+    side = market_side(market)
+    info = {"alerts": []}
+    home_hist = result.get("home_history") or []
+    away_hist = result.get("away_history") or []
+    info["home"] = team_details(home_hist, "home", today)
+    info["away"] = team_details(away_hist, "away", today)
+    names = {"home": short_name(fixture.get("home_team")),
+             "away": short_name(fixture.get("away_team"))}
+
+    # Repos court (seulement l'équipe sur laquelle on parie)
+    for s in ([side] if side else ["home", "away"]):
+        rest = info[s].get("rest")
+        if rest is not None and rest <= REST_ALERT_DAYS:
+            info["alerts"].append(f"😴 {names[s]} {rest} j de repos")
+
+    # H2H
+    if budget_available():
+        h2h = h2h_info(fixture)
+        if h2h:
+            info["h2h"] = h2h
+            if side in ("home", "away") and market in ("home", "away"):
+                scored = h2h[f"{side}_scored"]
+                if scored <= H2H_ALERT_MAX:
+                    info["alerts"].append(
+                        f"🤝 {names[side]} a marqué {scored}/{h2h['n']} en H2H"
+                    )
+            elif market == "over15" and h2h["over15"] <= H2H_ALERT_MAX:
+                info["alerts"].append(f"🤝 +1,5 buts {h2h['over15']}/{h2h['n']} en H2H")
+
+    # Buteur absent / expulsé au dernier match (indices, à vérifier)
+    for s in ([side] if side else []):
+        if not budget_available():
+            break
+        team_id = fixture.get(f"{s}_id")
+        history = home_hist if s == "home" else away_hist
+        match = last_match(history, today)
+        if match is None:
+            continue
+        scorer = top_scorer(fixture.get("league_id"), team_id)
+        if scorer and budget_available():
+            played = lineup_names(match)
+            if played is not None and last_name(scorer[0]) not in played:
+                info["scorer_absent"] = scorer
+                info["alerts"].append(f"⚠️ {scorer[0]} absent dernier match")
+        if budget_available():
+            reds = red_cards_last_match(match)
+            if reds:
+                info["reds"] = reds
+                info["alerts"].append(f"🟥 {', '.join(reds)} expulsé dernier match")
+    return info
+
+
+def shown_picks(result):
+    return (result.get("picks") or [])[:SHOWN_MARKETS]
+
+
+def fr1(value):
+    return f"{value:.1f}".replace(".", ",")
+
+
+def detail_lines(result, info):
+    """Lignes détaillées pour la fiche (fichier), jamais pour Telegram."""
+    fixture = result["fixture"]
+    lines = []
+    for s, label in (("home", "Dom"), ("away", "Ext")):
+        d = info.get(s) or {}
+        name = short_name(fixture.get(f"{s}_team"))
+        parts = []
+        if "venue_gf" in d:
+            parts.append(
+                f"{fr1(d['venue_gf'])} marqués / {fr1(d['venue_ga'])} encaissés "
+                f"({d['venue_n']} derniers {'à domicile' if s == 'home' else 'à l’extérieur'})"
+            )
+        if "clean_sheets" in d:
+            parts.append(f"clean sheets {d['clean_sheets']:.0%}")
+            parts.append(f"sans marquer {d['failed_to_score']:.0%} ({d['n']} m.)")
+        if "rest" in d:
+            parts.append(f"repos {d['rest']} j")
+        if parts:
+            lines.append(f"{label} {name} : " + " · ".join(parts))
+    h2h = info.get("h2h")
+    if h2h:
+        lines.append(
+            f"H2H ({h2h['n']}) : {' '.join(h2h['scores'])} · dom a marqué "
+            f"{h2h['home_scored']}/{h2h['n']} · ext {h2h['away_scored']}/{h2h['n']}"
+        )
+    if info.get("scorer_absent"):
+        name, goals = info["scorer_absent"]
+        lines.append(f"Buteur {name} ({int(goals)} buts) absent de la compo du dernier match (à vérifier)")
+    if info.get("reds"):
+        lines.append(f"Expulsé(s) au dernier match : {', '.join(info['reds'])} (suspension possible)")
+    if info.get("odds"):
+        lines.append(f"Cote marché : {fmt_odds(info['odds'])}")
+    return lines
+
+
+# ---------------- COTES RÉELLES (optionnel, 6.6.0) ----------------
+
+ODDS_STATE = {"sports": None, "events": {}}
+
+
+def odds_get(path, params):
+    """Appel The Odds API (jamais sans clé). Renvoie (json, headers)."""
+    params = dict(params, apiKey=ODDS_API_KEY)
+    try:
+        response = requests.get(f"{ODDS_BASE_URL}/{path}", params=params, timeout=TIMEOUT)
+    except requests.RequestException as exc:
+        error(f"Cotes : erreur reseau {type(exc).__name__}")
+        return None, {}
+    headers = getattr(response, "headers", None) or {}
+    if not response.ok:
+        error(f"Cotes : HTTP {response.status_code}")
+        return None, headers
+    try:
+        return response.json(), headers
+    except ValueError:
+        return None, headers
+
+
+def odds_sport_key(fixture):
+    name = norm_text(fixture.get("league_name"))
+    zone = str(fixture.get("league_zone") or "")
+    if not name or NON_LEAGUE_PATTERN.search(name) and "champions league" not in name and "europa league" not in name:
+        return None
+    for pattern, country, key in ODDS_SPORT_KEYS:
+        if pattern in name and (country is None or not zone or country.lower() == zone.lower()):
+            return key
+    return None
+
+
+def odds_events(sport_key):
+    """Cotes d'une ligue : cache du jour, quota mensuel respecté."""
+    if not ODDS_API_KEY:
+        return None
+    cache_key = f"odds:{sport_key}"
+    load_disk_cache()
+    if cache_key in DISK["data"]:
+        value = DISK["data"][cache_key]
+        return None if value == ABSENT else value
+    if ODDS_STATE["sports"] is None:
+        sports_key = "odds:sports"
+        sports = DISK["data"].get(sports_key)
+        if not isinstance(sports, list):
+            sports, _ = odds_get("sports/", {})  # gratuit (hors quota)
+            sports = sports if isinstance(sports, list) else []
+            DISK["data"][sports_key] = sports
+            DISK["dirty"] = True
+        ODDS_STATE["sports"] = {s.get("key") for s in sports if isinstance(s, dict)}
+    if sport_key not in ODDS_STATE["sports"]:
+        return None
+    if int(USAGE.get("odds_calls", 0)) >= ODDS_MAX_CALLS_PER_DAY:
+        return None
+    remaining = USAGE.get("odds_remaining")
+    if remaining is not None and number(remaining) is not None and number(remaining) < ODDS_MIN_REMAINING:
+        return None
+    data, headers = odds_get(
+        f"sports/{sport_key}/odds/",
+        {"regions": ODDS_REGIONS, "markets": ODDS_MARKETS, "oddsFormat": "decimal"},
+    )
+    USAGE["odds_calls"] = int(USAGE.get("odds_calls", 0)) + 1
+    try:
+        left = headers.get("x-requests-remaining")
+    except AttributeError:
+        left = None
+    if number(left) is not None:
+        USAGE["odds_remaining"] = int(number(left))
+    DISK["data"][cache_key] = data if isinstance(data, list) else ABSENT
+    DISK["dirty"] = True
+    return data if isinstance(data, list) else None
+
+
+def same_team(a, b):
+    ta, tb = set(norm_text(a).split()), set(norm_text(b).split())
+    ta -= {"fc", "cf", "sc", "afc", "ac", "club", "de", "the"}
+    tb -= {"fc", "cf", "sc", "afc", "ac", "club", "de", "the"}
+    if not ta or not tb:
+        return False
+    if ta & tb:
+        return True
+    # "Lyon" / "Olympique Lyonnais", "Man Utd" / "Manchester United"
+    return any(
+        len(min(x, y, key=len)) >= 4 and (x.startswith(y) or y.startswith(x))
+        for x in ta for y in tb
+    )
+
+
+def find_event(events, fixture):
+    kickoff = kickoff_of(fixture)
+    for event in events or []:
+        if not isinstance(event, dict):
+            continue
+        if not (same_team(event.get("home_team"), fixture.get("home_team"))
+                and same_team(event.get("away_team"), fixture.get("away_team"))):
+            continue
+        start = kickoff_of({"kickoff_utc": event.get("commence_time")})
+        if kickoff and start and abs((start - kickoff).total_seconds()) > 3 * 3600:
+            continue
+        return event
+    return None
+
+
+def market_price(event, market):
+    """Cote médiane des bookmakers pour un marché du bot, si elle existe."""
+    prices = []
+    for book in event.get("bookmakers") or []:
+        for item in (book.get("markets") or []) if isinstance(book, dict) else []:
+            key = item.get("key")
+            for outcome in item.get("outcomes") or []:
+                price = number(outcome.get("price"))
+                if price is None or price <= 1:
+                    continue
+                name = outcome.get("name")
+                point = number(outcome.get("point"))
+                if key == "totals" and name == "Over":
+                    if (market == "over15" and point == 1.5) or (market == "over25" and point == 2.5):
+                        prices.append(price)
+                elif key == "h2h":
+                    if market == "win_home" and name == event.get("home_team"):
+                        prices.append(price)
+                    elif market == "win_away" and name == event.get("away_team"):
+                        prices.append(price)
+    if not prices:
+        return None
+    prices.sort()
+    return prices[len(prices) // 2]
+
+
+def real_odds(result):
+    """Cote réelle du pick affiché (None si pas de clé / pas de marché)."""
+    if not ODDS_API_KEY or not shown_picks(result):
+        return None
+    fixture = result["fixture"]
+    key = odds_sport_key(fixture)
+    if not key:
+        return None
+    event = find_event(odds_events(key), fixture)
+    if not event:
+        return None
+    return market_price(event, shown_picks(result)[0][0])
+
+
 # ---------------- ANALYSE ----------------
 
 def analyse(fixture, today):
@@ -1781,17 +2651,25 @@ def analyse(fixture, today):
     for market, probability in probabilities.items():
         if not MIN_PROB <= probability <= MAX_PROB:
             continue
+        if market in NOT_PROPOSED:
+            continue
         if market in blocked:
             REASONS[f"Forme : {market} écarté"] += 1
             print(f"FORME : {market} écarté ({blocked[market]})", flush=True)
             continue
         eligible_picks.append((market, probability))
 
-    picks = sorted(eligible_picks, key=lambda item: item[1], reverse=True)[:MAX_MARKETS]
+    # 6.5.0 : bonus de classement (Domicile +0,5 d'abord à proba proche)
+    picks = sorted(
+        eligible_picks,
+        key=lambda item: item[1] + MARKET_RANK_BONUS.get(item[0], 0.0),
+        reverse=True,
+    )[:MAX_MARKETS]
 
     # Tirs cadrés (non publiés) : seulement s'il reste assez de budget API
     home_sot = away_sot = None
-    if CALLS < MAX_API_CALLS * SOT_BUDGET_SHARE:
+    run_cap = MAX_API_CALLS if RUN_CAP is None else min(MAX_API_CALLS, RUN_CAP)
+    if CALLS < run_cap * SOT_BUDGET_SHARE:
         home_sot = sot_profile(home_history, "home", today, fixture["home_id"])
         away_sot = sot_profile(away_history, "away", today, fixture["away_id"])
     else:
@@ -1840,7 +2718,10 @@ def analyse(fixture, today):
         "picks": picks,
         "probabilities": probabilities,
         "base": probabilities,
-        "best": picks[0][1] if picks else 0,
+        "best": (
+            max(p + MARKET_RANK_BONUS.get(m, 0.0) for m, p in picks)
+            if picks else 0
+        ),
         "lambda_home": lambda_home,
         "lambda_away": lambda_away,
         "home_sot": home_sot,
@@ -1851,6 +2732,8 @@ def analyse(fixture, today):
         "candidates": candidates,
         "blocked": blocked,
         "motivation": motivation,
+        "home_history": home_history,
+        "away_history": away_history,
     }
 
 
@@ -2028,6 +2911,116 @@ def build_message(selected, partial, analysed, total, ticket=None, summary=None)
     return "\n".join(lines)
 
 
+LIGHT_LABELS = {
+    "home": "{home} +0,5", "away": "{away} +0,5",
+    "over15": "{home}-{away} +1,5 buts", "over25": "{home}-{away} +2,5 buts",
+    "home15": "{home} +1,5 but", "away15": "{away} +1,5 but",
+    "win_home": "{home} gagne", "win_away": "{away} gagne",
+    "btts": "BTTS {home}-{away}",
+}
+TICKET_LABELS = dict(LIGHT_LABELS, over15="{home}-{away} +1,5", over25="{home}-{away} +2,5")
+
+
+def light_label(fixture, market, labels=LIGHT_LABELS):
+    template = labels.get(market, market)
+    return template.format(
+        home=short_name(fixture.get("home_team")),
+        away=short_name(fixture.get("away_team")),
+    )
+
+
+def fmt_short(value):
+    return fmt_odds(value).rstrip("0").rstrip(",")
+
+
+def build_light_message(selected, partial, ticket=None, summary=None, enrich=None, today=None):
+    """Message Telegram ultra léger (format validé par Betpulse)."""
+    enrich = enrich or {}
+    day = today or datetime.now(PARIS).date()
+    lines = [f"⚽ PRONOS {day.strftime('%d/%m')}"]
+
+    ordered = sorted(
+        selected,
+        key=lambda r: -(shown_picks(r)[0][1] if shown_picks(r) else 0),
+    )
+    index = 0
+    for result in ordered:
+        fixture = result["fixture"]
+        info = enrich.get(str(fixture.get("id"))) or {}
+        for market, probability in shown_picks(result):
+            index += 1
+            line = (
+                f"{index}. {light_label(fixture, market)} · {probability:.0%}"
+                f" · min {fmt_odds(min_odds(probability))}"
+            )
+            price = info.get("odds")
+            if price:
+                line += f" · cote {fmt_odds(price)} ({probability * price - 1:+.0%})"
+            lines.append(line)
+        alerts = info.get("alerts") or []
+        if alerts:
+            lines.append("   " + " · ".join(alerts))
+    if index == 0:
+        lines.append("Aucun prono solide aujourd'hui.")
+
+    lines.append("")
+    if ticket:
+        fair = ticket_fair(ticket)
+        if fair >= TICKET_TARGET_ODDS:
+            lines.append(f"🎟️ TICKET (cote {fmt_short(fair)})")
+        else:
+            lines.append(
+                f"🎟️ TICKET : cote {TICKET_TARGET_ODDS:g} non atteinte"
+                f" (meilleur {fmt_short(fair)})"
+            )
+        lines.append(" · ".join(
+            light_label(leg["result"]["fixture"], leg["market"], TICKET_LABELS)
+            for leg in ticket
+        ))
+    else:
+        lines.append("🎟️ TICKET : pas assez de matchs")
+
+    if summary and summary.get("markets"):
+        n = sum(s["n"] for s in summary["markets"].values())
+        wins = sum(s["wins"] for s in summary["markets"].values())
+        profit = sum(s["profit"] for s in summary["markets"].values())
+        if n:
+            lines.append("")
+            lines.append(f"📒 {STATS_DAYS}j : {wins / n:.0%} réussite · ROI {profit / n:+.0%}")
+
+    if partial:
+        lines.append("⚠️ Analyse partielle (quota API)")
+    return "\n".join(lines)
+
+
+def write_fiches(selected, enrich, ticket, partial, analysed, total, summary, now):
+    """Fiche complète (ancien message détaillé + infos par pick) dans
+    data/fiches/ : tout le détail, sans alourdir Telegram."""
+    try:
+        text = build_message(selected, partial, analysed, total, ticket, summary)
+        extra = ["", "===== DÉTAIL PAR PICK ====="]
+        for result in sorted(selected, key=lambda r: kickoff_of(r["fixture"])):
+            fixture = result["fixture"]
+            info = enrich.get(str(fixture.get("id"))) or {}
+            extra.append(
+                f"{short_name(fixture.get('home_team'))} — "
+                f"{short_name(fixture.get('away_team'))} · "
+                f"{kickoff_of(fixture).strftime('%H:%M')}"
+            )
+            extra.extend("  " + line for line in detail_lines(result, info))
+            extra.extend("  " + a for a in info.get("alerts") or [])
+            extra.append("")
+        extra.append(f"Appels API ce lancement : {CALLS} · cache : {CACHE_HITS}")
+        os.makedirs(FICHES_DIR, exist_ok=True)
+        path = os.path.join(FICHES_DIR, now.strftime("%Y-%m-%d_%H%M") + ".txt")
+        with open(path, "w", encoding="utf-8") as file:
+            file.write(text + "\n" + "\n".join(extra) + "\n")
+        return path
+    except Exception as exc:
+        error(f"Fiche impossible : {type(exc).__name__} {exc}")
+        return None
+
+
 def write_journal(all_results, selected, today, ticket=()):
     rows = read_predictions()
     known = {
@@ -2036,7 +3029,7 @@ def write_journal(all_results, selected, today, ticket=()):
     }
     published = {
         (str(r["fixture"].get("id")), m)
-        for r in selected for m, _ in r["picks"]
+        for r in selected for m, _ in shown_picks(r)
     }
 
     ticket_keys = {
@@ -2111,6 +3104,20 @@ def main():
     now = datetime.now(PARIS)
     today = now.date()
 
+    # 6.6.0 : cache disque + budget du jour
+    load_disk_cache(today)
+    init_budget()
+    try:
+        run(now, today)
+    finally:
+        save_disk_cache()
+        save_usage()
+        print(f"APPELS API : {CALLS} (cache : {CACHE_HITS}) · quota {QUOTA}", flush=True)
+
+
+def run(now, today):
+    global PARTIAL
+
     try:
         settle_previous_predictions(today)
     except Exception as exc:
@@ -2171,7 +3178,8 @@ def main():
     analysed = 0
 
     for fixture in eligible:
-        if not budget_available():
+        # 6.6.0 : on garde ENRICH_RESERVE appels pour les infos des picks
+        if not budget_available(ENRICH_RESERVE):
             PARTIAL = True
             break
 
@@ -2222,6 +3230,18 @@ def main():
         ticket = []
         error(f"Ticket impossible : {type(exc).__name__} {exc}")
 
+    # 6.6.0 : infos par pick publié (H2H, buteur, cartons, cotes)
+    enrich = {}
+    for result in selected:
+        try:
+            info = enrich_pick(result, today)
+            price = real_odds(result)
+            if price:
+                info["odds"] = price
+            enrich[str(result["fixture"].get("id"))] = info
+        except Exception as exc:
+            error(f"Infos pick impossibles : {type(exc).__name__} {exc}")
+
     try:
         write_journal(all_results, selected, today, ticket)
     except Exception as exc:
@@ -2245,9 +3265,13 @@ def main():
     print("DIAGNOSTIC :", dict(REASONS), flush=True)
     print("ERREURS :", ERRORS, flush=True)
 
-    send_message(
-        build_message(selected, PARTIAL, analysed, len(eligible), ticket, summary)
+    fiche = write_fiches(
+        selected, enrich, ticket, PARTIAL, analysed, len(eligible), summary, now
     )
+    if fiche:
+        print("FICHE :", fiche, flush=True)
+
+    send_message(build_light_message(selected, PARTIAL, ticket, summary, enrich, today))
     mark_sent(today)
 
 
