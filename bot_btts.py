@@ -5,6 +5,7 @@ import os
 import re
 import time
 import unicodedata
+import itertools
 from collections import Counter
 from datetime import datetime, timezone
 from urllib.parse import quote
@@ -13,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.2.2
+# BOT FOOTBALL — SPORTAPI — VERSION 6.3.0
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -34,6 +35,12 @@ import requests
 # - Un match avec 0 tir cadré n'est plus traité comme une donnée absente
 # - Plus de plancher sur la probabilité "extérieur marque"
 # - Tirs cadrés : enregistrés dans le journal mais NON publiés (non validés)
+#
+# Version 6.3.0 :
+# - Ticket du jour (4 matchs, cote juste visée ~10) choisi sur la forme des
+#   5 derniers matchs + probabilité 50-72 %, tous marchés buts
+# - Nouveaux marchés journalisés : victoire, +1,5 but équipe, +2,5 buts
+# - Journal : on enregistre dès 50 % (published = 2 pour le ticket)
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -53,9 +60,17 @@ SOT_HISTORY_N = 5
 SOT_CACHE_FILE = "data/sot_stats_cache.json"
 
 ODDS_MARGIN = 1.03
-LOG_MIN_PROB = 0.65
+LOG_MIN_PROB = 0.50
 
 MAX_MATCHES = 15
+
+TICKET_LEGS = 4
+TICKET_MIN_PROB = 0.50
+TICKET_MAX_PROB = 0.72
+TICKET_TARGET_ODDS = 10.0
+TICKET_FORM_N = 5
+TICKET_POOL = 24
+TICKET_FORM_WEIGHT = 0.40
 MAX_MARKETS = 3
 
 MAX_PER_LEAGUE = 12
@@ -91,7 +106,7 @@ AWAY_PROB_FLOOR = 0.60
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.2.2"
+MODEL_VERSION = "6.3.0"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -672,6 +687,177 @@ def estimate(home, away):
     }
 
 
+# ---------------- TICKET (FORME + MARCHÉS BUTS) ----------------
+
+def poisson_pmf(k, lam):
+    return math.exp(-lam) * lam ** k / math.factorial(k)
+
+
+def win_probabilities(lambda_home, lambda_away, limit=12):
+    home_pmf = [poisson_pmf(i, lambda_home) for i in range(limit)]
+    away_pmf = [poisson_pmf(i, lambda_away) for i in range(limit)]
+    p_home = sum(
+        home_pmf[i] * away_pmf[j]
+        for i in range(limit) for j in range(limit) if i > j
+    )
+    p_away = sum(
+        home_pmf[i] * away_pmf[j]
+        for i in range(limit) for j in range(limit) if i < j
+    )
+    return p_home, p_away
+
+
+def extra_probabilities(lambda_home, lambda_away):
+    """Marchés supplémentaires (journalisés, jamais publiés comme pronostics)."""
+    total = lambda_home + lambda_away
+    p_win_home, p_win_away = win_probabilities(lambda_home, lambda_away)
+    return {
+        "win_home": p_win_home,
+        "win_away": p_win_away,
+        "home15": 1 - math.exp(-lambda_home) * (1 + lambda_home),
+        "away15": 1 - math.exp(-lambda_away) * (1 + lambda_away),
+        "over25": 1 - math.exp(-total) * (1 + total + total ** 2 / 2),
+    }
+
+
+def form_stats(history):
+    last = history[:TICKET_FORM_N]
+    n = len(last)
+    if n < 3:
+        return None
+
+    def share(function):
+        return sum(1 for m in last if function(m)) / n
+
+    points = sum(
+        3 if m["gf"] > m["ga"] else 1 if m["gf"] == m["ga"] else 0
+        for m in last
+    )
+    letters = [
+        "V" if m["gf"] > m["ga"] else "N" if m["gf"] == m["ga"] else "D"
+        for m in reversed(last)
+    ]
+
+    return {
+        "n": n,
+        "points": points,
+        "pts_rate": points / (3 * n),
+        "g2": share(lambda m: m["gf"] >= 2),
+        "c2": share(lambda m: m["ga"] >= 2),
+        "o15": share(lambda m: m["gf"] + m["ga"] >= 2),
+        "o25": share(lambda m: m["gf"] + m["ga"] >= 3),
+        "btts": share(lambda m: m["gf"] > 0 and m["ga"] > 0),
+        "gf": int(sum(m["gf"] for m in last)),
+        "ga": int(sum(m["ga"] for m in last)),
+        "letters": " ".join(letters),
+    }
+
+
+def ticket_candidates(probabilities, extra, home_form, away_form):
+    """Un candidat par marché : probabilité modèle + forme des 5 derniers matchs."""
+    if home_form is None or away_form is None:
+        return []
+
+    prob = {**probabilities, **extra}
+    form = {
+        "win_home": (home_form["pts_rate"] + 1 - away_form["pts_rate"]) / 2,
+        "win_away": (away_form["pts_rate"] + 1 - home_form["pts_rate"]) / 2,
+        "home15": (home_form["g2"] + away_form["c2"]) / 2,
+        "away15": (away_form["g2"] + home_form["c2"]) / 2,
+        "over15": (home_form["o15"] + away_form["o15"]) / 2,
+        "over25": (home_form["o25"] + away_form["o25"]) / 2,
+        "btts": (home_form["btts"] + away_form["btts"]) / 2,
+    }
+
+    candidates = []
+    for market, form_rate in form.items():
+        p = prob.get(market)
+        if p is None:
+            continue
+        candidates.append({
+            "market": market,
+            "prob": p,
+            "form": form_rate,
+            "score": (1 - TICKET_FORM_WEIGHT) * p + TICKET_FORM_WEIGHT * form_rate,
+        })
+    return candidates
+
+
+def build_ticket(all_results, now):
+    """4 jambes (4 matchs différents) : cote juste >= cible, meilleure forme."""
+    pool = []
+
+    for result in all_results:
+        if kickoff_of(result["fixture"]) <= now:
+            continue
+        for candidate in result.get("candidates", []):
+            if TICKET_MIN_PROB <= candidate["prob"] <= TICKET_MAX_PROB:
+                pool.append((result, candidate))
+
+    pool.sort(key=lambda item: -item[1]["score"])
+    pool = pool[:TICKET_POOL]
+
+    best_ok = None
+    best_any = None
+
+    for combo in itertools.combinations(pool, TICKET_LEGS):
+        fixtures = {str(r["fixture"].get("id")) for r, _ in combo}
+        if len(fixtures) < TICKET_LEGS:
+            continue
+
+        product = 1.0
+        for _, candidate in combo:
+            product *= candidate["prob"]
+        fair = 1 / product
+        mean_score = sum(c["score"] for _, c in combo) / TICKET_LEGS
+
+        if fair >= TICKET_TARGET_ODDS:
+            if best_ok is None or mean_score > best_ok[0]:
+                best_ok = (mean_score, combo)
+        if best_any is None or fair > best_any[0]:
+            best_any = (fair, combo)
+
+    if best_ok is not None:
+        combo = best_ok[1]
+    elif best_any is not None:
+        combo = best_any[1]
+    else:
+        return []
+
+    legs = [{"result": r, **c} for r, c in combo]
+    legs.sort(key=lambda leg: kickoff_of(leg["result"]["fixture"]))
+    return legs
+
+
+def ordinal(rank):
+    return "1er" if rank == 1 else f"{rank}e"
+
+
+def standing_text(fixture):
+    """Classement des deux équipes (si l'API le fournit), sinon chaîne vide."""
+    league_id = fixture.get("league_id")
+    texts = []
+
+    for side in ("home_id", "away_id"):
+        if not budget_available():
+            return ""
+        row = standings_row(league_id, fixture.get(side))
+        if not isinstance(row, dict):
+            return ""
+        rank = first_number(row, "position", "rank", "pos", "place")
+        points = first_number(row, "points", "pts")
+        if rank is None:
+            return ""
+        text = ordinal(int(rank))
+        if points is not None:
+            text += f" ({int(points)} pts)"
+        texts.append(text)
+
+    size = len(STANDINGS_CACHE.get(str(league_id), []))
+    suffix = f" sur {size}" if size else ""
+    return f"{texts[0]} · {texts[1]}{suffix}"
+
+
 # ---------------- TIRS CADRÉS ----------------
 
 def first_number(row, *keys):
@@ -970,6 +1156,16 @@ def outcome(market, home_score, away_score):
         return home_score > 0 and away_score > 0
     if market == "over15":
         return home_score + away_score >= 2
+    if market == "over25":
+        return home_score + away_score >= 3
+    if market == "win_home":
+        return home_score > away_score
+    if market == "win_away":
+        return away_score > home_score
+    if market == "home15":
+        return home_score >= 2
+    if market == "away15":
+        return away_score >= 2
     return None
 
 
@@ -1113,6 +1309,11 @@ def analyse(fixture, today):
     # Tirs cadrés : enregistrés dans le journal (write_journal) mais non
     # publiés tant que la calibration n'est pas validée.
 
+    extra = extra_probabilities(lambda_home, lambda_away)
+    home_form = form_stats(home_history)
+    away_form = form_stats(away_history)
+    candidates = ticket_candidates(probabilities, extra, home_form, away_form)
+
     print(
         "MODELE :",
         fixture.get("home_team"), "-", fixture.get("away_team"),
@@ -1135,6 +1336,10 @@ def analyse(fixture, today):
         "lambda_away": lambda_away,
         "home_sot": home_sot,
         "away_sot": away_sot,
+        "extra": extra,
+        "home_form": home_form,
+        "away_form": away_form,
+        "candidates": candidates,
     }
 
 
@@ -1149,12 +1354,82 @@ def market_labels(fixture):
         "away": f"{away} +0,5 but",
         "btts": "BTTS Oui",
         "over15": "Plus de 1,5 but",
+        "over25": "Plus de 2,5 buts",
+        "win_home": f"{home} gagne",
+        "win_away": f"{away} gagne",
+        "home15": f"{home} +1,5 but",
+        "away15": f"{away} +1,5 but",
         "sot_home": f"{home} : plus de 2,5 tirs cadrés",
         "sot_away": f"{away} : plus de 2,5 tirs cadrés",
     }
 
 
-def build_message(selected, partial, analysed, total):
+def ticket_lines(ticket):
+    lines = ["🎟️ TICKET DU JOUR (expérimental)"]
+
+    if not ticket:
+        lines.extend([
+            "Pas de ticket aujourd'hui : pas assez de matchs exploitables.",
+            "",
+        ])
+        return lines
+
+    fair_total = 1.0
+    min_total = 1.0
+
+    for index, leg in enumerate(ticket, 1):
+        result = leg["result"]
+        fixture = result["fixture"]
+        home = short_name(fixture.get("home_team"))
+        away = short_name(fixture.get("away_team"))
+        kickoff = kickoff_of(fixture).strftime("%H:%M")
+        probability = leg["prob"]
+        label = market_labels(fixture)[leg["market"]]
+
+        fair_total *= 1 / probability
+        min_total *= min_odds(probability)
+
+        lines.append(f"{index}. {home} — {away} · {kickoff}")
+        league = league_label(fixture)
+        if league:
+            lines.append(f"🏆 {league}")
+        lines.append(
+            f"• {label} : {probability:.0%}"
+            f" · cote juste {fmt_odds(1 / probability)}"
+        )
+
+        home_form = result.get("home_form")
+        away_form = result.get("away_form")
+        if home_form and away_form:
+            lines.append(
+                f"📊 {home} : {home_form['letters']}"
+                f" ({home_form['points']} pts, {home_form['gf']} buts pour"
+                f" / {home_form['ga']} contre)"
+            )
+            lines.append(
+                f"📊 {away} : {away_form['letters']}"
+                f" ({away_form['points']} pts, {away_form['gf']} buts pour"
+                f" / {away_form['ga']} contre)"
+            )
+
+        if leg.get("standing"):
+            lines.append(f"📍 Classement : {leg['standing']}")
+
+        lines.append("")
+
+    lines.extend([
+        f"🎯 Cote juste du ticket : {fmt_odds(fair_total)}"
+        f" (environ 1 chance sur {fair_total:.0f})",
+        f"💰 Ton bookmaker doit payer au moins {fmt_odds(min_total)} au total.",
+        "⚠️ Petite mise seulement. Probabilités de 50 à 72 % pas encore "
+        "validées. Blessures, météo et compositions ne sont pas dans les "
+        "données du bot : vérifie-les avant de jouer.",
+        "",
+    ])
+    return lines
+
+
+def build_message(selected, partial, analysed, total, ticket=None):
     lines = [
         "⚽ PRONOSTICS DU JOUR",
         datetime.now(PARIS).strftime("📅 %d/%m/%Y"),
@@ -1206,6 +1481,8 @@ def build_message(selected, partial, analysed, total):
             "",
         ])
 
+    lines.extend(ticket_lines(ticket))
+
     lines.append(f"📈 {analysed}/{total} matchs analysés")
 
     if partial:
@@ -1220,7 +1497,7 @@ def build_message(selected, partial, analysed, total):
     return "\n".join(lines)
 
 
-def write_journal(all_results, selected, today):
+def write_journal(all_results, selected, today, ticket=()):
     rows = read_predictions()
     known = {
         (r["date"], r["fixture_id"], r["market"], r["player"])
@@ -1229,6 +1506,11 @@ def write_journal(all_results, selected, today):
     published = {
         (str(r["fixture"].get("id")), m)
         for r in selected for m, _ in r["picks"]
+    }
+
+    ticket_keys = {
+        (str(leg["result"]["fixture"].get("id")), leg["market"])
+        for leg in ticket
     }
 
     for result in all_results:
@@ -1245,6 +1527,7 @@ def write_journal(all_results, selected, today):
         }
 
         all_markets = dict(result["probabilities"])
+        all_markets.update(result.get("extra") or {})
 
         if result.get("home_sot") and result.get("away_sot"):
             all_markets["sot_home"] = sot_probability(
@@ -1268,7 +1551,11 @@ def write_journal(all_results, selected, today):
                 "player": "",
                 "probability": f"{probability:.4f}",
                 "prob_base": f"{probability:.4f}",
-                "published": int((fid, market) in published),
+                "published": (
+                    1 if (fid, market) in published
+                    else 2 if (fid, market) in ticket_keys
+                    else 0
+                ),
             })
             known.add(key)
 
@@ -1382,8 +1669,20 @@ def main():
         if r["picks"] and kickoff_of(r["fixture"]) > publication_time
     ][:MAX_MATCHES]
 
+    ticket = []
     try:
-        write_journal(all_results, selected, today)
+        ticket = build_ticket(all_results, publication_time)
+        for leg in ticket:
+            try:
+                leg["standing"] = standing_text(leg["result"]["fixture"])
+            except Exception:
+                leg["standing"] = ""
+    except Exception as exc:
+        ticket = []
+        error("Ticket impossible : " + type(exc).__name__)
+
+    try:
+        write_journal(all_results, selected, today, ticket)
     except Exception as exc:
         error("Ecriture du journal impossible : " + type(exc).__name__)
 
@@ -1398,7 +1697,7 @@ def main():
     print("ERREURS :", ERRORS, flush=True)
 
     send_message(
-        build_message(selected, PARTIAL, analysed, len(eligible))
+        build_message(selected, PARTIAL, analysed, len(eligible), ticket)
     )
 
 
