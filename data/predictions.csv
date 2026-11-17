@@ -3688,3 +3688,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-17,17917176,Niger - Morocco,CAF Africa Cup of Nations Qualifiers,21:00,over15,,0.7464,0.7464,0,6.6.0,pending,24188,24164,
 2026-11-17,17917176,Niger - Morocco,CAF Africa Cup of Nations Qualifiers,21:00,win_away,,0.5658,0.5658,0,6.6.0,pending,24188,24164,
 2026-11-17,17917176,Niger - Morocco,CAF Africa Cup of Nations Qualifiers,21:00,away15,,0.5104,0.5104,0,6.6.0,pending,24188,24164,
+2026-11-17,17917155,Poland - Sweden,UEFA Nations League,20:45,sot_home,,0.7773,0.7773,0,6.6.1,pending,24029,24034,
+2026-11-17,17917155,Poland - Sweden,UEFA Nations League,20:45,sot_away,,0.6887,0.6887,0,6.6.1,pending,24029,24034,
+2026-11-17,17917176,Niger - Morocco,CAF Africa Cup of Nations Qualifiers,21:00,sot_home,,0.7212,0.7212,0,6.6.1,pending,24188,24164,
+2026-11-17,17917176,Niger - Morocco,CAF Africa Cup of Nations Qualifiers,21:00,sot_away,,0.8394,0.8394,0,6.6.1,pending,24188,24164,
