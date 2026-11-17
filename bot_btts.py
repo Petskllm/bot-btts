@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.3.0
+# BOT FOOTBALL — SPORTAPI — VERSION 6.4.0
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -41,6 +41,42 @@ import requests
 #   5 derniers matchs + probabilité 50-72 %, tous marchés buts
 # - Nouveaux marchés journalisés : victoire, +1,5 but équipe, +2,5 buts
 # - Journal : on enregistre dès 50 % (published = 2 pour le ticket)
+#
+# Version 6.4.0 (revue complète) :
+# Corrections :
+# 1. API : un 404 (stats absentes d'un petit championnat, slug inconnu) ne
+#    compte plus comme un "échec d'affilée". Avant, 8 matchs sans stats de
+#    tirs cadrés suffisaient à bloquer TOUTE l'analyse.
+# 2. Tirs cadrés : les stats d'un ancien match étaient lues avec les
+#    identifiants du match du jour (mauvais adversaire, et mauvaise équipe
+#    pour l'extérieur). On garde maintenant les vrais home_id / away_id.
+# 3. Tirs cadrés : le lieu (domicile / extérieur) se décalait dès qu'un
+#    match sans stats était sauté.
+# 4. Ticket : "équipe +0,5 but" n'avait pas de score de forme et ne pouvait
+#    donc jamais entrer dans le ticket.
+# 5. Ticket : si la cote cible n'est pas atteinte, on prend la combinaison
+#    la mieux notée (avant : la plus grosse cote = la plus risquée).
+# 6. Telegram : nouvel essai (réseau / 429 / 5xx), plus de plantage si la
+#    réponse n'est pas du JSON, un seul envoi par jour (FORCE_SEND=1).
+# 7. Journal : un en-tête différent ne fait plus repartir de zéro,
+#    écriture atomique (.tmp puis remplacement), migration 6.3 -> 6.4.
+# Mineurs : messages d'erreur complets, User-Agent à jour, constante morte
+# AWAY_PROB_FLOOR signalée (gardée), bonus domicile appliqué une seule fois, ids des équipes
+# enregistrés dans le journal (vérification tirs cadrés).
+# Améliorations :
+# 8. Filtre de forme (5 derniers matchs des 2 équipes) : pas de victoire
+#    d'une équipe sur 2 défaites d'affilée, pas de "+0,5 but" pour une
+#    équipe muette 2 fois de suite, l'équipe doit marquer dans >= 3/5 et
+#    l'adversaire encaisser dans >= 3/5, BTTS / +1,5 / +2,5 vérifiés aussi.
+# 9. Cote minimale par jambe : jamais sous MIN_LEG_ODDS (1,25).
+# 10. Bilan de rentabilité : réussite et ROI par marché (cote jouée si la
+#     colonne odds_taken est remplie, sinon cote min), calibration par
+#     tranche, score de Brier, fichier data/bilan.csv.
+# 11. Forme V/N/D affichée sous chaque pronostic.
+# 12. Tirs cadrés calculés seulement s'il reste du budget API.
+# 14. Enjeu (motivation) d'après le classement déjà lu (standings) :
+#     affiché, et un léger bonus/malus dans la note du ticket.
+#     Cotes bookmaker et blessures : voir TODO (endpoint non utilisé ici).
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -101,12 +137,40 @@ DECAY = 0.90
 HOME_ADJUST = 0.02
 AWAY_ADJUST = -0.02
 HOME_PROB_CAP = 0.88
-AWAY_PROB_FLOOR = 0.60
+AWAY_PROB_FLOOR = 0.60  # plus utilisé depuis 6.2.2, gardé pour compatibilité
+
+# ---- Filtre de forme (5 derniers matchs) : la forme prime sur le modèle ----
+FORM_MIN_SCORED = 3      # l'équipe a marqué dans au moins 3 des 5 derniers
+FORM_MIN_CONCEDED = 3    # l'adversaire a encaissé dans au moins 3 des 5
+LOSING_STREAK_MAX = 2    # 2 défaites d'affilée -> pas de victoire sèche
+DRY_STREAK_MAX = 2       # 2 matchs sans marquer -> pas de "+0,5 but"
+FORM_MIN_RATE = 0.40     # BTTS / +1,5 / +2,5 : au moins 40 % sur les 2 équipes
+
+# ---- Cote minimale par jambe : refus sous 1,20, marge de sécurité 1,25 ----
+MIN_LEG_ODDS = 1.25
+
+# ---- Tirs cadrés (non publiés) : seulement s'il reste du budget API ----
+SOT_BUDGET_SHARE = 0.60
+
+# ---- Enjeu (classement) ----
+TOP_ZONE = 4             # 4 premiers : titre / Europe
+RELEGATION_ZONE = 3      # 3 derniers : maintien
+MOTIVATION_BONUS = 0.03  # bonus / malus sur la note du ticket
+
+# ---- Bilan / envoi ----
+STATS_DAYS = 30
+SUMMARY_FILE = "data/bilan.csv"
+SENT_FILE = "data/dernier_envoi.txt"
+ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False = tu peux lancer le bot plusieurs fois par jour
+
+# TODO (non codé, endpoint inconnu dans ce code) :
+# - cotes bookmaker : publier seulement si proba modèle > 1 / cote
+# - blessures / compositions : baisser l'espérance de buts sans le buteur
 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.3.0"
+MODEL_VERSION = "6.4.0"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -115,16 +179,19 @@ RETRY_PAUSE = 60
 MAX_CONSECUTIVE_FAILS = 8
 
 PREDICTIONS_FILE = "data/predictions.csv"
-FIELDS = [
+FIELDS_V63 = [
     "date", "fixture_id", "match", "league", "kickoff",
     "market", "player", "probability", "prob_base",
     "published", "model_version", "result",
 ]
+# 6.4.0 : home_id / away_id (vérification tirs cadrés) et odds_taken
+# (cote réellement jouée, à remplir à la main pour le vrai ROI, ex : 1,45)
+FIELDS = FIELDS_V63 + ["home_id", "away_id", "odds_taken"]
 
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.2.2",
+    "User-Agent": "football-history-bot/6.4.0",
 })
 
 CACHE = {}
@@ -194,18 +261,66 @@ def send_message(text):
         chunks.append(current)
 
     for chunk in chunks:
-        response = requests.post(
-            f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-            json={"chat_id": CHAT_ID, "text": chunk},
-            timeout=TIMEOUT,
-        )
-        payload = response.json() if response.content else {}
+        send_chunk(chunk)
 
-        if not response.ok or not payload.get("ok"):
-            raise RuntimeError(
-                f"Telegram HTTP {response.status_code} : "
-                + safe(payload.get("description", "erreur"))
+
+def send_chunk(chunk, attempts=3):
+    """Envoie un morceau avec nouvel essai (réseau, 429, 5xx)."""
+    last = "erreur"
+    for attempt in range(attempts):
+        try:
+            response = requests.post(
+                f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+                json={"chat_id": CHAT_ID, "text": chunk},
+                timeout=TIMEOUT,
             )
+        except requests.RequestException as exc:
+            last = "reseau : " + type(exc).__name__
+            time.sleep(3 * (attempt + 1))
+            continue
+
+        try:
+            payload = response.json() if response.content else {}
+        except ValueError:
+            payload = {}
+        if not isinstance(payload, dict):
+            payload = {}
+
+        if response.ok and payload.get("ok"):
+            return
+
+        last = (
+            f"HTTP {response.status_code} : "
+            + safe(payload.get("description", "erreur"))
+        )
+        if response.status_code == 429 or response.status_code >= 500:
+            params = payload.get("parameters")
+            pause = number(params.get("retry_after")) if isinstance(params, dict) else None
+            time.sleep(min(pause or 5 * (attempt + 1), 60))
+            continue
+        break  # 400 / 401 / 403 : inutile de réessayer
+
+    raise RuntimeError("Telegram " + last)
+
+
+def already_sent(today):
+    """Évite le double envoi si le workflow est relancé le même jour."""
+    if not ONE_SEND_PER_DAY or os.getenv("FORCE_SEND", "").strip() == "1":
+        return False
+    try:
+        with open(SENT_FILE, "r", encoding="utf-8") as file:
+            return file.read().strip() == today.isoformat()
+    except OSError:
+        return False
+
+
+def mark_sent(today):
+    try:
+        os.makedirs(os.path.dirname(SENT_FILE), exist_ok=True)
+        with open(SENT_FILE, "w", encoding="utf-8") as file:
+            file.write(today.isoformat())
+    except OSError as exc:
+        error(f"Marqueur d'envoi impossible : {type(exc).__name__} {exc}")
 
 
 # ---------------- API ----------------
@@ -274,6 +389,13 @@ def api_get(endpoint):
             BLOCKED = True
             return None
 
+        if response.status_code == 404:
+            # Ressource absente (stats non couvertes, slug inconnu...) :
+            # ce n'est PAS une panne -> pas d'échec d'affilée.
+            REASONS["Ressource absente (404)"] += 1
+            CACHE[endpoint] = None
+            return None
+
         if response.status_code >= 500 and attempt < MAX_RETRIES:
             error(f"{endpoint} : HTTP {response.status_code}, nouvel essai.")
             time.sleep(2 * (attempt + 1))
@@ -326,13 +448,15 @@ def load_sot_cache():
 
 
 def save_sot_cache():
-    os.makedirs(os.path.dirname(SOT_CACHE_FILE), exist_ok=True)
-
-    temp = SOT_CACHE_FILE + ".tmp"
-    with open(temp, "w", encoding="utf-8") as file:
-        json.dump(SOT_CACHE, file, ensure_ascii=False)
-
-    os.replace(temp, SOT_CACHE_FILE)
+    try:
+        os.makedirs(os.path.dirname(SOT_CACHE_FILE), exist_ok=True)
+        temp = SOT_CACHE_FILE + ".tmp"
+        with open(temp, "w", encoding="utf-8") as file:
+            json.dump(SOT_CACHE, file, ensure_ascii=False)
+        os.replace(temp, SOT_CACHE_FILE)
+    except OSError as exc:
+        # Un cache non sauvegardé ne doit pas faire perdre l'analyse
+        error(f"Cache tirs cadres non sauvegarde : {type(exc).__name__}")
 
 
 # ---------------- OUTILS ----------------
@@ -496,6 +620,9 @@ def parse_results(matches, team_id, today, slug=None):
             "venue": "home" if is_home else "away",
             "gf": home_score if is_home else away_score,
             "ga": away_score if is_home else home_score,
+            # 6.4.0 : vrais identifiants du match historique (tirs cadrés)
+            "home_id": match.get("home_id"),
+            "away_id": match.get("away_id"),
         })
 
     return history
@@ -544,6 +671,8 @@ def history_from_form(row, today):
             "venue": "home" if home else "away",
             "gf": home_score if home else away_score,
             "ga": away_score if home else home_score,
+            "home_id": None,
+            "away_id": None,
         })
 
     return merge_history(history)
@@ -664,8 +793,12 @@ def estimate(home, away):
     p_home = 1 - math.exp(-lambda_home)
     p_away = 1 - math.exp(-lambda_away)
 
-    p_home = min(p_home + HOME_ADJUST, HOME_PROB_CAP)
-    p_away = max(p_away + AWAY_ADJUST, 0.0)
+    # 6.4.0 : l'avantage du terrain est déjà dans les stats domicile /
+    # extérieur quand on en a au moins 3 -> le bonus ne s'applique que sinon
+    home_adjust = HOME_ADJUST if home.get("venue_n", 0) < 3 else 0.0
+    away_adjust = AWAY_ADJUST if away.get("venue_n", 0) < 3 else 0.0
+    p_home = min(p_home + home_adjust, HOME_PROB_CAP)
+    p_away = min(max(p_away + away_adjust, 0.0), HOME_PROB_CAP)
 
     total = lambda_home + lambda_away
 
@@ -738,10 +871,22 @@ def form_stats(history):
         for m in reversed(last)
     ]
 
+    def streak(function):
+        count = 0
+        for m in last:  # du plus récent au plus ancien
+            if not function(m):
+                break
+            count += 1
+        return count
+
     return {
         "n": n,
         "points": points,
         "pts_rate": points / (3 * n),
+        "scored": share(lambda m: m["gf"] > 0),
+        "conceded": share(lambda m: m["ga"] > 0),
+        "loss_streak": streak(lambda m: m["gf"] < m["ga"]),
+        "dry_streak": streak(lambda m: m["gf"] == 0),
         "g2": share(lambda m: m["gf"] >= 2),
         "c2": share(lambda m: m["ga"] >= 2),
         "o15": share(lambda m: m["gf"] + m["ga"] >= 2),
@@ -753,13 +898,82 @@ def form_stats(history):
     }
 
 
-def ticket_candidates(probabilities, extra, home_form, away_form):
+def blocked_markets(home_form, away_form):
+    """Filtre de forme sur les 5 derniers matchs des deux équipes.
+
+    Renvoie {marché: raison} pour chaque marché interdit. Sans forme
+    exploitable (moins de 3 matchs), on interdit tout : pas de pari à
+    l'aveugle.
+    """
+    every = ("home", "away", "btts", "over15", "over25",
+             "win_home", "win_away", "home15", "away15")
+    if home_form is None or away_form is None:
+        return {m: "forme récente insuffisante" for m in every}
+
+    blocked = {}
+    sides = (
+        ("home", home_form, away_form),
+        ("away", away_form, home_form),
+    )
+    for side, team, opponent in sides:
+        n = team["n"]
+        scored = round(team["scored"] * n)
+        conceded = round(opponent["conceded"] * opponent["n"])
+        # seuils ramenés au nombre de matchs dispo (3 sur 5 -> 2 sur 3)
+        min_scored = math.ceil(FORM_MIN_SCORED * n / TICKET_FORM_N)
+        min_conceded = math.ceil(FORM_MIN_CONCEDED * opponent["n"] / TICKET_FORM_N)
+
+        # Équipe sur une série de défaites : jamais sa victoire sèche
+        if team["loss_streak"] >= LOSING_STREAK_MAX:
+            blocked[f"win_{side}"] = f"{team['loss_streak']} défaites d'affilée"
+        # Adversaire qui ne perd plus : pas de victoire non plus si
+        # l'équipe ne gagne pas plus souvent que lui
+        elif team["pts_rate"] <= opponent["pts_rate"]:
+            blocked[f"win_{side}"] = "forme pas meilleure que l'adversaire"
+
+        if team["dry_streak"] >= DRY_STREAK_MAX:
+            reason = f"{team['dry_streak']} matchs sans marquer"
+            blocked[side] = reason
+            blocked[f"{side}15"] = reason
+        elif scored < min_scored:
+            blocked[side] = f"a marqué dans {scored}/{n} seulement"
+            blocked[f"{side}15"] = blocked[side]
+        elif conceded < min_conceded:
+            blocked[side] = (
+                f"adversaire a encaissé dans {conceded}/{opponent['n']} seulement"
+            )
+            blocked[f"{side}15"] = blocked[side]
+
+        # +1,5 but équipe : il faut des matchs à 2 buts et une défense poreuse
+        if f"{side}15" not in blocked and (team["g2"] + opponent["c2"]) / 2 < FORM_MIN_RATE:
+            blocked[f"{side}15"] = "trop peu de matchs à 2 buts marqués/encaissés"
+
+    # BTTS : les deux équipes doivent pouvoir marquer
+    if "home" in blocked or "away" in blocked:
+        blocked["btts"] = blocked.get("home") or blocked.get("away")
+    elif (home_form["btts"] + away_form["btts"]) / 2 < FORM_MIN_RATE:
+        blocked["btts"] = "peu de BTTS sur les 5 derniers"
+
+    if (home_form["o15"] + away_form["o15"]) / 2 < FORM_MIN_RATE + 0.2:
+        blocked["over15"] = "peu de matchs à 2 buts ou plus"
+    if (home_form["o25"] + away_form["o25"]) / 2 < FORM_MIN_RATE:
+        blocked["over25"] = "peu de matchs à 3 buts ou plus"
+
+    return blocked
+
+
+def ticket_candidates(probabilities, extra, home_form, away_form, motivation=None):
     """Un candidat par marché : probabilité modèle + forme des 5 derniers matchs."""
     if home_form is None or away_form is None:
         return []
 
     prob = {**probabilities, **extra}
+    blocked = blocked_markets(home_form, away_form)
+    motivation = motivation or {}
     form = {
+        # 6.4.0 : "équipe +0,5 but" a enfin un score de forme
+        "home": (home_form["scored"] + away_form["conceded"]) / 2,
+        "away": (away_form["scored"] + home_form["conceded"]) / 2,
         "win_home": (home_form["pts_rate"] + 1 - away_form["pts_rate"]) / 2,
         "win_away": (away_form["pts_rate"] + 1 - home_form["pts_rate"]) / 2,
         "home15": (home_form["g2"] + away_form["c2"]) / 2,
@@ -772,13 +986,15 @@ def ticket_candidates(probabilities, extra, home_form, away_form):
     candidates = []
     for market, form_rate in form.items():
         p = prob.get(market)
-        if p is None:
+        if p is None or market in blocked:
             continue
+        score = (1 - TICKET_FORM_WEIGHT) * p + TICKET_FORM_WEIGHT * form_rate
+        score += motivation_adjust(market, motivation)
         candidates.append({
             "market": market,
             "prob": p,
             "form": form_rate,
-            "score": (1 - TICKET_FORM_WEIGHT) * p + TICKET_FORM_WEIGHT * form_rate,
+            "score": score,
         })
     return candidates
 
@@ -788,7 +1004,8 @@ def build_ticket(all_results, now):
     pool = []
 
     for result in all_results:
-        if kickoff_of(result["fixture"]) <= now:
+        kickoff = kickoff_of(result["fixture"])
+        if kickoff is None or kickoff <= now:
             continue
         for candidate in result.get("candidates", []):
             if TICKET_MIN_PROB <= candidate["prob"] <= TICKET_MAX_PROB:
@@ -814,8 +1031,10 @@ def build_ticket(all_results, now):
         if fair >= TICKET_TARGET_ODDS:
             if best_ok is None or mean_score > best_ok[0]:
                 best_ok = (mean_score, combo)
-        if best_any is None or fair > best_any[0]:
-            best_any = (fair, combo)
+        # 6.4.0 : repli sur la combinaison la mieux notée (avant : la plus
+        # grosse cote, donc la plus risquée)
+        if best_any is None or mean_score > best_any[0]:
+            best_any = (mean_score, combo)
 
     if best_ok is not None:
         combo = best_ok[1]
@@ -831,6 +1050,70 @@ def build_ticket(all_results, now):
 
 def ordinal(rank):
     return "1er" if rank == 1 else f"{rank}e"
+
+
+def motivation_of(fixture):
+    """Enjeu des deux équipes d'après le classement (standings/{ligue}).
+
+    Renvoie {"home": libellé|None, "away": libellé|None}. Libellés :
+    "titre/Europe", "maintien", "milieu". Rien si la ligue n'a pas de
+    classement (coupe, amical) ou si le budget API est épuisé.
+    """
+    result = {"home": None, "away": None}
+    league_id = fixture.get("league_id")
+    if league_id is None:
+        return result
+
+    for side in ("home", "away"):
+        if not budget_available() and str(league_id) not in STANDINGS_CACHE:
+            return result
+        try:
+            row = standings_row(league_id, fixture.get(f"{side}_id"))
+        except Exception as exc:  # données inattendues : on ignore
+            error(f"Classement illisible : {type(exc).__name__} {exc}")
+            return result
+        if not isinstance(row, dict):
+            continue
+        rank = first_number(row, "position", "rank", "pos", "place")
+        size = len(STANDINGS_CACHE.get(str(league_id), []))
+        if rank is None or size < 8:
+            continue
+        if rank <= TOP_ZONE:
+            result[side] = "titre/Europe"
+        elif rank > size - RELEGATION_ZONE:
+            result[side] = "maintien"
+        else:
+            result[side] = "milieu"
+    return result
+
+
+def motivation_adjust(market, motivation):
+    """Petit bonus si l'équipe concernée joue quelque chose, malus si elle
+    est en milieu de tableau face à une équipe sous pression."""
+    side = None
+    if market in ("home", "home15", "win_home"):
+        side, other = "home", "away"
+    elif market in ("away", "away15", "win_away"):
+        side, other = "away", "home"
+    if side is None:
+        return 0.0
+    mine = motivation.get(side)
+    theirs = motivation.get(other)
+    if mine in ("titre/Europe", "maintien"):
+        return MOTIVATION_BONUS
+    if mine == "milieu" and theirs in ("titre/Europe", "maintien"):
+        return -MOTIVATION_BONUS
+    return 0.0
+
+
+def motivation_text(motivation):
+    labels = {"titre/Europe": "🔥 titre/Europe", "maintien": "🆘 maintien",
+              "milieu": "😐 milieu"}
+    home = labels.get(motivation.get("home"))
+    away = labels.get(motivation.get("away"))
+    if not home and not away:
+        return ""
+    return f"{home or '?'} | {away or '?'}"
 
 
 def standing_text(fixture):
@@ -915,6 +1198,28 @@ def extract_sot_from_stats(stats, home_id, away_id):
             elif team_id == str(away_id):
                 away_sot = value
 
+        # 6.4.0 : une seule équipe reconnue et exactement deux lignes ->
+        # l'autre ligne est forcément l'adversaire
+        if (home_sot is None) != (away_sot is None):
+            values = []
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                team = row.get("team")
+                tid = str(team.get("id")) if isinstance(team, dict) else str(
+                    row.get("team_id") or row.get("teamId")
+                )
+                value = first_number(row, "shots_on_target", "shotsOnTarget", "sot")
+                if value is not None:
+                    values.append((tid, value))
+            if len(values) == 2:
+                if home_sot is None:
+                    others = [v for t, v in values if t != str(away_id)]
+                    home_sot = others[0] if len(others) == 1 else None
+                else:
+                    others = [v for t, v in values if t != str(home_id)]
+                    away_sot = others[0] if len(others) == 1 else None
+
     return home_sot, away_sot
 
 
@@ -949,30 +1254,31 @@ def match_sot(fixture):
     return home_sot, away_sot
 
 
-def sot_history(history, current_fixture):
+def sot_history(history, team_id):
+    """Tirs cadrés pour / contre de l'équipe sur ses derniers matchs.
+    Renvoie aussi le lieu de chaque valeur (domicile / extérieur)."""
     sot_for = []
     sot_against = []
-
-    current_home_id = str(current_fixture.get("home_id"))
-    current_away_id = str(current_fixture.get("away_id"))
+    venues = []
 
     for match in history[:SOT_HISTORY_N]:
         match_id = match.get("id")
         if not match_id:
             continue
 
-        if match["venue"] == "home":
-            historical_fixture = {
-                "id": match_id,
-                "home_id": current_home_id,
-                "away_id": current_away_id,
-            }
-        else:
-            historical_fixture = {
-                "id": match_id,
-                "home_id": current_away_id,
-                "away_id": current_home_id,
-            }
+        # 6.4.0 : vrais identifiants du match historique. Avant, on prenait
+        # ceux du match du jour : l'adversaire n'était jamais le bon.
+        home_id = match.get("home_id")
+        away_id = match.get("away_id")
+        if home_id is None and away_id is None:
+            home_id = team_id if match["venue"] == "home" else None
+            away_id = team_id if match["venue"] == "away" else None
+
+        historical_fixture = {
+            "id": match_id,
+            "home_id": home_id,
+            "away_id": away_id,
+        }
 
         result = match_sot(historical_fixture)
         if result is None:
@@ -986,8 +1292,9 @@ def sot_history(history, current_fixture):
         else:
             sot_for.append(away_sot)
             sot_against.append(home_sot)
+        venues.append(match["venue"])
 
-    return sot_for, sot_against
+    return sot_for, sot_against, venues
 
 
 def weighted_sot(values):
@@ -1000,7 +1307,7 @@ def weighted_sot(values):
     return sum(w * v for w, v in zip(weights, values)) / total
 
 
-def sot_profile(history, venue, today, current_fixture):
+def sot_profile(history, venue, today, team_id):
     recent = history[:HISTORY_N]
     if len(recent) < MIN_HISTORY:
         return None
@@ -1008,7 +1315,7 @@ def sot_profile(history, venue, today, current_fixture):
     if (today - recent[0]["date"]).days > MAX_STALE_DAYS:
         return None
 
-    sot_for, sot_against = sot_history(recent, current_fixture)
+    sot_for, sot_against, venues = sot_history(recent, team_id)
 
     if len(sot_for) < 3:
         return None
@@ -1019,8 +1326,10 @@ def sot_profile(history, venue, today, current_fixture):
     local_for = []
     local_against = []
 
-    for match, for_value, against_value in zip(recent, sot_for, sot_against):
-        if match["venue"] == venue:
+    # 6.4.0 : on suit le lieu renvoyé par sot_history (avant, le zip avec
+    # "recent" se décalait dès qu'un match sans stats était sauté)
+    for place, for_value, against_value in zip(venues, sot_for, sot_against):
+        if place == venue:
             local_for.append(for_value)
             local_against.append(against_value)
 
@@ -1068,9 +1377,12 @@ def sot_probability(team, opponent):
 # ---------------- COTE MINIMALE ----------------
 
 def min_odds(probability):
-    if probability <= 0:
+    """Cote minimale à exiger : value bet (marge 3 %) et jamais sous
+    MIN_LEG_ODDS."""
+    if probability is None or probability <= 0:
         return None
-    return math.ceil(ODDS_MARGIN / probability * 100) / 100
+    value = math.ceil(ODDS_MARGIN / probability * 100) / 100
+    return max(value, MIN_LEG_ODDS)
 
 
 def fmt_odds(value):
@@ -1134,17 +1446,28 @@ def read_predictions_file():
             row["published"] = 1
         return [{k: r.get(k, "") for k in FIELDS} for r in rows]
 
-    backup = PREDICTIONS_FILE.replace(".csv", "_ancien.csv")
+    # 6.4.0 : journal 6.3 (ou colonnes connues) -> on complète les colonnes
+    # manquantes au lieu de repartir de zéro
+    if header and set(header) <= set(FIELDS) and "fixture_id" in header:
+        return [{k: (r.get(k) or "") for k in FIELDS} for r in rows]
+
+    # En-tête vraiment inconnu : copie de sécurité datée, jamais écrasée
+    stamp = datetime.now(PARIS).strftime("%Y%m%d_%H%M%S")
+    backup = PREDICTIONS_FILE.replace(".csv", f"_inconnu_{stamp}.csv")
     os.replace(PREDICTIONS_FILE, backup)
+    error(f"Journal : en-tete inconnu, fichier mis de cote ({backup}).")
     return []
 
 
 def write_predictions(rows):
     os.makedirs(os.path.dirname(PREDICTIONS_FILE), exist_ok=True)
-    with open(PREDICTIONS_FILE, "w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=FIELDS)
+    # Écriture atomique : un plantage pendant l'écriture ne casse pas le CSV
+    temp = PREDICTIONS_FILE + ".tmp"
+    with open(temp, "w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=FIELDS, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
+    os.replace(temp, PREDICTIONS_FILE)
 
 
 def outcome(market, home_score, away_score):
@@ -1233,8 +1556,8 @@ def settle_previous_predictions(today):
         if market in ("sot_home", "sot_away"):
             sot = match_sot({
                 "id": identifier,
-                "home_id": row.get("home_id"),
-                "away_id": row.get("away_id"),
+                "home_id": row.get("home_id") or None,
+                "away_id": row.get("away_id") or None,
             })
 
             if sot is None:
@@ -1263,6 +1586,174 @@ def settle_previous_predictions(today):
         print(f"JOURNAL : {wins}/{len(settled)} gagnes au total.", flush=True)
 
 
+# ---------------- BILAN (ROI / CALIBRATION) ----------------
+
+MARKET_SHORT = {
+    "home": "Dom +0,5", "away": "Ext +0,5", "btts": "BTTS",
+    "over15": "+1,5 buts", "over25": "+2,5 buts", "win_home": "Vict. dom",
+    "win_away": "Vict. ext", "home15": "Dom +1,5", "away15": "Ext +1,5",
+    "sot_home": "TC dom", "sot_away": "TC ext",
+}
+
+
+def parse_odds(value):
+    """'1,45' ou '1.45' -> 1.45 ; vide ou absurde -> None."""
+    odds = number(str(value or "").strip().replace(",", "."))
+    return odds if odds is not None and odds > 1 else None
+
+
+def journal_summary(rows, today, days=STATS_DAYS):
+    """Bilan des lignes réglées (gagne / perdu) sur les `days` derniers jours.
+
+    - par marché, pronostics publiés (1) et ticket (2) séparés : réussite,
+      proba moyenne annoncée, ROI pour une mise de 1 à la cote jouée
+      (odds_taken) si remplie, sinon à la cote min affichée
+    - calibration de TOUTES les lignes journalisées par tranche de 10 %
+    - score de Brier (0 = parfait, 0,25 = pile ou face)
+    """
+    groups = {"publie": {}, "ticket": {}}
+    buckets = {}
+    brier_sum = 0.0
+    brier_n = 0
+    real_odds = 0
+
+    for row in rows:
+        if row.get("result") not in ("gagne", "perdu"):
+            continue
+        try:
+            day = datetime.fromisoformat(str(row.get("date"))).date()
+            probability = float(row.get("probability"))
+        except (TypeError, ValueError):
+            continue
+        if not 0 < probability < 1 or not 0 <= (today - day).days <= days:
+            continue
+
+        won = row["result"] == "gagne"
+        brier_sum += (probability - won) ** 2
+        brier_n += 1
+
+        bucket = min(int(probability * 10), 9) / 10
+        stats = buckets.setdefault(bucket, [0, 0, 0.0])
+        stats[0] += 1
+        stats[1] += won
+        stats[2] += probability
+
+        published = str(row.get("published"))
+        if published not in ("1", "2"):
+            continue
+
+        odds = parse_odds(row.get("odds_taken"))
+        if odds is None:
+            odds = min_odds(probability)
+        else:
+            real_odds += 1
+        group = groups["publie" if published == "1" else "ticket"]
+        entry = group.setdefault(row.get("market"), [0, 0, 0.0, 0.0])
+        entry[0] += 1
+        entry[1] += won
+        entry[2] += (odds - 1) if won else -1
+        entry[3] += probability
+
+    def finish(group):
+        return {
+            m: {"n": n, "wins": w, "hit": w / n, "roi": profit / n,
+                "profit": profit, "pred": p / n}
+            for m, (n, w, profit, p) in group.items()
+        }
+
+    return {
+        "markets": finish(groups["publie"]),
+        "ticket_markets": finish(groups["ticket"]),
+        "calibration": {
+            b: {"n": n, "hit": w / n, "pred": p / n}
+            for b, (n, w, p) in sorted(buckets.items())
+        },
+        "brier": brier_sum / brier_n if brier_n else None,
+        "n": brier_n,
+        "real_odds": real_odds,
+    }
+
+
+def summary_lines(summary):
+    """Bloc Telegram : bilan des pronostics publiés sur STATS_DAYS jours."""
+    if not summary or not summary.get("markets"):
+        return []
+    lines = [f"📒 BILAN {STATS_DAYS} JOURS (pronos publiés, mise 1)"]
+    total_n = total_w = 0
+    total_profit = 0.0
+    ordered = sorted(summary["markets"].items(), key=lambda i: -i[1]["n"])
+    for market, s in ordered:
+        total_n += s["n"]
+        total_w += s["wins"]
+        total_profit += s["profit"]
+        lines.append(
+            f"• {MARKET_SHORT.get(market, market)} : {s['wins']}/{s['n']}"
+            f" ({s['hit']:.0%}, annoncé {s['pred']:.0%})"
+            f" · ROI {s['roi']:+.0%}"
+        )
+    lines.append(
+        f"Total : {total_w}/{total_n} ({total_w / total_n:.0%})"
+        f" · ROI {total_profit / total_n:+.0%}"
+    )
+    if summary.get("brier") is not None:
+        lines.append(
+            f"Brier : {summary['brier']:.3f} (0,25 = pile ou face)".replace(".", ",")
+        )
+    if not summary.get("real_odds"):
+        lines.append(
+            "ℹ️ ROI calculé à la cote min : note tes vraies cotes dans la "
+            "colonne odds_taken pour le ROI réel."
+        )
+    if total_n < 30:
+        lines.append(f"⚠️ {total_n} paris seulement : échantillon trop petit.")
+    lines.append("")
+    return lines
+
+
+def write_summary_file(summary, today):
+    """Écrit data/bilan.csv (un tableau lisible dans Excel / Sheets)."""
+    os.makedirs(os.path.dirname(SUMMARY_FILE), exist_ok=True)
+    temp = SUMMARY_FILE + ".tmp"
+    with open(temp, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file, delimiter=";")
+        writer.writerow(["date_bilan", "type", "cle", "n", "gagnes",
+                         "reussite", "proba_annoncee", "roi"])
+        for kind in ("markets", "ticket_markets"):
+            label = "publie" if kind == "markets" else "ticket"
+            for market, s in sorted(summary[kind].items()):
+                writer.writerow([today.isoformat(), label, market, s["n"],
+                                 s["wins"], f"{s['hit']:.3f}",
+                                 f"{s['pred']:.3f}", f"{s['roi']:.3f}"])
+        for bucket, s in summary["calibration"].items():
+            writer.writerow([today.isoformat(), "calibration",
+                             f"{bucket:.1f}-{bucket + 0.1:.1f}", s["n"], "",
+                             f"{s['hit']:.3f}", f"{s['pred']:.3f}", ""])
+        if summary["brier"] is not None:
+            writer.writerow([today.isoformat(), "brier", "", summary["n"],
+                             "", "", "", f"{summary['brier']:.4f}"])
+    os.replace(temp, SUMMARY_FILE)
+
+
+def print_summary(summary):
+    print("\n===== BILAN JOURNAL =====", flush=True)
+    for kind in ("markets", "ticket_markets"):
+        for market, s in summary[kind].items():
+            print(
+                f"{kind} {market}: {s['wins']}/{s['n']} hit={s['hit']:.2f}"
+                f" pred={s['pred']:.2f} roi={s['roi']:+.3f}",
+                flush=True,
+            )
+    for bucket, s in summary["calibration"].items():
+        gap = s["hit"] - s["pred"]
+        print(
+            f"tranche {bucket:.0%}-{bucket + 0.1:.0%} : prevu {s['pred']:.2f}"
+            f" / reel {s['hit']:.2f} (ecart {gap:+.2f}, n={s['n']})",
+            flush=True,
+        )
+    if summary["brier"] is not None:
+        print(f"Brier : {summary['brier']:.4f} sur {summary['n']} lignes", flush=True)
+
+
 # ---------------- ANALYSE ----------------
 
 def analyse(fixture, today):
@@ -1281,18 +1772,36 @@ def analyse(fixture, today):
 
     lambda_home, lambda_away, probabilities = estimate(home, away)
 
-    picks = sorted(
-        (
-            (market, probability)
-            for market, probability in probabilities.items()
-            if MIN_PROB <= probability <= MAX_PROB
-        ),
-        key=lambda item: item[1],
-        reverse=True,
-    )[:MAX_MARKETS]
+    home_form = form_stats(home_history)
+    away_form = form_stats(away_history)
+    blocked = blocked_markets(home_form, away_form)
 
-    home_sot = sot_profile(home_history, "home", today, fixture)
-    away_sot = sot_profile(away_history, "away", today, fixture)
+    # 6.4.0 : la forme récente prime sur le modèle
+    eligible_picks = []
+    for market, probability in probabilities.items():
+        if not MIN_PROB <= probability <= MAX_PROB:
+            continue
+        if market in blocked:
+            REASONS[f"Forme : {market} écarté"] += 1
+            print(f"FORME : {market} écarté ({blocked[market]})", flush=True)
+            continue
+        eligible_picks.append((market, probability))
+
+    picks = sorted(eligible_picks, key=lambda item: item[1], reverse=True)[:MAX_MARKETS]
+
+    # Tirs cadrés (non publiés) : seulement s'il reste assez de budget API
+    home_sot = away_sot = None
+    if CALLS < MAX_API_CALLS * SOT_BUDGET_SHARE:
+        home_sot = sot_profile(home_history, "home", today, fixture["home_id"])
+        away_sot = sot_profile(away_history, "away", today, fixture["away_id"])
+    else:
+        REASONS["Tirs cadrés sautés (budget)"] += 1
+
+    # Enjeu : uniquement si un pronostic ou le ticket peut en avoir besoin
+    motivation = {"home": None, "away": None}
+    if picks or any(TICKET_MIN_PROB <= p <= TICKET_MAX_PROB
+                    for p in probabilities.values()):
+        motivation = motivation_of(fixture)
 
     sot_picks = []
 
@@ -1310,9 +1819,9 @@ def analyse(fixture, today):
     # publiés tant que la calibration n'est pas validée.
 
     extra = extra_probabilities(lambda_home, lambda_away)
-    home_form = form_stats(home_history)
-    away_form = form_stats(away_history)
-    candidates = ticket_candidates(probabilities, extra, home_form, away_form)
+    candidates = ticket_candidates(
+        probabilities, extra, home_form, away_form, motivation
+    )
 
     print(
         "MODELE :",
@@ -1340,6 +1849,8 @@ def analyse(fixture, today):
         "home_form": home_form,
         "away_form": away_form,
         "candidates": candidates,
+        "blocked": blocked,
+        "motivation": motivation,
     }
 
 
@@ -1414,8 +1925,17 @@ def ticket_lines(ticket):
 
         if leg.get("standing"):
             lines.append(f"📍 Classement : {leg['standing']}")
+        enjeu = motivation_text(result.get("motivation") or {})
+        if enjeu:
+            lines.append(f"⚔️ Enjeu : {enjeu}")
 
         lines.append("")
+
+    if fair_total < TICKET_TARGET_ODDS:
+        lines.append(
+            f"ℹ️ Cote cible {fmt_odds(TICKET_TARGET_ODDS)} non atteinte :"
+            " ticket le mieux noté proposé."
+        )
 
     lines.extend([
         f"🎯 Cote juste du ticket : {fmt_odds(fair_total)}"
@@ -1429,7 +1949,7 @@ def ticket_lines(ticket):
     return lines
 
 
-def build_message(selected, partial, analysed, total, ticket=None):
+def build_message(selected, partial, analysed, total, ticket=None, summary=None):
     lines = [
         "⚽ PRONOSTICS DU JOUR",
         datetime.now(PARIS).strftime("📅 %d/%m/%Y"),
@@ -1466,6 +1986,16 @@ def build_message(selected, partial, analysed, total, ticket=None):
                 f" · 💰 min {fmt_odds(min_odds(probability))}"
             )
 
+        home_form = result.get("home_form")
+        away_form = result.get("away_form")
+        if home_form and away_form:
+            lines.append(
+                f"📊 Forme : {home_form['letters']} | {away_form['letters']}"
+            )
+        enjeu = motivation_text(result.get("motivation") or {})
+        if enjeu:
+            lines.append(f"⚔️ Enjeu : {enjeu}")
+
         projection = (
             f"{result['lambda_home']:.2f} — {result['lambda_away']:.2f}"
         ).replace(".", ",")
@@ -1482,6 +2012,7 @@ def build_message(selected, partial, analysed, total, ticket=None):
         ])
 
     lines.extend(ticket_lines(ticket))
+    lines.extend(summary_lines(summary))
 
     lines.append(f"📈 {analysed}/{total} matchs analysés")
 
@@ -1524,6 +2055,9 @@ def write_journal(all_results, selected, today, ticket=()):
             "kickoff": kickoff_of(fixture).strftime("%H:%M"),
             "model_version": MODEL_VERSION,
             "result": "pending",
+            "home_id": str(fixture.get("home_id") or ""),
+            "away_id": str(fixture.get("away_id") or ""),
+            "odds_taken": "",
         }
 
         all_markets = dict(result["probabilities"])
@@ -1580,7 +2114,11 @@ def main():
     try:
         settle_previous_predictions(today)
     except Exception as exc:
-        error("Verification du journal impossible : " + type(exc).__name__)
+        error(f"Verification du journal impossible : {type(exc).__name__} {exc}")
+
+    if already_sent(today):
+        print("Message deja envoye aujourd'hui (FORCE_SEND=1 pour forcer).", flush=True)
+        return
 
     payload = api_get(f"fixtures/date/{today.isoformat()}")
     if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
@@ -1643,7 +2181,10 @@ def main():
         try:
             result = analyse(fixture, today)
         except Exception as exc:
-            error("Lecture historique impossible : " + type(exc).__name__)
+            error(
+                f"Lecture historique impossible ({fixture.get('id')}) : "
+                f"{type(exc).__name__} {exc}"
+            )
             continue
 
         if result is None:
@@ -1679,12 +2220,20 @@ def main():
                 leg["standing"] = ""
     except Exception as exc:
         ticket = []
-        error("Ticket impossible : " + type(exc).__name__)
+        error(f"Ticket impossible : {type(exc).__name__} {exc}")
 
     try:
         write_journal(all_results, selected, today, ticket)
     except Exception as exc:
-        error("Ecriture du journal impossible : " + type(exc).__name__)
+        error(f"Ecriture du journal impossible : {type(exc).__name__} {exc}")
+
+    summary = None
+    try:
+        summary = journal_summary(read_predictions_file(), today)
+        print_summary(summary)
+        write_summary_file(summary, today)
+    except Exception as exc:
+        error(f"Bilan du journal impossible : {type(exc).__name__} {exc}")
 
     print("\n===== BILAN FINAL =====", flush=True)
     print("MATCHS RECUS :", len(fixtures), flush=True)
@@ -1697,8 +2246,9 @@ def main():
     print("ERREURS :", ERRORS, flush=True)
 
     send_message(
-        build_message(selected, PARTIAL, analysed, len(eligible), ticket)
+        build_message(selected, PARTIAL, analysed, len(eligible), ticket, summary)
     )
+    mark_sent(today)
 
 
 if __name__ == "__main__":
