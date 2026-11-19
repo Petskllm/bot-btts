@@ -2,10 +2,9 @@ name: Bot pronostics
 
 on:
   schedule:
-    # 3 lancements par jour (heure de Paris en hiver) : 10:00, 15:00, 19:00
-    - cron: "0 9 * * *"
-    - cron: "0 14 * * *"
-    - cron: "0 18 * * *"
+    # 2 lancements par jour (heure de Paris en hiver) : 12:00 et 20:00
+    - cron: "0 11 * * *"
+    - cron: "0 19 * * *"
   workflow_dispatch:
 
 permissions:
