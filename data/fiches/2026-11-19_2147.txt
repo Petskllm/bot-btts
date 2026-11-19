@@ -1,0 +1,50 @@
+⚽ PRONOSTICS DU JOUR
+📅 19/11/2026
+
+⏰ 23h
+1. Vasco da Gama — Internacional · 23:30
+🏆 Brazilian Serie A
+• Vasco da Gama +0,5 but : 79% · 💰 min 1,31
+• Plus de 1,5 but : 79% · 💰 min 1,32
+• Internacional +0,5 but : 74% · 💰 min 1,40
+📊 Forme : D V D V V | N D V D V
+⚔️ Enjeu : 😐 milieu | 😐 milieu
+⚽ Buts projetés : 1,56 — 1,34
+
+2. Vitória — Red Bull Bragantino · 23:30
+🏆 Brazilian Serie A
+• Plus de 1,5 but : 77% · 💰 min 1,35
+• Red Bull Bragantino +0,5 but : 74% · 💰 min 1,39
+📊 Forme : D N N D D | V N D V V
+⚔️ Enjeu : 😐 milieu | 😐 milieu
+⚽ Buts projetés : 1,28 — 1,36
+
+🎟️ TICKET DU JOUR (expérimental)
+Pas de ticket aujourd'hui : pas assez de matchs exploitables.
+
+📒 BILAN 30 JOURS (pronos publiés, mise 1)
+• +1,5 buts : 207/265 (78%, annoncé 81%) · ROI +1%
+• Dom +0,5 : 193/221 (87%, annoncé 81%) · ROI +12%
+• Ext +0,5 : 128/159 (81%, annoncé 80%) · ROI +4%
+• buteur : 31/86 (36%, annoncé 67%) · ROI -45%
+• TC ext : 3/5 (60%, annoncé 87%) · ROI -25%
+• TC dom : 4/5 (80%, annoncé 84%) · ROI +0%
+• BTTS : 1/3 (33%, annoncé 73%) · ROI -53%
+Total : 567/744 (76%) · ROI -1%
+Brier : 0,189 (0,25 = pile ou face)
+ℹ️ ROI calculé à la cote min : note tes vraies cotes dans la colonne odds_taken pour le ROI réel.
+
+📈 2/2 matchs analysés
+💰 Ne joue que si la cote du bookmaker est au moins égale à la cote min : en dessous, le pari perd sur la durée.
+ℹ️ Heures de Paris. Sans garantie.
+
+===== DÉTAIL PAR PICK =====
+Vasco da Gama — Internacional · 23:30
+  Dom Vasco da Gama : 2,0 marqués / 1,8 encaissés (5 derniers à domicile) · clean sheets 40% · sans marquer 20% (10 m.) · repos 5 j
+  Ext Internacional : 0,8 marqués / 1,4 encaissés (5 derniers à l’extérieur) · clean sheets 20% · sans marquer 20% (10 m.) · repos 15 j
+
+Vitória — Red Bull Bragantino · 23:30
+  Dom Vitória : 1,4 marqués / 1,4 encaissés (5 derniers à domicile) · clean sheets 20% · sans marquer 20% (10 m.) · repos 13 j
+  Ext Red Bull Bragantino : 0,6 marqués / 1,4 encaissés (5 derniers à l’extérieur) · clean sheets 10% · sans marquer 20% (10 m.) · repos 17 j
+
+Appels API ce lancement : 1 · cache : 13
