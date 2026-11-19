@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.6.3
+# BOT FOOTBALL — SPORTAPI — VERSION 6.7.0
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -157,6 +157,16 @@ import requests
 #   League N / S...) sont exclues du ticket. Les pronos du jour ne
 #   changent pas (toutes les ligues). Tout le reste est identique.
 # - Liste modifiable ci-dessous (TICKET_LEAGUES, TICKET_LEAGUE_IDS).
+#
+# Version 6.7.0 (backtest des marchés : 5 333 matchs, 70 jours) :
+# - Nouveaux pronos "cote plus haute" : Domicile +1,5 but et Plus de 2,5 buts,
+#   ajoutés aux pronos du jour (mêmes filtres de forme). Ils sont publiés
+#   en plus des marchés habituels, sans les remplacer.
+# - Correction de calibration (stable sur les 2 moitiés du backtest) :
+#   Domicile +1,5 but +5 points, Extérieur +1,5 but -4 points. Elle touche
+#   aussi les cotes justes du ticket et les probabilités du journal.
+# - Les lignes du journal de ces marchés ont published = 1 comme les autres :
+#   on les sépare par la colonne market.
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -254,6 +264,12 @@ NON_LEAGUE_PATTERN = re.compile(
 MARKET_RANK_BONUS = {"home": 0.03, "away": 0.01}
 # 6.5.0 : marchés calculés et journalisés mais jamais proposés
 NOT_PROPOSED = {"btts"}
+
+# 6.7.0 : marchés "cote plus haute" (zone de probabilité publiée, après correction)
+HIGH_ODDS_PICKS = {"home15": (0.60, 0.85), "over25": (0.58, 0.75)}
+HIGH_ODDS_MAX_PER_MATCH = 2    # au plus 2 de ces marchés par match
+HIGH_ODDS_EXTRA_MATCHES = 6    # matchs ajoutés qui n'ont QUE ce type de prono
+EXTRA_ADJUST = {"home15": 0.05, "away15": -0.04}   # d'après le backtest
 
 # ---- 6.6.0 : cache disque + quota SportAPI (offre gratuite) ----
 DISK_CACHE_DIR = "data/cache"
@@ -379,7 +395,7 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.6.3"
+MODEL_VERSION = "6.7.0"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -1325,13 +1341,31 @@ def extra_probabilities(lambda_home, lambda_away):
     """Marchés supplémentaires (journalisés, jamais publiés comme pronostics)."""
     total = lambda_home + lambda_away
     p_win_home, p_win_away = win_probabilities(lambda_home, lambda_away)
-    return {
+    extra = {
         "win_home": p_win_home,
         "win_away": p_win_away,
         "home15": 1 - math.exp(-lambda_home) * (1 + lambda_home),
         "away15": 1 - math.exp(-lambda_away) * (1 + lambda_away),
         "over25": 1 - math.exp(-total) * (1 + total + total ** 2 / 2),
     }
+    # 6.7.0 : correction mesurée sur le backtest (5 333 matchs)
+    for market, shift in EXTRA_ADJUST.items():
+        extra[market] = min(max(extra[market] + shift, 0.0), 0.95)
+    return extra
+
+
+def high_odds_picks(probabilities, extra, blocked):
+    """6.7.0 : pronos 'cote plus haute' (Domicile +1,5 / Plus de 2,5 buts)."""
+    prob = {**probabilities, **extra}
+    picks = []
+    for market, (low, high) in HIGH_ODDS_PICKS.items():
+        p = prob.get(market)
+        if p is None or market in blocked or market in NOT_PROPOSED:
+            continue
+        if low <= p <= high:
+            picks.append((market, p))
+    picks.sort(key=lambda item: -item[1])
+    return picks[:HIGH_ODDS_MAX_PER_MATCH]
 
 
 def form_stats(history):
@@ -2885,6 +2919,7 @@ def analyse(fixture, today):
         "away_form": away_form,
         "candidates": candidates,
         "blocked": blocked,
+        "high_picks": high_odds_picks(probabilities, extra, blocked),
         "motivation": motivation,
         "home_history": home_history,
         "away_history": away_history,
@@ -3504,6 +3539,24 @@ def run(now, today):
         r for r in results
         if r["picks"] and kickoff_of(r["fixture"]) > publication_time
     ][:MAX_MATCHES]
+
+    # 6.7.0 : pronos "cote plus haute" ajoutés aux matchs déjà retenus, puis
+    # quelques matchs supplémentaires qui n'ont que ce type de prono.
+    for r in selected:
+        r["picks"] = list(r["picks"]) + list(r.get("high_picks") or [])
+
+    chosen = {str(r["fixture"].get("id")) for r in selected}
+    only_high = [
+        r for r in all_results
+        if r.get("high_picks")
+        and str(r["fixture"].get("id")) not in chosen
+        and kickoff_of(r["fixture"]) > publication_time
+    ]
+    only_high.sort(key=lambda r: -max(p for _, p in r["high_picks"]))
+    for r in only_high[:HIGH_ODDS_EXTRA_MATCHES]:
+        r["picks"] = list(r["high_picks"])
+        r["best"] = max(p for _, p in r["high_picks"])
+        selected.append(r)
 
     ticket = []
     try:
