@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.7.0
+# BOT FOOTBALL — SPORTAPI — VERSION 6.9.0
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -167,6 +167,67 @@ import requests
 #   aussi les cotes justes du ticket et les probabilités du journal.
 # - Les lignes du journal de ces marchés ont published = 1 comme les autres :
 #   on les sépare par la colonne market.
+#
+# Version 6.8.0 (corrections après le run du 20/11) :
+# 1. Pronos aussi limités aux ligues de TICKET_LEAGUES (grands championnats
+#    + sélections A dispo sur Stake), y compris les pronos "cote plus
+#    haute". Réglage : PRONOS_LIGUES_AUTORISEES.
+# 2. Ticket construit sur les VRAIES cotes quand The Odds API les donne :
+#    une jambe sous 1,20 de vraie cote est refusée (Bayern 1,07 ne passe
+#    plus), la cote totale est celle des bookmakers ; la cote juste du bot
+#    ne sert qu'en secours et est marquée "(estim.)". Toujours le meilleur
+#    combiné cohérent, même sous 10.
+# 4. Ticket : seulement les matchs du jour entre l'heure du lancement et
+#    23:59 (heure de Paris), jamais avant 08:00 : plus de match de 04:00
+#    si GitHub lance le bot en retard dans la nuit.
+# 5. Plus de vraies cotes : Belgique, Brésil, Argentine, Conference League,
+#    sélections (Ligue des nations, qualifs Coupe du monde / Euro, CAN,
+#    Copa América) ajoutées ; les ligues du ticket passent en premier dans
+#    les 7 appels du jour (offre gratuite respectée).
+# 6. Bilan 30 j : seulement les marchés publiés aujourd'hui (plus les anciens
+#    buteurs / BTTS / tirs cadrés), ROI à la vraie cote quand elle est
+#    connue (cote jouée odds_taken, sinon cote marché odds_market enregistrée
+#    automatiquement), sinon à la cote min — et c'est écrit.
+#
+# Version 6.8.1 :
+# - Marchés Dom +1,5 / Ext +1,5 supprimés (pronos, ticket, "cote plus
+#   haute", bilan) : The Odds API gratuite ne les propose pas. Ils restent
+#   seulement calculés dans le journal (published = 0) pour la calibration.
+# - Mode nuit : lancé entre 00:00 et 06:00 (Paris), le bot ne prend que les
+#   matchs de maintenant à 08:00 (MLS, Amérique du Sud...), mêmes ligues et
+#   mêmes règles de vraies cotes. Titre "PRONOSTICS DE LA NUIT" et "TICKET
+#   DE NUIT". Les lancements de jour gardent maintenant -> 23:59.
+# - Budget The Odds API avec 3 lancements : 5 appels pour les lancements de
+#   jour + 2 pour la nuit = 7 appels (14 crédits) par jour, environ 434 par
+#   mois (< 500 gratuits). Sans lancement de nuit : NUIT_ACTIVE = False et
+#   les lancements de jour reprennent les 7 appels.
+#
+# Version 6.9.0 :
+# - 🎉 MÉGA FUN : cote totale >= 50, 6 matchs max (1 sélection par match),
+#   1,65 min par sélection (vraie cote si dispo, sinon cote juste
+#   "(estim.)"). Sélections soutenues par la forme (forme >= 50 %), proba
+#   modèle >= 38 % (jamais de grosse cote au hasard) : le bot garde la
+#   combinaison la PLUS PROBABLE qui atteint 50. Sinon : meilleur combiné
+#   cohérent, affiché "Cote 50 non atteinte".
+# - 🛡️ ULTRA SAFE : seulement équipe +0,5 but, 2 sélections max, les deux
+#   équipes les plus sûres de marquer avec cote estimée >= 1,20. Cote
+#   estimée (pas ce marché sur The Odds API) : à vérifier sur Stake.
+# - Les 2 tickets : ligues Stake, même fenêtre que le ticket du jour,
+#   enregistrés dans le journal (colonne tickets : jour / mega / safe) et
+#   bilan 30 j par ticket ("🎟️ Tickets 30j").
+# - Fatigue : équipe qui a joué il y a 3 jours ou moins -> -5 % de buts
+#   attendus pour elle et +3 % pour l'adversaire ; Coupe d'Europe dans les
+#   4 derniers jours -> -2 % en plus (sans aucun appel API en plus).
+# - Absences (indices) : SportAPI n'a PAS de liste blessés / suspendus. Le
+#   bot regarde la compo du dernier match : meilleur buteur absent -> -6 %
+#   de buts attendus, autre buteur (3 buts et +) absent -> -3 %, expulsé au
+#   dernier match -> -3 % ; total plafonné à -12 %. Seulement ligues Stake,
+#   40 appels max par lancement (compos / événements gardés en cache).
+# - Fatigue + absences modifient les probabilités des pronos et des 3 tickets.
+# - Un seul lancement auto à 10h ; budget The Odds API compté par jour de
+#   Paris (7 appels = 14 crédits, relances et lancement de nuit compris) :
+#   434 crédits / mois max. Pas d'appel de cotes pour les marchés que l'API
+#   ne couvre pas (équipe +0,5).
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -263,10 +324,12 @@ NON_LEAGUE_PATTERN = re.compile(
 # 6.5.0 : bonus de CLASSEMENT (pas de probabilité) selon ton bilan 30 jours
 MARKET_RANK_BONUS = {"home": 0.03, "away": 0.01}
 # 6.5.0 : marchés calculés et journalisés mais jamais proposés
-NOT_PROPOSED = {"btts"}
+NOT_PROPOSED = {"btts", "home15", "away15"}
+# 6.8.1 : marchés sans vraie cote sur The Odds API gratuite -> plus proposés
+REMOVED_MARKETS = {"home15", "away15"}
 
 # 6.7.0 : marchés "cote plus haute" (zone de probabilité publiée, après correction)
-HIGH_ODDS_PICKS = {"home15": (0.60, 0.85), "over25": (0.58, 0.75)}
+HIGH_ODDS_PICKS = {"over25": (0.58, 0.75)}   # 6.8.1 : Dom +1,5 supprimé
 HIGH_ODDS_MAX_PER_MATCH = 2    # au plus 2 de ces marchés par match
 HIGH_ODDS_EXTRA_MATCHES = 6    # matchs ajoutés qui n'ont QUE ce type de prono
 EXTRA_ADJUST = {"home15": 0.05, "away15": -0.04}   # d'après le backtest
@@ -313,7 +376,7 @@ TICKET_LEAGUES = [
     (r"pro league|jupiler|first division a", "Belgium", r"women|challenger"),
     (r"\bpremiership\b", "Scotland", r"women|championship"),
     (r"super lig", "Turkey", r"\b1\b|women"),
-    (r"pro league|professional league|roshn", "Saudi Arabia", r"\b(1|first)\b|women"),
+    (r"pro league|professional league|roshn|saudi arabian league", "Saudi Arabia", r"\b(1|first)\b|women"),
     (r"major league soccer|\bmls\b", "USA", r"next pro|women"),
     (r"\bserie a\b|brasileirao", "Brazil", r"women|feminino"),
     (r"liga profesional|primera division|superliga", "Argentina", r"nacional|women|reserv"),
@@ -329,6 +392,56 @@ TICKET_LEAGUES = [
     (r"^internationals?$|international friendl|^friendlies$|friendly international", None, r"club"),
 ]
 TICKET_LEAGUE_IDS = set()     # ids SportAPI toujours acceptés (ex. {39, 140})
+PRONOS_LIGUES_AUTORISEES = True   # 6.8.0 : True = pronos aussi limités à cette liste
+TICKET_MIN_LEG_ODDS = 1.20        # 6.8.0 : vraie cote minimum par jambe du ticket
+TICKET_EARLIEST_HOUR = 8          # 6.8.0 : pas de match avant 08:00 dans le ticket
+# 6.8.1 : mode nuit (lancement entre 00:00 et NIGHT_RUN_END_HOUR, Paris)
+NUIT_ACTIVE = False               # False = pas de lancement de nuit programmé (relance manuelle possible)
+NIGHT_RUN_END_HOUR = 6            # lancé avant 06:00 = lancement de nuit
+NIGHT_WINDOW_END_HOUR = 8         # la nuit : matchs jusqu'à 08:00
+NIGHT_API_CALLS = 80              # appels SportAPI max pour un lancement de nuit
+NIGHT_RUN = False                 # fixé par main()
+
+# 6.9.0 : 🎉 MÉGA FUN
+MEGA_ACTIF = True
+MEGA_TARGET_ODDS = 50.0
+MEGA_MAX_LEGS = 6
+MEGA_MIN_LEGS = 3
+MEGA_MIN_LEG_ODDS = 1.65
+MEGA_MAX_LEG_ODDS = 3.20          # pas de grosse cote au hasard
+MEGA_MIN_PROB = 0.38              # proba modèle minimum par sélection
+MEGA_MIN_FORM = 0.50              # la forme doit soutenir la sélection
+MEGA_POOL = 18
+# 6.9.0 : 🛡️ ULTRA SAFE (équipe +0,5 but uniquement)
+SAFE_ACTIF = True
+SAFE_MAX_LEGS = 2
+SAFE_MIN_LEG_ODDS = 1.20          # cote estimée minimum par sélection
+SAFE_MIN_PROB = 0.72
+SAFE_MARKETS = ("home", "away")
+TICKET_KIND_LABELS = {"jour": "Jour", "mega": "Méga fun", "safe": "Ultra safe"}
+TICKET_TAGS_SINCE = (6, 9)        # colonne tickets remplie depuis 6.9.0
+# 6.9.0 : marchés que The Odds API gratuite couvre (sinon : aucun appel)
+REAL_ODDS_MARKETS = {"over15", "over25", "win_home", "win_away"}
+
+# 6.9.0 : fatigue (calendrier déjà chargé, 0 appel en plus)
+FATIGUE_ACTIF = True
+FATIGUE_REST_DAYS = 3             # joué il y a 3 jours ou moins
+FATIGUE_ATTACK = 0.05             # -5 % de buts attendus pour l'équipe
+FATIGUE_LEAK = 0.03               # +3 % pour l'adversaire
+FATIGUE_EURO_DAYS = 4
+FATIGUE_EURO_EXTRA = 0.02         # Coupe d'Europe en semaine : -2 % en plus
+EURO_CUP_PATTERN = re.compile(r"champions league|europa league|conference league", re.IGNORECASE)
+# 6.9.0 : absences (indices : compo / cartons du dernier match)
+ABSENCES_ACTIF = True
+ABSENCE_SCORER = 0.06             # meilleur buteur absent
+ABSENCE_OTHER = 0.03              # autre buteur (3 buts et +) absent
+ABSENCE_RED = 0.03                # expulsé au dernier match
+ABSENCE_CAP = 0.12
+ABSENCE_MAX_CALLS = 40            # appels SportAPI max par lancement
+ABSENCE_KEY_PLAYERS = 3
+ABSENCE_STATE = {"calls": 0, "checked": 0, "lineups": 0}
+# 6.8.0 : marchés publiés aujourd'hui (le bilan 30 j ne compte qu'eux)
+CURRENT_PUBLISHED_MARKETS = {"home", "away", "over15", "over25"}
 TICKET_LEAGUE_EXCLUDE = (     # jamais dans le ticket, quelle que soit la ligne
     r"women|feminin|\bu ?\d\d\b|youth|junior|reserve|amateur|futsal"
     r"|beach|esoccer|\bii\b|highland|lowland|national league n"
@@ -346,7 +459,7 @@ COUNTRY_WORDS = {
     "Scotland": ("scotland", "scottish"),
     "Turkey": ("turkey", "turkiye", "turkish"),
     "Saudi Arabia": ("saudi",),
-    "USA": ("usa", "united states", "american"),
+    "USA": ("usa", "us", "united states", "american"),
     "Brazil": ("brazil", "brasil", "brazilian"),
     "Argentina": ("argentina", "argentine", "argentinian"),
 }
@@ -356,7 +469,8 @@ ODDS_API_KEY = os.getenv("ODDS_API_KEY", "").strip()
 ODDS_BASE_URL = "https://api.the-odds-api.com/v4"
 ODDS_REGIONS = "eu"
 ODDS_MARKETS = "h2h,totals"          # 2 crédits par appel
-ODDS_MAX_CALLS_PER_DAY = 7           # 14 crédits / jour ≈ 420 / mois (< 500)
+ODDS_MAX_CALLS_PER_DAY = 7           # 14 crédits / jour ≈ 434 / mois (< 500)
+ODDS_NIGHT_CALLS = 2                 # 6.8.1 : part du lancement de nuit (si NUIT_ACTIVE)
 ODDS_MIN_REMAINING = 30
 # (motif du nom de ligue SportAPI, pays SportAPI ou None, clé The Odds API)
 # Chaque clé est revérifiée à l'exécution dans /v4/sports (appel gratuit).
@@ -377,9 +491,23 @@ ODDS_SPORT_KEYS = [
     ("primeira", "Portugal", "soccer_portugal_primeira_liga"),
     ("premiership", "Scotland", "soccer_spl"),
     ("super lig", "Turkey", "soccer_turkey_super_league"),
-    ("mls", "USA", "soccer_usa_mls"),
+    (r"major league soccer|\bmls\b", "USA", "soccer_usa_mls"),
     ("champions league", None, "soccer_uefa_champs_league"),
     ("europa league", None, "soccer_uefa_europa_league"),
+    # 6.8.0 : ligues du ticket qui manquaient (clés revérifiées dans /v4/sports)
+    ("conference league", None, "soccer_uefa_europa_conference_league"),
+    ("pro league|jupiler|first division a", "Belgium", "soccer_belgium_first_div"),
+    ("pro league|professional league|roshn|saudi arabian league", "Saudi Arabia", "soccer_saudi_arabia_pro_league"),
+    ("serie a|brasileirao", "Brazil", "soccer_brazil_campeonato"),
+    ("liga profesional|primera division|superliga", "Argentina", "soccer_argentina_primera_division"),
+    ("^uefa nations league", None, "soccer_uefa_nations_league"),
+    ("world cup qualif.*(uefa|europe)", None, "soccer_fifa_world_cup_qualifiers_europe"),
+    ("world cup qualif.*(conmebol|south america)", None, "soccer_fifa_world_cup_qualifiers_south_america"),
+    ("^(fifa )?world cup$", None, "soccer_fifa_world_cup"),
+    ("^(uefa )?euro(pean championship)?.*qualif", None, "soccer_uefa_euro_qualification"),
+    ("^(uefa )?euro(pean championship)?( \\d{4})?$", None, "soccer_uefa_european_championship"),
+    ("africa cup of nations|afcon", None, "soccer_africa_cup_of_nations"),
+    ("copa america", None, "soccer_conmebol_copa_america"),
 ]
 
 # ---- Bilan / envoi ----
@@ -395,7 +523,7 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.7.0"
+MODEL_VERSION = "6.9.0"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -412,11 +540,15 @@ FIELDS_V63 = [
 # 6.4.0 : home_id / away_id (vérification tirs cadrés) et odds_taken
 # (cote réellement jouée, à remplir à la main pour le vrai ROI, ex : 1,45)
 FIELDS = FIELDS_V63 + ["home_id", "away_id", "odds_taken"]
+# 6.8.0 : vraie cote marché (The Odds API) enregistrée automatiquement
+FIELDS = FIELDS + ["odds_market"]
+# 6.9.0 : tickets où figure la ligne (jour / mega / safe, séparés par ;)
+FIELDS = FIELDS + ["tickets"]
 
 SESSION = requests.Session()
 SESSION.headers.update({
     "X-Api-Key": API_KEY,
-    "User-Agent": "football-history-bot/6.6.3",
+    "User-Agent": "football-history-bot/6.9.0",
 })
 
 CACHE = {}
@@ -877,6 +1009,10 @@ def run_allowance():
     share = int(USAGE.get("share") or DAILY_BUDGET_DEFAULT)
     before = int(USAGE.get("calls_before_run", 0))
     target = share if before > 0 else int(share * FIRST_RUN_SHARE)
+    if NIGHT_RUN:
+        # 6.8.1 : la nuit = peu de matchs ; petit budget fixe (la part du
+        # jour UTC peut déjà être consommée par les lancements de 12h / 20h)
+        return min(MAX_API_CALLS, NIGHT_API_CALLS)
     return max(0, min(MAX_API_CALLS, target - before))
 
 
@@ -887,7 +1023,13 @@ def init_budget(day=None):
     data = read_json(usage_path(), {})
     if data.get("day") != day:
         data = {"day": day, "calls": 0, "runs": 0,
-                "odds_calls": 0, "odds_remaining": data.get("odds_remaining")}
+                "odds_calls": 0, "odds_remaining": data.get("odds_remaining"),
+                # 6.8.1 : compteur de nuit gardé (la nuit chevauche 2 jours UTC)
+                "night_day": data.get("night_day"),
+                "night_odds_calls": data.get("night_odds_calls", 0),
+                # 6.9.0 : compteur de cotes par jour de Paris
+                "odds_paris_day": data.get("odds_paris_day"),
+                "odds_paris_calls": data.get("odds_paris_calls", 0)}
     USAGE.clear()
     USAGE.update(data)
     USAGE["calls_before_run"] = int(USAGE.get("calls", 0))
@@ -1120,6 +1262,8 @@ def parse_results(matches, team_id, today, slug=None):
             # 6.4.0 : vrais identifiants du match historique (tirs cadrés)
             "home_id": match.get("home_id"),
             "away_id": match.get("away_id"),
+            # 6.9.0 : compétition (fatigue Coupe d'Europe)
+            "league_name": match.get("league_name") or "",
         })
 
     return history
@@ -1542,23 +1686,48 @@ def ticket_league_ok(fixture):
     return False
 
 
+def is_night_run(now):
+    """6.8.1 : lancement de nuit = entre 00:00 et NIGHT_RUN_END_HOUR (Paris)."""
+    return now.astimezone(PARIS).hour < NIGHT_RUN_END_HOUR
+
+
+def ticket_window_ok(kickoff, now):
+    """Jour : maintenant -> 23:59, rien avant 08:00 (6.8.0).
+    Nuit (6.8.1) : maintenant -> 08:00 seulement."""
+    if kickoff is None or kickoff <= now:
+        return False
+    kickoff = kickoff.astimezone(PARIS)
+    now = now.astimezone(PARIS)
+    if kickoff.date() != now.date():
+        return False
+    if is_night_run(now):
+        return kickoff.hour < NIGHT_WINDOW_END_HOUR
+    return kickoff.hour >= TICKET_EARLIEST_HOUR
+
+
 def build_ticket(all_results, now):
-    """4 jambes (4 matchs différents) : cote juste >= cible, meilleure forme."""
+    """4 jambes (4 matchs différents), ligues autorisées, ce soir seulement,
+    sur les vraies cotes quand elles existent (6.8.0)."""
     pool = []
 
     legs = []
     for result in all_results:
         kickoff = kickoff_of(result["fixture"])
-        if kickoff is None or kickoff <= now:
+        if not ticket_window_ok(kickoff, now):
             continue
         # 6.6.3 : grands championnats et sélections A seulement
         if not ticket_league_ok(result["fixture"]):
             continue
         for candidate in result.get("candidates", []):
             if TICKET_MIN_PROB <= candidate["prob"] <= TICKET_MAX_PROB:
-                pool.append((result, candidate))
+                pool.append((result, dict(candidate)))
 
     pool.sort(key=lambda item: -item[1]["score"])
+
+    # 6.8.0 : vraie cote de chaque candidat (les mieux notés d'abord : leurs
+    # ligues passent en premier dans les appels du jour). Jambe refusée si
+    # la vraie cote est sous TICKET_MIN_LEG_ODDS ; sinon cote juste en secours.
+    pool = price_pool(pool, TICKET_MIN_LEG_ODDS, max(TICKET_MIN_LEG_ODDS, MIN_LEG_ODDS))
 
     # 6.6.0 : au plus TICKET_PER_MATCH marchés par match dans la sélection
     # (sinon un même match occupe la place de matchs différents)
@@ -1585,11 +1754,159 @@ def build_ticket(all_results, now):
     return legs
 
 
+def price_pool(pool, min_real, min_fair, max_odds=None, label="Ticket"):
+    """6.9.0 : cote de chaque candidat (vraie cote si l'API la donne, sinon
+    cote juste) ; refusé hors [min, max]. Aucun appel pour un marché que
+    The Odds API ne couvre pas."""
+    priced = []
+    for result, candidate in pool:
+        price = None
+        if candidate["market"] in REAL_ODDS_MARKETS:
+            try:
+                price = real_odds_for(result["fixture"], [candidate["market"]]).get(candidate["market"])
+            except Exception as exc:
+                error(f"Cote ticket impossible : {type(exc).__name__} {exc}")
+        if price:
+            if price < min_real - 1e-9 or (max_odds and price > max_odds):
+                REASONS[f"{label} : vraie cote hors limites"] += 1
+                continue
+            candidate.update(odds=price, real=True)
+        else:
+            fair = 1 / candidate["prob"]
+            if fair < min_fair - 1e-9 or (max_odds and fair > max_odds):
+                continue
+            candidate.update(odds=fair, real=False)
+        priced.append((result, candidate))
+    return priced
+
+
+def ticket_pool(all_results, now, keep):
+    """Candidats des matchs autorisés et dans la fenêtre, triés par note."""
+    pool = []
+    for result in all_results:
+        fixture = result["fixture"]
+        if not ticket_window_ok(kickoff_of(fixture), now) or not ticket_league_ok(fixture):
+            continue
+        for candidate in result.get("candidates", []):
+            if keep(candidate):
+                pool.append((result, dict(candidate)))
+    pool.sort(key=lambda item: -item[1]["score"])
+    return pool
+
+
+def finish_legs(combo):
+    legs = [{"result": r, **c} for r, c in combo]
+    legs.sort(key=lambda leg: kickoff_of(leg["result"]["fixture"]))
+    return legs
+
+
+def build_mega(all_results, now):
+    """6.9.0 : 🎉 MÉGA FUN. Cote >= MEGA_TARGET_ODDS, MEGA_MAX_LEGS matchs
+    max, 1 sélection par match, chaque cote >= MEGA_MIN_LEG_ODDS. Parmi les
+    combinaisons qui atteignent la cible : la plus probable (produit des
+    probas modèle, puis meilleure note). Sinon : le combiné cohérent à la
+    plus grosse cote possible."""
+    pool = ticket_pool(
+        all_results, now,
+        lambda c: c["prob"] >= MEGA_MIN_PROB and c.get("form", 1.0) >= MEGA_MIN_FORM
+        and 1 / c["prob"] <= MEGA_MAX_LEG_ODDS * 1.25,
+    )
+    pool = price_pool(pool, MEGA_MIN_LEG_ODDS, MEGA_MIN_LEG_ODDS, MEGA_MAX_LEG_ODDS, "Méga fun")
+    per_match = Counter()
+    trimmed = []
+    for item in pool:
+        fid = str(item[0]["fixture"].get("id"))
+        if per_match[fid] >= TICKET_PER_MATCH:
+            continue
+        per_match[fid] += 1
+        trimmed.append(item)
+    trimmed = trimmed[:MEGA_POOL]
+    if len({str(r["fixture"].get("id")) for r, _ in trimmed}) < MEGA_MIN_LEGS:
+        return []
+
+    best = None
+    for size in range(MEGA_MIN_LEGS, MEGA_MAX_LEGS + 1):
+        for combo in itertools.combinations(trimmed, size):
+            if len({str(r["fixture"].get("id")) for r, _ in combo}) < size:
+                continue
+            total = 1.0
+            chance = 1.0
+            for _, c in combo:
+                total *= leg_odds(c)
+                chance *= c["prob"]
+            if total < MEGA_TARGET_ODDS:
+                continue
+            key = (chance, sum(c["score"] for _, c in combo) / size)
+            if best is None or key > best[0]:
+                best = (key, combo)
+    if best is not None:
+        return finish_legs(best[1])
+
+    # Cible impossible : meilleure sélection (plus grosse cote) par match
+    by_match = {}
+    for result, candidate in trimmed:
+        fid = str(result["fixture"].get("id"))
+        if fid not in by_match or leg_odds(candidate) > leg_odds(by_match[fid][1]):
+            by_match[fid] = (result, candidate)
+    combo = sorted(by_match.values(), key=lambda item: -leg_odds(item[1]))[:MEGA_MAX_LEGS]
+    return finish_legs(combo)
+
+
+def build_safe(all_results, now):
+    """6.9.0 : 🛡️ ULTRA SAFE. Équipe +0,5 but uniquement, SAFE_MAX_LEGS
+    matchs max : les équipes les plus sûres de marquer, cote estimée
+    >= SAFE_MIN_LEG_ODDS (pas de vraie cote pour ce marché)."""
+    pool = ticket_pool(
+        all_results, now,
+        lambda c: c["market"] in SAFE_MARKETS and c["prob"] >= SAFE_MIN_PROB
+        and 1 / c["prob"] >= SAFE_MIN_LEG_ODDS - 1e-9,
+    )
+    pool.sort(key=lambda item: (-item[1]["prob"], -item[1]["score"]))
+    combo = []
+    seen = set()
+    for result, candidate in pool:
+        fid = str(result["fixture"].get("id"))
+        if fid in seen:
+            continue
+        seen.add(fid)
+        candidate.update(odds=1 / candidate["prob"], real=False)
+        combo.append((result, candidate))
+        if len(combo) >= SAFE_MAX_LEGS:
+            break
+    return finish_legs(combo)
+
+
+def ticket_chance(legs):
+    chance = 1.0
+    for leg in legs:
+        chance *= leg["prob"]
+    return chance if legs else 0.0
+
+
 def ticket_fair(legs):
     product = 1.0
     for leg in legs:
         product *= leg["prob"]
     return 1 / product if product > 0 else 0
+
+
+def leg_odds(leg):
+    """6.8.0 : vraie cote si connue, sinon cote juste du bot."""
+    odds = leg.get("odds")
+    return odds if odds else 1 / leg["prob"]
+
+
+def ticket_total(legs):
+    """6.8.0 : cote totale avec les vraies cotes quand elles existent."""
+    product = 1.0
+    for leg in legs:
+        product *= leg_odds(leg)
+    return product if legs else 0
+
+
+def ticket_estimated(legs):
+    """True si au moins une jambe est à la cote juste (estimation)."""
+    return any(not leg.get("real") for leg in legs)
 
 
 def best_combo(pool):
@@ -1603,10 +1920,10 @@ def best_combo(pool):
         if len(fixtures) < TICKET_LEGS:
             continue
 
-        product = 1.0
+        # 6.8.0 : cible testée sur les vraies cotes (cote juste en secours)
+        fair = 1.0
         for _, candidate in combo:
-            product *= candidate["prob"]
-        fair = 1 / product
+            fair *= leg_odds(candidate)
         mean_score = sum(c["score"] for _, c in combo) / TICKET_LEGS
 
         if fair >= TICKET_TARGET_ODDS:
@@ -2269,6 +2586,65 @@ def parse_odds(value):
     return odds if odds is not None and odds > 1 else None
 
 
+def version_tuple(value):
+    parts = []
+    for piece in str(value or "").split(".")[:2]:
+        try:
+            parts.append(int(piece))
+        except ValueError:
+            return (0, 0)
+    return tuple(parts) if len(parts) == 2 else (0, 0)
+
+
+def ticket_kinds(row):
+    """6.9.0 : tickets d'une ligne (avant 6.9.0 : published = 2 -> jour)."""
+    tags = [t for t in str(row.get("tickets") or "").split(";") if t]
+    if tags:
+        return tags
+    if str(row.get("published")) == "2" and version_tuple(row.get("model_version")) < TICKET_TAGS_SINCE:
+        return ["jour"]
+    return []
+
+
+def tickets_summary(rows, today, days=STATS_DAYS):
+    """6.9.0 : combinés gagnés / joués par type de ticket (perdu dès qu'une
+    sélection perd ; en attente tant qu'une sélection n'est pas réglée)."""
+    legs = {}
+    for row in rows:
+        kinds = ticket_kinds(row)
+        if not kinds:
+            continue
+        try:
+            day = datetime.fromisoformat(str(row.get("date"))).date()
+        except ValueError:
+            continue
+        if not 0 <= (today - day).days <= days:
+            continue
+        for kind in kinds:
+            legs.setdefault((day, kind), []).append(row.get("result"))
+    out = {}
+    for (_, kind), results in legs.items():
+        if "perdu" in results:
+            won = False
+        elif results and all(r == "gagne" for r in results):
+            won = True
+        else:
+            continue
+        entry = out.setdefault(kind, {"n": 0, "wins": 0})
+        entry["n"] += 1
+        entry["wins"] += won
+    return out
+
+
+def tickets_line(summary):
+    tickets = (summary or {}).get("tickets") or {}
+    parts = [
+        f"{TICKET_KIND_LABELS[k]} {tickets[k]['wins']}/{tickets[k]['n']}"
+        for k in ("jour", "mega", "safe") if tickets.get(k, {}).get("n")
+    ]
+    return f"🎟️ Tickets {STATS_DAYS}j : " + " · ".join(parts) if parts else ""
+
+
 def journal_summary(rows, today, days=STATS_DAYS):
     """Bilan des lignes réglées (gagne / perdu) sur les `days` derniers jours.
 
@@ -2283,6 +2659,7 @@ def journal_summary(rows, today, days=STATS_DAYS):
     brier_sum = 0.0
     brier_n = 0
     real_odds = 0
+    real_published = 0
 
     for row in rows:
         if row.get("result") not in ("gagne", "perdu"):
@@ -2309,11 +2686,21 @@ def journal_summary(rows, today, days=STATS_DAYS):
         if published not in ("1", "2"):
             continue
 
-        odds = parse_odds(row.get("odds_taken"))
+        # 6.8.0 : bilan des pronos = marchés publiés aujourd'hui seulement
+        if published == "1" and row.get("market") not in CURRENT_PUBLISHED_MARKETS:
+            continue
+        # 6.8.1 : anciens tickets Dom/Ext +1,5 hors bilan
+        if row.get("market") in REMOVED_MARKETS:
+            continue
+
+        # cote jouée, sinon vraie cote marché enregistrée, sinon cote min
+        odds = parse_odds(row.get("odds_taken")) or parse_odds(row.get("odds_market"))
         if odds is None:
             odds = min_odds(probability)
         else:
             real_odds += 1
+            if published == "1":
+                real_published += 1
         group = groups["publie" if published == "1" else "ticket"]
         entry = group.setdefault(row.get("market"), [0, 0, 0.0, 0.0])
         entry[0] += 1
@@ -2338,6 +2725,8 @@ def journal_summary(rows, today, days=STATS_DAYS):
         "brier": brier_sum / brier_n if brier_n else None,
         "n": brier_n,
         "real_odds": real_odds,
+        "real_published": real_published,
+        "tickets": tickets_summary(rows, today, days),
     }
 
 
@@ -2362,6 +2751,8 @@ def summary_lines(summary):
         f"Total : {total_w}/{total_n} ({total_w / total_n:.0%})"
         f" · ROI {total_profit / total_n:+.0%}"
     )
+    if tickets_line(summary):
+        lines.append(tickets_line(summary))
     if summary.get("brier") is not None:
         lines.append(
             f"Brier : {summary['brier']:.3f} (0,25 = pile ou face)".replace(".", ",")
@@ -2681,15 +3072,70 @@ def odds_get(path, params):
         return None, headers
 
 
+def country_ok(fixture, country):
+    """6.8.0 : la ligue est-elle de ce pays (zone SportAPI ou nom) ?"""
+    if country is None:
+        return True
+    name = norm_text(fixture.get("league_name"))
+    zones = {norm_text(fixture.get(k)) for k in ("league_zone", "league_geo", "country")}
+    zones.discard("")
+    words = COUNTRY_WORDS.get(country, (country.lower(),))
+    if norm_text(country) in zones or any(w in zones for w in words):
+        return True
+    padded = f" {name} "
+    return any(f" {w} " in padded for w in words)
+
+
 def odds_sport_key(fixture):
     name = norm_text(fixture.get("league_name"))
-    zone = str(fixture.get("league_zone") or "")
-    if not name or NON_LEAGUE_PATTERN.search(name) and "champions league" not in name and "europa league" not in name:
+    # 6.8.0 : pas d'appel pour une ligue hors liste (ni ticket ni pronos) ;
+    # évite aussi La Liga 2 / 2. Bundesliga pris pour la 1re division
+    if not name or not ticket_league_ok(fixture):
         return None
     for pattern, country, key in ODDS_SPORT_KEYS:
-        if pattern in name and (country is None or not zone or country.lower() == zone.lower()):
+        if not re.search(pattern, name):
+            continue
+        # championnats : jamais une coupe nationale ; sélections : ok
+        if country is not None and NON_LEAGUE_PATTERN.search(name):
+            continue
+        if country_ok(fixture, country):
             return key
     return None
+
+
+def odds_day_cap():
+    """6.9.0 : 7 appels par jour de Paris, tous lancements confondus."""
+    return ODDS_MAX_CALLS_PER_DAY
+
+
+def night_key():
+    return datetime.now(PARIS).date().isoformat()
+
+
+def odds_calls_left():
+    """6.9.0 : un compteur par jour de Paris (10h, relances et nuit compris) ;
+    un lancement de nuit en prend au plus ODDS_NIGHT_CALLS."""
+    key = night_key()
+    used = int(USAGE.get("odds_paris_calls", 0)) if USAGE.get("odds_paris_day") == key else 0
+    left = odds_day_cap() - used
+    if NIGHT_RUN:
+        night = int(USAGE.get("night_odds_calls", 0)) if USAGE.get("night_day") == key else 0
+        left = min(left, ODDS_NIGHT_CALLS - night)
+    return left
+
+
+def count_odds_call():
+    key = night_key()
+    if USAGE.get("odds_paris_day") != key:
+        USAGE["odds_paris_day"] = key
+        USAGE["odds_paris_calls"] = 0
+    USAGE["odds_paris_calls"] = int(USAGE.get("odds_paris_calls", 0)) + 1
+    if NIGHT_RUN:
+        if USAGE.get("night_day") != night_key():
+            USAGE["night_day"] = night_key()
+            USAGE["night_odds_calls"] = 0
+        USAGE["night_odds_calls"] = int(USAGE.get("night_odds_calls", 0)) + 1
+    USAGE["odds_calls"] = int(USAGE.get("odds_calls", 0)) + 1
 
 
 def odds_events(sport_key):
@@ -2712,7 +3158,7 @@ def odds_events(sport_key):
         ODDS_STATE["sports"] = {s.get("key") for s in sports if isinstance(s, dict)}
     if sport_key not in ODDS_STATE["sports"]:
         return None
-    if int(USAGE.get("odds_calls", 0)) >= ODDS_MAX_CALLS_PER_DAY:
+    if odds_calls_left() <= 0:
         return None
     remaining = USAGE.get("odds_remaining")
     if remaining is not None and number(remaining) is not None and number(remaining) < ODDS_MIN_REMAINING:
@@ -2721,7 +3167,7 @@ def odds_events(sport_key):
         f"sports/{sport_key}/odds/",
         {"regions": ODDS_REGIONS, "markets": ODDS_MARKETS, "oddsFormat": "decimal"},
     )
-    USAGE["odds_calls"] = int(USAGE.get("odds_calls", 0)) + 1
+    count_odds_call()
     try:
         left = headers.get("x-requests-remaining")
     except AttributeError:
@@ -2791,6 +3237,8 @@ def market_price(event, market):
 
 def real_odds_for(fixture, markets):
     """Vraies cotes {marché: cote} d'un match ({} si pas de clé / marché)."""
+    # 6.9.0 : aucun appel pour les marchés que l'API ne couvre pas
+    markets = [m for m in markets or [] if m in REAL_ODDS_MARKETS]
     if not ODDS_API_KEY or not markets:
         return {}
     key = odds_sport_key(fixture)
@@ -2814,6 +3262,93 @@ def real_odds(result):
 
 # ---------------- ANALYSE ----------------
 
+def fatigue_of(history, today):
+    """6.9.0 : (baisse d'attaque, raison) d'après le calendrier déjà chargé."""
+    if not FATIGUE_ACTIF or not history:
+        return 0.0, ""
+    cut = 0.0
+    why = []
+    rest = (today - history[0]["date"]).days
+    if 0 < rest <= FATIGUE_REST_DAYS:
+        cut += FATIGUE_ATTACK
+        why.append(f"{rest} j de repos")
+    euro = any(
+        EURO_CUP_PATTERN.search(str(m.get("league_name") or ""))
+        and 0 < (today - m["date"]).days <= FATIGUE_EURO_DAYS
+        for m in history[:3]
+    )
+    if euro:
+        cut += FATIGUE_EURO_EXTRA if cut else FATIGUE_ATTACK
+        why.append("Coupe d'Europe en semaine")
+    return cut, " + ".join(why)
+
+
+def team_scorers(league_id, team_id):
+    """Buteurs de l'équipe (3 buts et +), du meilleur au moins bon."""
+    payload = api_get(f"leagues/{league_id}/topscorers?limit=100")
+    rows = []
+    for row in get_list(payload):
+        if not isinstance(row, dict) or str(row.get("team_id")) != str(team_id):
+            continue
+        goals = number(row.get("goals"))
+        if goals is None or goals < TOPSCORER_MIN_GOALS or not row.get("player_name"):
+            continue
+        rows.append((row.get("player_name"), goals))
+    rows.sort(key=lambda item: -item[1])
+    return rows[:ABSENCE_KEY_PLAYERS]
+
+
+def absence_of(fixture, side, history, today):
+    """6.9.0 : (baisse d'attaque, notes). SportAPI n'a pas de liste de
+    blessés : indices tirés de la compo et des cartons du dernier match."""
+    if not ABSENCES_ACTIF or not ticket_league_ok(fixture):
+        return 0.0, []
+    if ABSENCE_STATE["calls"] >= ABSENCE_MAX_CALLS or not budget_available(reserve=30):
+        return 0.0, []
+    match = last_match(history, today)
+    if match is None:
+        return 0.0, []
+    before = CALLS
+    scorers, played, reds = [], None, []
+    try:
+        scorers = team_scorers(fixture.get("league_id"), fixture.get(f"{side}_id"))
+        if scorers:
+            played = lineup_names(match)
+        reds = red_cards_last_match(match)
+    except Exception as exc:
+        error(f"Absences impossibles : {type(exc).__name__} {exc}")
+    finally:
+        ABSENCE_STATE["calls"] += CALLS - before
+        ABSENCE_STATE["checked"] += 1
+    cut = 0.0
+    notes = []
+    if played is not None:
+        ABSENCE_STATE["lineups"] += 1
+        for rank, (name, goals) in enumerate(scorers):
+            if last_name(name) not in played:
+                cut += ABSENCE_SCORER if rank == 0 else ABSENCE_OTHER
+                notes.append(f"{player_short(name)} ({int(goals)} buts) absent dernier match")
+    for player in reds:
+        cut += ABSENCE_RED
+        notes.append(f"{player_short(player)} expulsé dernier match")
+    return min(cut, ABSENCE_CAP), notes
+
+
+def match_context(fixture, home_history, away_history, today):
+    """6.9.0 : multiplicateurs de buts attendus (fatigue + absences)."""
+    context = {}
+    for side, history in (("home", home_history), ("away", away_history)):
+        fatigue, why = fatigue_of(history, today)
+        absence, notes = absence_of(fixture, side, history, today)
+        context[side] = {"fatigue": fatigue, "fatigue_why": why,
+                         "absence": absence, "absence_notes": notes}
+    for side, other in (("home", "away"), ("away", "home")):
+        cut = min(context[side]["fatigue"] + context[side]["absence"], 0.15)
+        leak = FATIGUE_LEAK if context[other]["fatigue"] > 0 else 0.0
+        context[side]["factor"] = (1 - cut) * (1 + leak)
+    return context
+
+
 def analyse(fixture, today):
     home_history = team_history(
         fixture["home_id"], fixture["league_id"], today
@@ -2828,6 +3363,25 @@ def analyse(fixture, today):
     if home is None or away is None:
         return None
 
+    base_probabilities = estimate(home, away)[2]
+    # 6.9.0 : fatigue + absences -> buts attendus ajustés
+    context = {}
+    try:
+        context = match_context(fixture, home_history, away_history, today)
+    except Exception as exc:
+        error(f"Contexte impossible : {type(exc).__name__} {exc}")
+    f_home = context.get("home", {}).get("factor", 1.0)
+    f_away = context.get("away", {}).get("factor", 1.0)
+    if f_home != 1.0 or f_away != 1.0:
+        home = dict(home, gf=home["gf"] * f_home, ga=home["ga"] * f_away)
+        away = dict(away, gf=away["gf"] * f_away, ga=away["ga"] * f_home)
+        print(
+            f"CONTEXTE : {fixture.get('home_team')} x{f_home:.2f} "
+            f"{fixture.get('away_team')} x{f_away:.2f} "
+            f"{[context[s]['fatigue_why'] for s in ('home', 'away')]} "
+            f"{[context[s]['absence_notes'] for s in ('home', 'away')]}",
+            flush=True,
+        )
     lambda_home, lambda_away, probabilities = estimate(home, away)
 
     home_form = form_stats(home_history)
@@ -2905,7 +3459,8 @@ def analyse(fixture, today):
         "fixture": fixture,
         "picks": picks,
         "probabilities": probabilities,
-        "base": probabilities,
+        "base": base_probabilities,
+        "context": context,
         "best": (
             max(p + MARKET_RANK_BONUS.get(m, 0.0) for m, p in picks)
             if picks else 0
@@ -3223,13 +3778,64 @@ def match_head(fixture):
     return start, head, (f"🏆 {league}" if league else None)
 
 
-def build_light_message(selected, partial, ticket=None, summary=None, enrich=None, today=None):
+def fmt_chance(chance):
+    pct = chance * 100
+    text = f"{pct:.1f}".replace(".", ",") if pct < 10 else f"{pct:.0f}"
+    if chance <= 0:
+        return "?"
+    if chance >= 0.5:
+        return f"{text} %"
+    return f"{text} % (1 chance sur {1 / chance:.0f})"
+
+
+def extra_ticket_blocks(title, legs, target=None, note=None, empty="Pas assez de matchs exploitables."):
+    """6.9.0 : blocs Telegram du méga fun / ultra safe (même présentation
+    que le ticket du jour + chance estimée)."""
+    if not legs:
+        return [f"{title}\n{empty}"]
+    blocks = []
+    for number_, leg in enumerate(legs, 1):
+        fixture = leg["result"]["fixture"]
+        _, head, league = match_head(fixture)
+        probability = leg["prob"]
+        if leg.get("real"):
+            odds = f"cote {fmt_odds(leg['odds'])}"
+            floor = min_odds(probability)
+            if floor is not None and leg["odds"] > floor:
+                odds += " ✅ value"
+        else:
+            odds = f"cote juste {fmt_odds(leg_odds(leg))} (estim.)"
+        lines = ([title] if number_ == 1 else []) + [f"{number_}. {head}"]
+        if league:
+            lines.append(league)
+        lines.append(
+            f"• {tg_labels(fixture).get(leg['market'], leg['market'])} :"
+            f" {probability:.0%} · {odds}"
+        )
+        blocks.append("\n".join(lines))
+    total = ticket_total(legs)
+    estimate = ticket_estimated(legs)
+    if target and total < target:
+        end = [f"💰 Cote {target:g} non atteinte (meilleur {fmt_short(total)}{', estim.' if estimate else ''})"]
+    else:
+        end = [f"💰 Cote totale : {fmt_short(total)}{' (estim.)' if estimate else ''}"]
+    end.append(f"🎯 Chance estimée : {fmt_chance(ticket_chance(legs))}")
+    if note:
+        end.append(note)
+    blocks.append("\n".join(end))
+    return blocks
+
+
+def build_light_message(selected, partial, ticket=None, summary=None, enrich=None, today=None,
+                        mega=None, safe=None):
     """Message Telegram (6.6.2) : présentation par heure et par match,
     sans forme / enjeu. Les blocs sont séparés par une ligne vide, ce qui
     permet de couper le message entre deux matchs."""
     enrich = enrich or {}
     day = today or datetime.now(PARIS).date()
-    blocks = [f"⚽ PRONOSTICS DU JOUR\n📅 {day.strftime('%d/%m/%Y')}"]
+    title = "🌙 PRONOSTICS DE LA NUIT" if NIGHT_RUN else "⚽ PRONOSTICS DU JOUR"
+    ticket_title = "🎟️ TICKET DE NUIT" if NIGHT_RUN else "🎟️ TICKET DU JOUR"
+    blocks = [f"{title}\n📅 {day.strftime('%d/%m/%Y')}"]
 
     ordered = sorted(selected, key=lambda r: (kickoff_of(r["fixture"]), -r["best"]))
     current_hour = None
@@ -3266,7 +3872,7 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
             lines.append("⚠️ " + " · ".join(alerts))
         blocks.append("\n".join(lines))
     if index == 0:
-        blocks.append("Aucun prono solide aujourd'hui.")
+        blocks.append("Aucun prono solide cette nuit." if NIGHT_RUN else "Aucun prono solide aujourd'hui.")
 
     if ticket:
         ticket_odds = enrich.get("__ticket_odds__") or {}
@@ -3274,15 +3880,18 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
             fixture = leg["result"]["fixture"]
             _, head, league = match_head(fixture)
             probability = leg["prob"]
-            price = ticket_odds.get((str(fixture.get("id")), leg["market"]))
+            if "real" in leg:
+                price = leg.get("odds") if leg.get("real") else None
+            else:
+                price = ticket_odds.get((str(fixture.get("id")), leg["market"]))
             if price:
                 odds = f"cote {fmt_odds(price)}"
                 floor = min_odds(probability)
                 if floor is not None and price > floor:
                     odds += " ✅ value"
             else:
-                odds = f"cote juste {fmt_odds(1 / probability)}"
-            lines = (["🎟️ TICKET DU JOUR"] if number_ == 1 else []) + [f"{number_}. {head}"]
+                odds = f"cote juste {fmt_odds(1 / probability)} (estim.)"
+            lines = ([ticket_title] if number_ == 1 else []) + [f"{number_}. {head}"]
             if league:
                 lines.append(league)
             lines.append(
@@ -3290,16 +3899,31 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
                 f" {probability:.0%} · {odds}"
             )
             blocks.append("\n".join(lines))
-        fair = ticket_fair(ticket)
-        if fair >= TICKET_TARGET_ODDS:
-            blocks.append(f"💰 Cote totale : {fmt_short(fair)}")
+        if any("real" in leg for leg in ticket):
+            total = ticket_total(ticket)
+            estimate = " (estim.)" if ticket_estimated(ticket) else ""
+        else:
+            total = ticket_fair(ticket)
+            estimate = ""
+        if total >= TICKET_TARGET_ODDS:
+            blocks.append(f"💰 Cote totale : {fmt_short(total)}{estimate}")
         else:
             blocks.append(
                 f"💰 Cote {TICKET_TARGET_ODDS:g} non atteinte"
-                f" (meilleur {fmt_short(fair)})"
+                f" (meilleur {fmt_short(total)}{', estim.' if estimate else ''})"
             )
     else:
-        blocks.append("🎟️ TICKET DU JOUR\nPas assez de matchs exploitables.")
+        blocks.append(f"{ticket_title}\nPas assez de matchs exploitables.")
+
+    # 6.9.0 : méga fun + ultra safe sous le ticket du jour
+    if MEGA_ACTIF and mega is not None:
+        blocks.extend(extra_ticket_blocks("🎉 MÉGA FUN", mega, MEGA_TARGET_ODDS))
+    if SAFE_ACTIF and safe is not None:
+        blocks.extend(extra_ticket_blocks(
+            "🛡️ ULTRA SAFE", safe, None,
+            note=f"ℹ️ Cotes estimées : vérifie sur Stake ({fmt_odds(SAFE_MIN_LEG_ODDS)} min par sélection)",
+            empty="Aucune équipe assez sûre de marquer aujourd'hui.",
+        ))
 
     footer = []
     if summary and summary.get("markets"):
@@ -3307,7 +3931,18 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
         wins = sum(s["wins"] for s in summary["markets"].values())
         profit = sum(s["profit"] for s in summary["markets"].values())
         if n:
-            footer.append(f"📊 {STATS_DAYS}j : {wins / n:.0%} · ROI {fmt_roi(profit / n)}")
+            real = int(summary.get("real_published") or 0)
+            if real >= n:
+                label = ""
+            elif real == 0:
+                label = " (cote min)"
+            else:
+                label = f" ({real}/{n} à la vraie cote, reste cote min)"
+            footer.append(
+                f"📊 {STATS_DAYS}j : {wins / n:.0%} · ROI {fmt_roi(profit / n)}{label}"
+            )
+    if tickets_line(summary):
+        footer.append(tickets_line(summary))
     if partial:
         footer.append("⚠️ Analyse partielle (quota API)")
     if footer:
@@ -3343,7 +3978,7 @@ def write_fiches(selected, enrich, ticket, partial, analysed, total, summary, no
         return None
 
 
-def write_journal(all_results, selected, today, ticket=()):
+def write_journal(all_results, selected, today, ticket=(), market_odds=None, extra_tickets=None):
     rows = read_predictions()
     known = {
         (r["date"], r["fixture_id"], r["market"], r["player"])
@@ -3359,6 +3994,22 @@ def write_journal(all_results, selected, today, ticket=()):
         for leg in ticket
     }
 
+    # 6.9.0 : tags de tickets ; une relance du jour remplace les tickets du
+    # même type (on garde le dernier envoyé)
+    tags = {}
+    kinds = {"jour"} | set((extra_tickets or {}).keys())
+    for kind, legs in [("jour", ticket)] + list((extra_tickets or {}).items()):
+        for leg in legs or []:
+            key = (str(leg["result"]["fixture"].get("id")), leg["market"])
+            tags.setdefault(key, set()).add(kind)
+    day_iso = today.isoformat()
+    for row in rows:
+        if row.get("date") != day_iso:
+            continue
+        old = [t for t in str(row.get("tickets") or "").split(";") if t and t not in kinds]
+        new = tags.get((str(row.get("fixture_id")), row.get("market")), set()) if not row.get("player") else set()
+        row["tickets"] = ";".join(sorted(set(old) | new))
+
     for result in all_results:
         fixture = result["fixture"]
         fid = str(fixture.get("id"))
@@ -3373,6 +4024,7 @@ def write_journal(all_results, selected, today, ticket=()):
             "home_id": str(fixture.get("home_id") or ""),
             "away_id": str(fixture.get("away_id") or ""),
             "odds_taken": "",
+            "odds_market": "",
         }
 
         all_markets = dict(result["probabilities"])
@@ -3387,15 +4039,19 @@ def write_journal(all_results, selected, today, ticket=()):
             )
 
         for market, probability in all_markets.items():
-            if probability < LOG_MIN_PROB:
+            # 6.9.0 : une sélection de ticket est toujours journalisée
+            if probability < LOG_MIN_PROB and (fid, market) not in tags:
                 continue
 
             key = (base_info["date"], fid, market, "")
             if key in known:
                 continue
 
+            price = (market_odds or {}).get((fid, market))
             rows.append({
                 **base_info,
+                "odds_market": f"{price:.2f}" if price else "",
+                "tickets": ";".join(sorted(tags.get((fid, market), ()))),
                 "market": market,
                 "player": "",
                 "probability": f"{probability:.4f}",
@@ -3415,7 +4071,7 @@ def write_journal(all_results, selected, today, ticket=()):
 # ---------------- EXECUTION ----------------
 
 def main():
-    global PARTIAL
+    global PARTIAL, NIGHT_RUN
 
     if not TOKEN or not CHAT_ID:
         raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
@@ -3425,6 +4081,9 @@ def main():
 
     now = datetime.now(PARIS)
     today = now.date()
+    NIGHT_RUN = is_night_run(now)
+    if NIGHT_RUN:
+        print(f"MODE NUIT : matchs jusqu'à {NIGHT_WINDOW_END_HOUR:02d}:00", flush=True)
 
     # 6.6.0 : cache disque + budget du jour
     load_disk_cache(today)
@@ -3467,6 +4126,9 @@ def run(now, today):
             continue
 
         if kickoff.date() != today or kickoff <= now:
+            continue
+        # 6.8.1 : la nuit, seulement les matchs avant 08:00
+        if is_night_run(now) and kickoff.hour >= NIGHT_WINDOW_END_HOUR:
             continue
 
         if str(fixture.get("status") or "").casefold() != "scheduled":
@@ -3538,6 +4200,8 @@ def run(now, today):
     selected = [
         r for r in results
         if r["picks"] and kickoff_of(r["fixture"]) > publication_time
+        # 6.8.0 : pronos aussi limités aux ligues autorisées (Stake)
+        and (not PRONOS_LIGUES_AUTORISEES or ticket_league_ok(r["fixture"]))
     ][:MAX_MATCHES]
 
     # 6.7.0 : pronos "cote plus haute" ajoutés aux matchs déjà retenus, puis
@@ -3551,6 +4215,7 @@ def run(now, today):
         if r.get("high_picks")
         and str(r["fixture"].get("id")) not in chosen
         and kickoff_of(r["fixture"]) > publication_time
+        and (not PRONOS_LIGUES_AUTORISEES or ticket_league_ok(r["fixture"]))
     ]
     only_high.sort(key=lambda r: -max(p for _, p in r["high_picks"]))
     for r in only_high[:HIGH_ODDS_EXTRA_MATCHES]:
@@ -3570,6 +4235,23 @@ def run(now, today):
         ticket = []
         error(f"Ticket impossible : {type(exc).__name__} {exc}")
 
+    # 6.9.0 : méga fun + ultra safe (mêmes ligues / fenêtre, budget de cotes
+    # du jour : les ligues déjà lues sont en cache)
+    mega = safe = None
+    if MEGA_ACTIF:
+        try:
+            mega = build_mega(all_results, publication_time)
+        except Exception as exc:
+            mega = []
+            error(f"Méga fun impossible : {type(exc).__name__} {exc}")
+    if SAFE_ACTIF:
+        try:
+            safe = build_safe(all_results, publication_time)
+        except Exception as exc:
+            safe = []
+            error(f"Ultra safe impossible : {type(exc).__name__} {exc}")
+    print(f"ABSENCES : {ABSENCE_STATE}", flush=True)
+
     # 6.6.0 : infos par pick publié (H2H, buteur, cartons, cotes)
     enrich = {}
     for result in selected:
@@ -3582,19 +4264,31 @@ def run(now, today):
         except Exception as exc:
             error(f"Infos pick impossibles : {type(exc).__name__} {exc}")
 
+    # 6.8.0 : les vraies cotes du ticket sont lues pendant sa construction
     ticket_odds = {}
     for leg in ticket or []:
-        try:
-            fixture = leg["result"]["fixture"]
-            price = real_odds_for(fixture, [leg["market"]]).get(leg["market"])
-            if price:
-                ticket_odds[(str(fixture.get("id")), leg["market"])] = price
-        except Exception as exc:
-            error(f"Cote ticket impossible : {type(exc).__name__} {exc}")
+        if leg.get("real"):
+            ticket_odds[(str(leg["result"]["fixture"].get("id")), leg["market"])] = leg["odds"]
     enrich["__ticket_odds__"] = ticket_odds
 
+    # 6.8.0 : vraies cotes connues -> journal (ROI réel dans le bilan)
+    market_odds = dict(ticket_odds)
+    for leg in (mega or []):
+        if leg.get("real"):
+            market_odds[(str(leg["result"]["fixture"].get("id")), leg["market"])] = leg["odds"]
+    for fid, info in enrich.items():
+        if fid.startswith("__") or not isinstance(info, dict):
+            continue
+        for market, price in (info.get("odds") or {}).items():
+            market_odds[(fid, market)] = price
+
     try:
-        write_journal(all_results, selected, today, ticket)
+        extra_tickets = {}
+        if mega is not None:
+            extra_tickets["mega"] = mega
+        if safe is not None:
+            extra_tickets["safe"] = safe
+        write_journal(all_results, selected, today, ticket, market_odds, extra_tickets)
     except Exception as exc:
         error(f"Ecriture du journal impossible : {type(exc).__name__} {exc}")
 
@@ -3622,7 +4316,7 @@ def run(now, today):
     if fiche:
         print("FICHE :", fiche, flush=True)
 
-    send_message(build_light_message(selected, PARTIAL, ticket, summary, enrich, today))
+    send_message(build_light_message(selected, PARTIAL, ticket, summary, enrich, today, mega, safe))
     mark_sent(today)
 
 
