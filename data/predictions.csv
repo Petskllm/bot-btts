@@ -3943,11 +3943,11 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-20,18640008,Darmstadt 98 - Heidenheim,German 2. Bundesliga,18:30,home15,,0.5050,0.5050,0,6.7.0,pending,2500,10,,,
 2026-11-20,18640008,Darmstadt 98 - Heidenheim,German 2. Bundesliga,18:30,over25,,0.5511,0.5511,0,6.7.0,pending,2500,10,,,
 2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,home,,0.8440,0.8440,1,6.7.0,pending,24670,24590,,,
-2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,away,,0.8320,0.8320,1,6.7.0,pending,24670,24590,,,safe
+2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,away,,0.8320,0.8320,1,6.7.0,pending,24670,24590,,,
 2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,btts,,0.6996,0.6996,0,6.7.0,pending,24670,24590,,,
 2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,over15,,0.8734,0.8734,0,6.7.0,pending,24670,24590,,,
 2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,home15,,0.6041,0.6041,1,6.7.0,pending,24670,24590,,,
-2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,over25,,0.7046,0.7046,1,6.7.0,pending,24670,24590,,,jour
+2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,over25,,0.7046,0.7046,1,6.7.0,pending,24670,24590,,,
 2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,sot_home,,0.7680,0.7680,0,6.7.0,pending,24670,24590,,,
 2026-11-20,13596941,Al Ahli - Al Nassr,Saudi Arabian League,18:30,sot_away,,0.7274,0.7274,0,6.7.0,pending,24670,24590,,,
 2026-11-20,18399055,AGF - Lyngby,Danish Superligaen,19:00,home,,0.8050,0.8050,0,6.7.0,pending,169,982666,,,
@@ -4094,13 +4094,13 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-20,19230139,Racing (Montevideo) - Central Español Fútbol Club,Uruguayan Primera División,20:30,over15,,0.7264,0.7264,0,6.7.0,pending,4971739,4971728,,,
 2026-11-20,19230139,Racing (Montevideo) - Central Español Fútbol Club,Uruguayan Primera División,20:30,win_home,,0.5157,0.5157,0,6.7.0,pending,4971739,4971728,,,
 2026-11-20,19230139,Racing (Montevideo) - Central Español Fútbol Club,Uruguayan Primera División,20:30,home15,,0.5305,0.5305,0,6.7.0,pending,4971739,4971728,,,
-2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,home,,0.8103,0.8103,1,6.7.0,pending,33,36,,,safe
+2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,home,,0.8103,0.8103,1,6.7.0,pending,33,36,,,
 2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,away,,0.8430,0.8430,1,6.7.0,pending,33,36,,,
 2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,btts,,0.6623,0.6623,0,6.7.0,pending,33,36,,,
 2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,over15,,0.8613,0.8613,0,6.7.0,pending,33,36,,,
 2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,home15,,0.5450,0.5450,2,6.7.0,pending,33,36,,,
 2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,away15,,0.5124,0.5124,0,6.7.0,pending,33,36,,,
-2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,over25,,0.6817,0.6817,1,6.7.0,pending,33,36,,,jour
+2026-11-20,18399054,Cercle Brugge - Westerlo,Belgian Pro League,20:45,over25,,0.6817,0.6817,1,6.7.0,pending,33,36,,,
 2026-11-20,18399065,Airbus UK - Colwyn Bay,Cymru Premier,20:45,home,,0.8036,0.8036,0,6.7.0,pending,180558,24309,,,
 2026-11-20,18399065,Airbus UK - Colwyn Bay,Cymru Premier,20:45,away,,0.7976,0.7976,0,6.7.0,pending,180558,24309,,,
 2026-11-20,18399065,Airbus UK - Colwyn Bay,Cymru Premier,20:45,btts,,0.6158,0.6158,0,6.7.0,pending,180558,24309,,,
@@ -4176,9 +4176,9 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-20,18399059,Barnsley - Sheffield Wednesday,League One,21:00,btts,,0.6833,0.6833,0,6.7.0,pending,1211,1725,,,
 2026-11-20,18399059,Barnsley - Sheffield Wednesday,League One,21:00,over15,,0.8839,0.8839,0,6.7.0,pending,1211,1725,,,
 2026-11-20,18399059,Barnsley - Sheffield Wednesday,League One,21:00,home15,,0.6253,0.6253,1,6.7.0,pending,1211,1725,,,
-2026-11-20,18399059,Barnsley - Sheffield Wednesday,League One,21:00,over25,,0.6879,0.6879,1,6.7.0,pending,1211,1725,,,jour
+2026-11-20,18399059,Barnsley - Sheffield Wednesday,League One,21:00,over25,,0.6879,0.6879,1,6.7.0,pending,1211,1725,,,
 2026-11-20,18454110,Athletic Club - Espanyol,Spanish La Liga,21:00,home,,0.7758,0.7758,0,6.7.0,pending,111,7,,,
-2026-11-20,18454110,Athletic Club - Espanyol,Spanish La Liga,21:00,away,,0.6352,0.6352,0,6.7.0,pending,111,7,,,jour
+2026-11-20,18454110,Athletic Club - Espanyol,Spanish La Liga,21:00,away,,0.6352,0.6352,0,6.7.0,pending,111,7,,,
 2026-11-20,18454110,Athletic Club - Espanyol,Spanish La Liga,21:00,btts,,0.5074,0.5074,0,6.7.0,pending,111,7,,,
 2026-11-20,18454110,Athletic Club - Espanyol,Spanish La Liga,21:00,over15,,0.7243,0.7243,0,6.7.0,pending,111,7,,,
 2026-11-20,18638667,Sportivo Ameliano - Sportivo Luqueño,Paraguayan Primera División,21:30,home,,0.7196,0.7196,0,6.7.0,pending,4971764,4971761,,,
@@ -4193,6 +4193,6 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-20,19188829,Independiente Medellín - Independiente Santa Fe,Colombian Primera A,22:30,home,,0.6766,0.6766,0,6.7.0,pending,176495,179832,,,
 2026-11-20,19188829,Independiente Medellín - Independiente Santa Fe,Colombian Primera A,22:30,away,,0.7217,0.7217,0,6.7.0,pending,176495,179832,,,
 2026-11-20,19188829,Independiente Medellín - Independiente Santa Fe,Colombian Primera A,22:30,over15,,0.6973,0.6973,0,6.7.0,pending,176495,179832,,,
-2026-11-20,18399053,Troyes - Le Havre,French Ligue 1,20:45,win_home,,0.3895,0.3895,0,6.9.0,pending,2205,61,,2.15,mega
-2026-11-20,18399059,Barnsley - Sheffield Wednesday,League One,21:00,win_home,,0.4551,0.4551,0,6.9.0,pending,1211,1725,,2.98,mega
-2026-11-20,18454110,Athletic Club - Espanyol,Spanish La Liga,21:00,over25,,0.4571,0.4571,0,6.9.0,pending,111,7,,1.78,mega
+2026-11-20,18399053,Troyes - Le Havre,French Ligue 1,20:45,win_home,,0.3895,0.3895,0,6.9.0,pending,2205,61,,2.15,
+2026-11-20,18399059,Barnsley - Sheffield Wednesday,League One,21:00,win_home,,0.4551,0.4551,0,6.9.0,pending,1211,1725,,2.98,
+2026-11-20,18454110,Athletic Club - Espanyol,Spanish La Liga,21:00,over25,,0.4571,0.4571,0,6.9.0,pending,111,7,,1.78,
