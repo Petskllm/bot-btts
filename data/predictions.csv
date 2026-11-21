@@ -4460,16 +4460,16 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,away,,0.8047,0.8047,1,6.9.1,pending,35,145,,,
 2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,btts,,0.6809,0.6809,0,6.9.1,pending,35,145,,,
 2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,over15,,0.8686,0.8686,0,6.9.1,pending,35,145,,,
-2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,win_home,,0.4754,0.4754,0,6.9.1,pending,35,145,,,mega
+2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,win_home,,0.4754,0.4754,0,6.9.1,pending,35,145,,,
 2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,home15,,0.6554,0.6554,0,6.9.1,pending,35,145,,,
 2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,over25,,0.7105,0.7105,1,6.9.1,pending,35,145,,,
 2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,sot_home,,0.8203,0.8203,0,6.9.1,pending,35,145,,,
 2026-11-21,18454177,Sporting Charleroi - Sint-Truiden,Belgian Pro League,16:00,sot_away,,0.7918,0.7918,0,6.9.1,pending,35,145,,,
-2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,home,,0.6867,0.6867,2,6.9.1,pending,10172,10164,,,jour
+2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,home,,0.6867,0.6867,2,6.9.1,pending,10172,10164,,,
 2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,away,,0.7828,0.7828,1,6.9.1,pending,10172,10164,,,
 2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,btts,,0.5467,0.5467,0,6.9.1,pending,10172,10164,,,
 2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,over15,,0.7217,0.7217,1,6.9.1,pending,10172,10164,,,
-2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,win_away,,0.4572,0.4572,0,6.9.1,pending,10172,10164,,2.50,mega
+2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,win_away,,0.4572,0.4572,0,6.9.1,pending,10172,10164,,2.50,
 2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,over25,,0.5032,0.5032,0,6.9.1,pending,10172,10164,,,
 2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,sot_home,,0.6638,0.6638,0,6.9.1,pending,10172,10164,,,
 2026-11-21,18454238,Bolton Wanderers - Portsmouth,Championship,16:00,sot_away,,0.7167,0.7167,0,6.9.1,pending,10172,10164,,,
@@ -4477,8 +4477,8 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,away,,0.7733,0.7733,1,6.9.1,pending,857,10168,,,
 2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,btts,,0.5586,0.5586,0,6.9.1,pending,857,10168,,,
 2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,over15,,0.7767,0.7767,1,6.9.1,pending,857,10168,,,
-2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,win_away,,0.4012,0.4012,0,6.9.1,pending,857,10168,,2.79,mega
-2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,over25,,0.5429,0.5429,2,6.9.1,pending,857,10168,,2.13,jour
+2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,win_away,,0.4012,0.4012,0,6.9.1,pending,857,10168,,2.79,
+2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,over25,,0.5429,0.5429,2,6.9.1,pending,857,10168,,2.13,
 2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,sot_home,,0.6734,0.6734,0,6.9.1,pending,857,10168,,,
 2026-11-21,18454239,Lincoln City - Wrexham,Championship,16:00,sot_away,,0.6762,0.6762,0,6.9.1,pending,857,10168,,,
 2026-11-21,18454240,Middlesbrough - Bristol City,Championship,16:00,home,,0.8314,0.8314,0,6.9.1,pending,10294,1562,,,
@@ -4506,7 +4506,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454243,Swansea City - West Bromwich Albion,Championship,16:00,away,,0.7426,0.7426,1,6.9.1,pending,499,10280,,,
 2026-11-21,18454243,Swansea City - West Bromwich Albion,Championship,16:00,btts,,0.5487,0.5487,0,6.9.1,pending,499,10280,,,
 2026-11-21,18454243,Swansea City - West Bromwich Albion,Championship,16:00,over15,,0.7496,0.7496,1,6.9.1,pending,499,10280,,,
-2026-11-21,18454243,Swansea City - West Bromwich Albion,Championship,16:00,over25,,0.5066,0.5066,2,6.9.1,pending,499,10280,,1.93,jour;mega
+2026-11-21,18454243,Swansea City - West Bromwich Albion,Championship,16:00,over25,,0.5066,0.5066,2,6.9.1,pending,499,10280,,1.93,
 2026-11-21,18454243,Swansea City - West Bromwich Albion,Championship,16:00,sot_home,,0.6470,0.6470,0,6.9.1,pending,499,10280,,,
 2026-11-21,18454243,Swansea City - West Bromwich Albion,Championship,16:00,sot_away,,0.7772,0.7772,0,6.9.1,pending,499,10280,,,
 2026-11-21,18454244,West Ham United - Preston North End,Championship,16:00,home,,0.8670,0.8670,0,6.9.1,pending,358,10163,,,
@@ -4518,7 +4518,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454244,West Ham United - Preston North End,Championship,16:00,over25,,0.6471,0.6471,1,6.9.1,pending,358,10163,,1.44,
 2026-11-21,18454244,West Ham United - Preston North End,Championship,16:00,sot_home,,0.8763,0.8763,0,6.9.1,pending,358,10163,,,
 2026-11-21,18454244,West Ham United - Preston North End,Championship,16:00,sot_away,,0.5496,0.5496,0,6.9.1,pending,358,10163,,,
-2026-11-21,18454245,Wolverhampton Wanderers - Charlton Athletic,Championship,16:00,home,,0.8172,0.8172,1,6.9.1,pending,368,10161,,,safe
+2026-11-21,18454245,Wolverhampton Wanderers - Charlton Athletic,Championship,16:00,home,,0.8172,0.8172,1,6.9.1,pending,368,10161,,,
 2026-11-21,18454245,Wolverhampton Wanderers - Charlton Athletic,Championship,16:00,away,,0.6027,0.6027,0,6.9.1,pending,368,10161,,,
 2026-11-21,18454245,Wolverhampton Wanderers - Charlton Athletic,Championship,16:00,over15,,0.7444,0.7444,1,6.9.1,pending,368,10161,,,
 2026-11-21,18454245,Wolverhampton Wanderers - Charlton Athletic,Championship,16:00,win_home,,0.5568,0.5568,0,6.9.1,pending,368,10161,,,
@@ -4564,9 +4564,9 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454250,Bradford City - Doncaster Rovers,League One,16:00,over15,,0.8282,0.8282,1,6.9.1,pending,1472,762,,,
 2026-11-21,18454250,Bradford City - Doncaster Rovers,League One,16:00,win_home,,0.6171,0.6171,0,6.9.1,pending,1472,762,,,
 2026-11-21,18454250,Bradford City - Doncaster Rovers,League One,16:00,home15,,0.6760,0.6760,0,6.9.1,pending,1472,762,,,
-2026-11-21,18454250,Bradford City - Doncaster Rovers,League One,16:00,over25,,0.6161,0.6161,1,6.9.1,pending,1472,762,,1.68,jour;mega
+2026-11-21,18454250,Bradford City - Doncaster Rovers,League One,16:00,over25,,0.6161,0.6161,1,6.9.1,pending,1472,762,,1.68,
 2026-11-21,18454251,Burton Albion - Luton Town,League One,16:00,home,,0.7234,0.7234,0,6.9.1,pending,10175,10180,,,
-2026-11-21,18454251,Burton Albion - Luton Town,League One,16:00,away,,0.8309,0.8309,1,6.9.1,pending,10175,10180,,,safe
+2026-11-21,18454251,Burton Albion - Luton Town,League One,16:00,away,,0.8309,0.8309,1,6.9.1,pending,10175,10180,,,
 2026-11-21,18454251,Burton Albion - Luton Town,League One,16:00,btts,,0.5855,0.5855,0,6.9.1,pending,10175,10180,,,
 2026-11-21,18454251,Burton Albion - Luton Town,League One,16:00,over15,,0.8227,0.8227,1,6.9.1,pending,10175,10180,,,
 2026-11-21,18454251,Burton Albion - Luton Town,League One,16:00,over25,,0.5906,0.5906,1,6.9.1,pending,10175,10180,,1.55,
