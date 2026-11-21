@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.9.0
+# BOT FOOTBALL — SPORTAPI — VERSION 6.9.1
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -228,6 +228,14 @@ import requests
 #   Paris (7 appels = 14 crédits, relances et lancement de nuit compris) :
 #   434 crédits / mois max. Pas d'appel de cotes pour les marchés que l'API
 #   ne couvre pas (équipe +0,5).
+#
+# Version 6.9.1 :
+# - Journal : prob_base = probabilité AVANT fatigue / absences (probability
+#   reste la probabilité finale publiée). On pourra ainsi mesurer, sur le
+#   journal, si ces ajustements améliorent ou dégradent le modèle.
+# - Absences désactivées (ABSENCES_ACTIF = False) : les indices tirés de la
+#   compo du dernier match ne sont pas validés (noms mal reconnus, joueurs
+#   ménagés). Réactivables en remettant True.
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -432,7 +440,7 @@ FATIGUE_EURO_DAYS = 4
 FATIGUE_EURO_EXTRA = 0.02         # Coupe d'Europe en semaine : -2 % en plus
 EURO_CUP_PATTERN = re.compile(r"champions league|europa league|conference league", re.IGNORECASE)
 # 6.9.0 : absences (indices : compo / cartons du dernier match)
-ABSENCES_ACTIF = True
+ABSENCES_ACTIF = False
 ABSENCE_SCORER = 0.06             # meilleur buteur absent
 ABSENCE_OTHER = 0.03              # autre buteur (3 buts et +) absent
 ABSENCE_RED = 0.03                # expulsé au dernier match
@@ -523,7 +531,7 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 MAX_API_CALLS = 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.9.0"
+MODEL_VERSION = "6.9.1"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 600
 TIMEOUT = 20
@@ -3363,7 +3371,8 @@ def analyse(fixture, today):
     if home is None or away is None:
         return None
 
-    base_probabilities = estimate(home, away)[2]
+    base_lambda_home, base_lambda_away, base_probabilities = estimate(home, away)
+    base_extra = extra_probabilities(base_lambda_home, base_lambda_away)
     # 6.9.0 : fatigue + absences -> buts attendus ajustés
     context = {}
     try:
@@ -3460,6 +3469,7 @@ def analyse(fixture, today):
         "picks": picks,
         "probabilities": probabilities,
         "base": base_probabilities,
+        "base_extra": base_extra,
         "context": context,
         "best": (
             max(p + MARKET_RANK_BONUS.get(m, 0.0) for m, p in picks)
@@ -4048,6 +4058,9 @@ def write_journal(all_results, selected, today, ticket=(), market_odds=None, ext
                 continue
 
             price = (market_odds or {}).get((fid, market))
+            base_value = (result.get("base") or {}).get(market)
+            if base_value is None:
+                base_value = (result.get("base_extra") or {}).get(market, probability)
             rows.append({
                 **base_info,
                 "odds_market": f"{price:.2f}" if price else "",
@@ -4055,7 +4068,7 @@ def write_journal(all_results, selected, today, ticket=(), market_odds=None, ext
                 "market": market,
                 "player": "",
                 "probability": f"{probability:.4f}",
-                "prob_base": f"{probability:.4f}",
+                "prob_base": f"{base_value:.4f}",
                 "published": (
                     1 if (fid, market) in published
                     else 2 if (fid, market) in ticket_keys
