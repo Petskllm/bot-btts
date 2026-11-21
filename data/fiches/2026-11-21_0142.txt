@@ -1,0 +1,25 @@
+⚽ PRONOSTICS DU JOUR
+📅 21/11/2026
+
+Aucun marché estimé dans les filtres actuels.
+
+🎟️ TICKET DU JOUR (expérimental)
+Pas de ticket aujourd'hui : pas assez de matchs exploitables.
+
+📒 BILAN 30 JOURS (pronos publiés, mise 1)
+• +1,5 buts : 219/280 (78%, annoncé 81%) · ROI +1%
+• Dom +0,5 : 209/241 (87%, annoncé 81%) · ROI +11%
+• Ext +0,5 : 139/175 (79%, annoncé 80%) · ROI +3%
+• +2,5 buts : 11/18 (61%, annoncé 67%) · ROI -4%
+Total : 578/714 (81%) · ROI +5%
+🎟️ Tickets 30j : Jour 0/2
+Brier : 0,191 (0,25 = pile ou face)
+ℹ️ ROI calculé à la cote min : note tes vraies cotes dans la colonne odds_taken pour le ROI réel.
+
+📈 3/13 matchs analysés
+⚠️ Analyse partielle.
+💰 Ne joue que si la cote du bookmaker est au moins égale à la cote min : en dessous, le pari perd sur la durée.
+ℹ️ Heures de Paris. Sans garantie.
+
+===== DÉTAIL PAR PICK =====
+Appels API ce lancement : 49 · cache : 0
