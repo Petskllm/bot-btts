@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # ============================================================
-# BOT FOOTBALL — SPORTAPI — VERSION 6.9.1
+# BOT FOOTBALL — SPORTAPI — VERSION 6.9.2
 #
 # Marchés :
 # - Domicile +0,5 but (72-85 %)
@@ -236,6 +236,20 @@ import requests
 # - Absences désactivées (ABSENCES_ACTIF = False) : les indices tirés de la
 #   compo du dernier match ne sont pas validés (noms mal reconnus, joueurs
 #   ménagés). Réactivables en remettant True.
+#
+# Version 6.9.2 (mode sans limite) :
+# - MODE_SANS_LIMITE = True : plus de plafond de 15 matchs, plus de budget
+#   quotidien auto-imposé (le bot analyse tous les matchs du jour), temps
+#   d'exécution porté à 18 min. Le bot s'arrête seulement quand le quota
+#   RÉEL de l'API est presque épuisé (lu dans les en-têtes X-RateLimit),
+#   donc jamais de blocage brutal : au pire "Analyse partielle".
+# - Sur l'offre gratuite (14 000 requêtes / mois), ce mode épuise le quota
+#   plus vite. Remettre MODE_SANS_LIMITE = False pour revenir au budget
+#   réparti sur le mois.
+# - Tirs cadrés non calculés (SOT_ACTIF = False) : abandonnés, et ils
+#   coûtaient 2 requêtes par match.
+# - Plus de plafond de 12 matchs par championnat (MAX_PER_LEAGUE).
+# - Les ligues autorisées (PRONOS_LIGUES_AUTORISEES) ne changent pas.
 # ============================================================
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
@@ -257,7 +271,9 @@ SOT_CACHE_FILE = "data/sot_stats_cache.json"
 ODDS_MARGIN = 1.03
 LOG_MIN_PROB = 0.50
 
-MAX_MATCHES = 15
+MODE_SANS_LIMITE = True   # 6.9.2 : voir l'en-tête (quota réel seulement)
+SOT_ACTIF = False         # 6.9.2 : tirs cadrés abandonnés (2 requêtes / match)
+MAX_MATCHES = 500 if MODE_SANS_LIMITE else 15
 
 TICKET_LEGS = 4
 TICKET_MIN_PROB = 0.50
@@ -268,7 +284,7 @@ TICKET_POOL = 24
 TICKET_FORM_WEIGHT = 0.40
 MAX_MARKETS = 3
 
-MAX_PER_LEAGUE = 12
+MAX_PER_LEAGUE = 999 if MODE_SANS_LIMITE else 12   # 6.9.2
 PRIORITY_LEAGUE_IDS = set()
 
 EXCLUDE_YOUTH = True
@@ -528,12 +544,12 @@ ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False 
 # - cotes bookmaker : publier seulement si proba modèle > 1 / cote
 # - blessures / compositions : baisser l'espérance de buts sans le buteur
 
-MAX_API_CALLS = 350
+MAX_API_CALLS = 3000 if MODE_SANS_LIMITE else 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.9.1"
+MODEL_VERSION = "6.9.2"
 MIN_INTERVAL = 0.5
-MAX_RUNTIME_SECONDS = 600
+MAX_RUNTIME_SECONDS = 1080 if MODE_SANS_LIMITE else 600
 TIMEOUT = 20
 MAX_RETRIES = 2
 RETRY_PAUSE = 60
@@ -1014,6 +1030,9 @@ def usage_path():
 
 def run_allowance():
     """Appels permis pour CE lancement d'après la part du jour."""
+    if MODE_SANS_LIMITE:
+        # 6.9.2 : seul le quota réel (en-têtes X-RateLimit) limite le bot
+        return MAX_API_CALLS
     share = int(USAGE.get("share") or DAILY_BUDGET_DEFAULT)
     before = int(USAGE.get("calls_before_run", 0))
     target = share if before > 0 else int(share * FIRST_RUN_SHARE)
@@ -3420,10 +3439,10 @@ def analyse(fixture, today):
     # Tirs cadrés (non publiés) : seulement s'il reste assez de budget API
     home_sot = away_sot = None
     run_cap = MAX_API_CALLS if RUN_CAP is None else min(MAX_API_CALLS, RUN_CAP)
-    if CALLS < run_cap * SOT_BUDGET_SHARE:
+    if SOT_ACTIF and CALLS < run_cap * SOT_BUDGET_SHARE:
         home_sot = sot_profile(home_history, "home", today, fixture["home_id"])
         away_sot = sot_profile(away_history, "away", today, fixture["away_id"])
-    else:
+    elif SOT_ACTIF:
         REASONS["Tirs cadrés sautés (budget)"] += 1
 
     # Enjeu : uniquement si un pronostic ou le ticket peut en avoir besoin
