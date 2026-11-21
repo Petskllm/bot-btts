@@ -4600,7 +4600,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454169,Nice - PSG,French Ligue 1,17:15,away,,0.8672,0.8672,0,6.9.2,pending,192,196,,,
 2026-11-21,18454169,Nice - PSG,French Ligue 1,17:15,btts,,0.6455,0.6455,0,6.9.2,pending,192,196,,,
 2026-11-21,18454169,Nice - PSG,French Ligue 1,17:15,over15,,0.8478,0.8478,1,6.9.2,pending,192,196,,,
-2026-11-21,18454169,Nice - PSG,French Ligue 1,17:15,win_away,,0.5140,0.5140,2,6.9.2,pending,192,196,,,jour
+2026-11-21,18454169,Nice - PSG,French Ligue 1,17:15,win_away,,0.5140,0.5140,2,6.9.2,pending,192,196,,,
 2026-11-21,18454169,Nice - PSG,French Ligue 1,17:15,away15,,0.5591,0.5591,0,6.9.2,pending,192,196,,,
 2026-11-21,18454169,Nice - PSG,French Ligue 1,17:15,over25,,0.6682,0.6682,1,6.9.2,pending,192,196,,,
 2026-11-21,18640344,Catanzaro - Palermo,Italian Serie B,17:15,home,,0.7315,0.7315,0,6.9.2,pending,2485,2505,,,
@@ -4666,7 +4666,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454178,Racing Genk - RAAL La Louvière,Belgian Pro League,18:15,over15,,0.8065,0.8065,1,6.9.2,pending,148,38,,,
 2026-11-21,18454178,Racing Genk - RAAL La Louvière,Belgian Pro League,18:15,win_home,,0.5830,0.5830,0,6.9.2,pending,148,38,,,
 2026-11-21,18454178,Racing Genk - RAAL La Louvière,Belgian Pro League,18:15,home15,,0.6339,0.6339,0,6.9.2,pending,148,38,,,
-2026-11-21,18454178,Racing Genk - RAAL La Louvière,Belgian Pro League,18:15,over25,,0.5826,0.5826,1,6.9.2,pending,148,38,,,mega
+2026-11-21,18454178,Racing Genk - RAAL La Louvière,Belgian Pro League,18:15,over25,,0.5826,0.5826,1,6.9.2,pending,148,38,,,
 2026-11-21,18454247,London City Lionesses Women - Crystal Palace Women,Women's Super League,18:15,home,,0.8460,0.8605,0,6.9.2,pending,10290,24343,,,
 2026-11-21,18454247,London City Lionesses Women - Crystal Palace Women,Women's Super League,18:15,away,,0.7468,0.7365,0,6.9.2,pending,10290,24343,,,
 2026-11-21,18454247,London City Lionesses Women - Crystal Palace Women,Women's Super League,18:15,btts,,0.6419,0.6434,0,6.9.2,pending,10290,24343,,,
@@ -4720,7 +4720,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,away,,0.8800,0.8800,0,6.9.2,pending,173,1112500,,,
 2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,btts,,0.7234,0.7234,0,6.9.2,pending,173,1112500,,,
 2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,over15,,0.8940,0.8940,0,6.9.2,pending,173,1112500,,,
-2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,win_away,,0.5082,0.5082,0,6.9.2,pending,173,1112500,,,mega
+2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,win_away,,0.5082,0.5082,0,6.9.2,pending,173,1112500,,,
 2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,home15,,0.5446,0.5446,0,6.9.2,pending,173,1112500,,,
 2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,away15,,0.6122,0.6122,0,6.9.2,pending,173,1112500,,,
 2026-11-21,18454193,Utrecht - Cambuur,Dutch Eredivisie,18:45,over25,,0.7452,0.7452,1,6.9.2,pending,173,1112500,,,
@@ -4778,7 +4778,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,19011300,New England - Philadelphia Union,US Major League Soccer,20:00,away,,0.8296,0.8296,1,6.9.2,pending,24678,24721,,,safe
 2026-11-21,19011300,New England - Philadelphia Union,US Major League Soccer,20:00,btts,,0.6036,0.6036,0,6.9.2,pending,24678,24721,,,
 2026-11-21,19011300,New England - Philadelphia Union,US Major League Soccer,20:00,over15,,0.7959,0.7959,0,6.9.2,pending,24678,24721,,,
-2026-11-21,19011300,New England - Philadelphia Union,US Major League Soccer,20:00,over25,,0.6013,0.6013,1,6.9.2,pending,24678,24721,,,mega
+2026-11-21,19011300,New England - Philadelphia Union,US Major League Soccer,20:00,over25,,0.6013,0.6013,1,6.9.2,pending,24678,24721,,,
 2026-11-21,18454202,Radomiak Radom - Wisła Kraków,Polish Ekstraklasa,20:15,home,,0.7600,0.7600,0,6.9.2,pending,299,982668,,,
 2026-11-21,18454202,Radomiak Radom - Wisła Kraków,Polish Ekstraklasa,20:15,away,,0.7355,0.7355,0,6.9.2,pending,299,982668,,,
 2026-11-21,18454202,Radomiak Radom - Wisła Kraków,Polish Ekstraklasa,20:15,btts,,0.5672,0.5672,0,6.9.2,pending,299,982668,,,
@@ -4816,7 +4816,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454170,Lens - Toulouse,French Ligue 1,20:45,away,,0.8549,0.8549,0,6.9.2,pending,64,188,,,
 2026-11-21,18454170,Lens - Toulouse,French Ligue 1,20:45,btts,,0.6118,0.6118,0,6.9.2,pending,64,188,,,
 2026-11-21,18454170,Lens - Toulouse,French Ligue 1,20:45,over15,,0.8379,0.8379,1,6.9.2,pending,64,188,,,
-2026-11-21,18454170,Lens - Toulouse,French Ligue 1,20:45,win_away,,0.5186,0.5186,0,6.9.2,pending,64,188,,,
+2026-11-21,18454170,Lens - Toulouse,French Ligue 1,20:45,win_away,,0.5186,0.5186,0,6.9.2,pending,64,188,,,jour
 2026-11-21,18454170,Lens - Toulouse,French Ligue 1,20:45,away15,,0.5349,0.5349,0,6.9.2,pending,64,188,,,
 2026-11-21,18454170,Lens - Toulouse,French Ligue 1,20:45,over25,,0.6291,0.6291,1,6.9.2,pending,64,188,,,
 2026-11-21,18454171,Lille - Olympique Lyonnais,French Ligue 1,20:45,home,,0.7595,0.7595,1,6.9.2,pending,194,195,,,
@@ -4827,7 +4827,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454172,Monaco - Auxerre,French Ligue 1,20:45,away,,0.6940,0.6940,0,6.9.2,pending,63,190,,,
 2026-11-21,18454172,Monaco - Auxerre,French Ligue 1,20:45,btts,,0.6097,0.6097,0,6.9.2,pending,63,190,,,
 2026-11-21,18454172,Monaco - Auxerre,French Ligue 1,20:45,over15,,0.8288,0.8288,1,6.9.2,pending,63,190,,,
-2026-11-21,18454172,Monaco - Auxerre,French Ligue 1,20:45,win_home,,0.5557,0.5557,0,6.9.2,pending,63,190,,,mega
+2026-11-21,18454172,Monaco - Auxerre,French Ligue 1,20:45,win_home,,0.5557,0.5557,0,6.9.2,pending,63,190,,,
 2026-11-21,18454172,Monaco - Auxerre,French Ligue 1,20:45,home15,,0.6352,0.6352,0,6.9.2,pending,63,190,,,
 2026-11-21,18454172,Monaco - Auxerre,French Ligue 1,20:45,over25,,0.6099,0.6099,1,6.9.2,pending,63,190,,,
 2026-11-21,18454173,Strasbourg - Brest,French Ligue 1,20:45,home,,0.7712,0.7712,1,6.9.2,pending,193,60,,,
@@ -4932,7 +4932,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,19011301,Dallas - Portland Timbers,US Major League Soccer,22:00,away,,0.7307,0.7307,1,6.9.2,pending,24723,24741,,,
 2026-11-21,19011301,Dallas - Portland Timbers,US Major League Soccer,22:00,btts,,0.5523,0.5523,0,6.9.2,pending,24723,24741,,,
 2026-11-21,19011301,Dallas - Portland Timbers,US Major League Soccer,22:00,over15,,0.7763,0.7763,1,6.9.2,pending,24723,24741,,,
-2026-11-21,19011301,Dallas - Portland Timbers,US Major League Soccer,22:00,over25,,0.5380,0.5380,0,6.9.2,pending,24723,24741,,,
+2026-11-21,19011301,Dallas - Portland Timbers,US Major League Soccer,22:00,over25,,0.5380,0.5380,0,6.9.2,pending,24723,24741,,,mega
 2026-11-21,18639106,ABB - Aurora,Bolivian División Profesional,22:15,home,,0.7274,0.7274,0,6.9.2,pending,2622935,4971791,,,
 2026-11-21,18639106,ABB - Aurora,Bolivian División Profesional,22:15,away,,0.7841,0.7841,0,6.9.2,pending,2622935,4971791,,,
 2026-11-21,18639106,ABB - Aurora,Bolivian División Profesional,22:15,btts,,0.5683,0.5683,0,6.9.2,pending,2622935,4971791,,,
@@ -4963,3 +4963,5 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-21,18454485,Pachuca - Toluca,Liga MX,23:50,over15,,0.8577,0.8577,0,6.9.2,pending,24707,24705,,,
 2026-11-21,18454485,Pachuca - Toluca,Liga MX,23:50,home15,,0.5695,0.5695,0,6.9.2,pending,24707,24705,,,
 2026-11-21,18454485,Pachuca - Toluca,Liga MX,23:50,over25,,0.6570,0.6570,0,6.9.2,pending,24707,24705,,,
+2026-11-21,18454195,Telstar - PEC Zwolle,Dutch Eredivisie,21:00,win_away,,0.3849,0.3849,0,6.9.2,pending,296,57,,,mega
+2026-11-21,18454449,Bahia - Coritiba,Brazilian Serie A,21:30,win_home,,0.4776,0.4806,0,6.9.2,pending,5781,24567,,,mega
