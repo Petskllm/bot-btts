@@ -5168,7 +5168,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18478310,Ajax - ADO Den Haag,Dutch Eredivisie,14:30,over15,,0.8100,0.8100,1,6.9.3,pending,174,1133281,,,
 2026-11-22,18478310,Ajax - ADO Den Haag,Dutch Eredivisie,14:30,win_home,,0.5305,0.5305,0,6.9.3,pending,174,1133281,,,
 2026-11-22,18478310,Ajax - ADO Den Haag,Dutch Eredivisie,14:30,home15,,0.6081,0.6081,0,6.9.3,pending,174,1133281,,,
-2026-11-22,18478310,Ajax - ADO Den Haag,Dutch Eredivisie,14:30,over25,,0.5930,0.5930,1,6.9.3,pending,174,1133281,,1.25,
+2026-11-22,18478310,Ajax - ADO Den Haag,Dutch Eredivisie,14:30,over25,,0.5930,0.5930,1,6.9.3,pending,174,1133281,,1.25,dayfun
 2026-11-22,18478311,Sparta Rotterdam - AZ,Dutch Eredivisie,14:30,home,,0.7729,0.7729,1,6.9.3,pending,58,177,,,
 2026-11-22,18478311,Sparta Rotterdam - AZ,Dutch Eredivisie,14:30,away,,0.8392,0.8392,1,6.9.3,pending,58,177,,,
 2026-11-22,18478311,Sparta Rotterdam - AZ,Dutch Eredivisie,14:30,btts,,0.6296,0.6296,0,6.9.3,pending,58,177,,,
@@ -5213,18 +5213,18 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18478288,Bologna - Udinese,Italian Serie A,15:00,btts,,0.6080,0.6080,0,6.9.3,pending,129,134,,,
 2026-11-22,18478288,Bologna - Udinese,Italian Serie A,15:00,over15,,0.7946,0.7946,1,6.9.3,pending,129,134,,,
 2026-11-22,18478288,Bologna - Udinese,Italian Serie A,15:00,home15,,0.5552,0.5552,0,6.9.3,pending,129,134,,,
-2026-11-22,18478288,Bologna - Udinese,Italian Serie A,15:00,over25,,0.5716,0.5716,0,6.9.3,pending,129,134,,,
+2026-11-22,18478288,Bologna - Udinese,Italian Serie A,15:00,over25,,0.5716,0.5716,2,6.9.3,pending,129,134,,,dayfun
 2026-11-22,18478289,Sassuolo - Genoa,Italian Serie A,15:00,home,,0.7633,0.7633,1,6.9.3,pending,128,131,,,
 2026-11-22,18478289,Sassuolo - Genoa,Italian Serie A,15:00,away,,0.8250,0.8250,1,6.9.3,pending,128,131,,,
 2026-11-22,18478289,Sassuolo - Genoa,Italian Serie A,15:00,btts,,0.6248,0.6248,0,6.9.3,pending,128,131,,,
 2026-11-22,18478289,Sassuolo - Genoa,Italian Serie A,15:00,over15,,0.8251,0.8251,1,6.9.3,pending,128,131,,,
-2026-11-22,18478289,Sassuolo - Genoa,Italian Serie A,15:00,over25,,0.6167,0.6167,1,6.9.3,pending,128,131,,,
+2026-11-22,18478289,Sassuolo - Genoa,Italian Serie A,15:00,over25,,0.6167,0.6167,1,6.9.3,pending,128,131,,,dayfun
 2026-11-22,18640346,Avellino - Mantova,Italian Serie B,15:00,home,,0.7591,0.7591,0,6.9.3,pending,2418,2503,,,
 2026-11-22,18640346,Avellino - Mantova,Italian Serie B,15:00,away,,0.6845,0.6845,0,6.9.3,pending,2418,2503,,,
 2026-11-22,18640346,Avellino - Mantova,Italian Serie B,15:00,btts,,0.5306,0.5306,0,6.9.3,pending,2418,2503,,,
 2026-11-22,18640346,Avellino - Mantova,Italian Serie B,15:00,over15,,0.7413,0.7413,0,6.9.3,pending,2418,2503,,,
 2026-11-22,18478335,Hull City - Brighton & Hove Albion,Premier League,15:00,home,,0.6092,0.6092,0,6.9.3,pending,10165,361,,,
-2026-11-22,18478335,Hull City - Brighton & Hove Albion,Premier League,15:00,away,,0.7307,0.7307,1,6.9.3,pending,10165,361,,,
+2026-11-22,18478335,Hull City - Brighton & Hove Albion,Premier League,15:00,away,,0.7307,0.7307,1,6.9.3,pending,10165,361,,,dayfun
 2026-11-22,18478335,Hull City - Brighton & Hove Albion,Premier League,15:00,over15,,0.6509,0.6509,0,6.9.3,pending,10165,361,,,
 2026-11-22,18478368,Rangers Women - Motherwell Women,Scottish SWF Cup,15:00,home,,0.8800,0.8800,0,6.9.3,pending,24557,24688,,,
 2026-11-22,18478368,Rangers Women - Motherwell Women,Scottish SWF Cup,15:00,away,,0.5927,0.5927,0,6.9.3,pending,24557,24688,,,
@@ -5304,7 +5304,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18478285,Augsburg - Mainz 05,German Bundesliga,15:30,over15,,0.8821,0.8821,0,6.9.3,pending,124,126,,,
 2026-11-22,18478285,Augsburg - Mainz 05,German Bundesliga,15:30,home15,,0.5981,0.5981,0,6.9.3,pending,124,126,,,
 2026-11-22,18478285,Augsburg - Mainz 05,German Bundesliga,15:30,away15,,0.5240,0.5240,0,6.9.3,pending,124,126,,,
-2026-11-22,18478285,Augsburg - Mainz 05,German Bundesliga,15:30,over25,,0.7195,0.7195,1,6.9.3,pending,124,126,,1.40,
+2026-11-22,18478285,Augsburg - Mainz 05,German Bundesliga,15:30,over25,,0.7195,0.7195,1,6.9.3,pending,124,126,,1.40,dayfun
 2026-11-22,18478342,Arsenal Women - West Ham United Women,Women's Super League,15:30,home,,0.7590,0.7835,0,6.9.3,pending,16360,16364,,,
 2026-11-22,18478342,Arsenal Women - West Ham United Women,Women's Super League,15:30,away,,0.7209,0.7103,0,6.9.3,pending,16360,16364,,,
 2026-11-22,18478342,Arsenal Women - West Ham United Women,Women's Super League,15:30,btts,,0.5400,0.5470,0,6.9.3,pending,16360,16364,,,
@@ -5453,7 +5453,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18638411,Manta F.C. - Delfín,Ecuadorian LigaPro,17:30,over15,,0.7544,0.7544,0,6.9.3,pending,4971756,4971751,,,
 2026-11-22,18638411,Manta F.C. - Delfín,Ecuadorian LigaPro,17:30,over25,,0.5079,0.5079,0,6.9.3,pending,4971756,4971751,,,
 2026-11-22,18478286,Werder Bremen - Hamburger SV,German Bundesliga,17:30,home,,0.8438,0.8438,1,6.9.3,pending,285,11,,,
-2026-11-22,18478286,Werder Bremen - Hamburger SV,German Bundesliga,17:30,away,,0.7371,0.7371,1,6.9.3,pending,285,11,,,
+2026-11-22,18478286,Werder Bremen - Hamburger SV,German Bundesliga,17:30,away,,0.7371,0.7371,1,6.9.3,pending,285,11,,,dayfun
 2026-11-22,18478286,Werder Bremen - Hamburger SV,German Bundesliga,17:30,btts,,0.6076,0.6076,0,6.9.3,pending,285,11,,,
 2026-11-22,18478286,Werder Bremen - Hamburger SV,German Bundesliga,17:30,over15,,0.8218,0.8218,1,6.9.3,pending,285,11,,,
 2026-11-22,18478286,Werder Bremen - Hamburger SV,German Bundesliga,17:30,home15,,0.6038,0.6038,0,6.9.3,pending,285,11,,,
@@ -5463,7 +5463,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18478324,Wisła Płock - Legia Warszawa,Polish Ekstraklasa,17:30,btts,,0.5499,0.5499,0,6.9.3,pending,74,223,,,
 2026-11-22,18478324,Wisła Płock - Legia Warszawa,Polish Ekstraklasa,17:30,over15,,0.7501,0.7501,0,6.9.3,pending,74,223,,,
 2026-11-22,18478336,Liverpool - Manchester United,Premier League,17:30,home,,0.8454,0.8454,1,6.9.3,pending,312,350,,,
-2026-11-22,18478336,Liverpool - Manchester United,Premier League,17:30,away,,0.7306,0.7306,1,6.9.3,pending,312,350,,,
+2026-11-22,18478336,Liverpool - Manchester United,Premier League,17:30,away,,0.7306,0.7306,1,6.9.3,pending,312,350,,,dayfun
 2026-11-22,18478336,Liverpool - Manchester United,Premier League,17:30,btts,,0.6008,0.6008,0,6.9.3,pending,312,350,,,
 2026-11-22,18478336,Liverpool - Manchester United,Premier League,17:30,over15,,0.8280,0.8280,1,6.9.3,pending,312,350,,,
 2026-11-22,18478336,Liverpool - Manchester United,Premier League,17:30,win_home,,0.5047,0.5047,0,6.9.3,pending,312,350,,,
@@ -5513,7 +5513,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18478317,PAOK - Kifisia,Greek Super League,18:30,over15,,0.8429,0.8429,0,6.9.3,pending,208,199,,,
 2026-11-22,18478317,PAOK - Kifisia,Greek Super League,18:30,home15,,0.5327,0.5327,0,6.9.3,pending,208,199,,,
 2026-11-22,18478317,PAOK - Kifisia,Greek Super League,18:30,over25,,0.6050,0.6050,0,6.9.3,pending,208,199,,,
-2026-11-22,18478283,Osasuna - Málaga,Spanish La Liga,18:30,home,,0.7494,0.7494,1,6.9.3,pending,4,2772,,,
+2026-11-22,18478283,Osasuna - Málaga,Spanish La Liga,18:30,home,,0.7494,0.7494,1,6.9.3,pending,4,2772,,,dayfun
 2026-11-22,18478283,Osasuna - Málaga,Spanish La Liga,18:30,away,,0.7176,0.7176,0,6.9.3,pending,4,2772,,,
 2026-11-22,18478283,Osasuna - Málaga,Spanish La Liga,18:30,btts,,0.5373,0.5373,0,6.9.3,pending,4,2772,,,
 2026-11-22,18478283,Osasuna - Málaga,Spanish La Liga,18:30,over15,,0.7633,0.7633,1,6.9.3,pending,4,2772,,,
@@ -5643,7 +5643,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18639109,The Strongest - Blooming,Bolivian División Profesional,22:15,win_home,,0.5074,0.5074,0,6.9.3,pending,183205,4971787,,,
 2026-11-22,18639109,The Strongest - Blooming,Bolivian División Profesional,22:15,home15,,0.5894,0.5894,0,6.9.3,pending,183205,4971787,,,
 2026-11-22,18639109,The Strongest - Blooming,Bolivian División Profesional,22:15,over25,,0.5870,0.5870,0,6.9.3,pending,183205,4971787,,,
-2026-11-22,18454452,Fluminense - Mirassol,Brazilian Serie A,22:30,home,,0.7352,0.7531,1,6.9.3,pending,5784,5782,,,
+2026-11-22,18454452,Fluminense - Mirassol,Brazilian Serie A,22:30,home,,0.7352,0.7531,1,6.9.3,pending,5784,5782,,,dayfun
 2026-11-22,18454452,Fluminense - Mirassol,Brazilian Serie A,22:30,away,,0.6703,0.6595,0,6.9.3,pending,5784,5782,,,
 2026-11-22,18454452,Fluminense - Mirassol,Brazilian Serie A,22:30,btts,,0.5004,0.5033,0,6.9.3,pending,5784,5782,,,
 2026-11-22,18454452,Fluminense - Mirassol,Brazilian Serie A,22:30,over15,,0.7223,0.7282,1,6.9.3,pending,5784,5782,,,
@@ -5663,7 +5663,7 @@ date,fixture_id,match,league,kickoff,market,player,probability,prob_base,publish
 2026-11-22,18641990,Inter de San Carlos - Sporting San José,Costa Rican Primera División,23:00,over15,,0.8334,0.8334,0,6.9.3,pending,4971897,1344228,,,
 2026-11-22,18641990,Inter de San Carlos - Sporting San José,Costa Rican Primera División,23:00,home15,,0.5177,0.5177,0,6.9.3,pending,4971897,1344228,,,
 2026-11-22,18641990,Inter de San Carlos - Sporting San José,Costa Rican Primera División,23:00,over25,,0.6196,0.6196,0,6.9.3,pending,4971897,1344228,,,
-2026-11-22,18454455,Red Bull Bragantino - Vasco da Gama,Brazilian Serie A,23:30,home,,0.7468,0.7543,1,6.9.3,pending,5791,5783,,,
+2026-11-22,18454455,Red Bull Bragantino - Vasco da Gama,Brazilian Serie A,23:30,home,,0.7468,0.7543,1,6.9.3,pending,5791,5783,,,dayfun
 2026-11-22,18454455,Red Bull Bragantino - Vasco da Gama,Brazilian Serie A,23:30,away,,0.7501,0.7576,1,6.9.3,pending,5791,5783,,,
 2026-11-22,18454455,Red Bull Bragantino - Vasco da Gama,Brazilian Serie A,23:30,btts,,0.5676,0.5761,0,6.9.3,pending,5791,5783,,,
 2026-11-22,18454455,Red Bull Bragantino - Vasco da Gama,Brazilian Serie A,23:30,over15,,0.7703,0.7781,1,6.9.3,pending,5791,5783,,,
