@@ -774,6 +774,9 @@ def already_sent(today, slot=None):
     """Évite le double envoi sur un même créneau (midi / soir)."""
     if not ONE_SEND_PER_SLOT or os.getenv("FORCE_SEND", "").strip() == "1":
         return False
+    # 6.9.7 : un lancement manuel (Run workflow) envoie toujours
+    if os.getenv("GITHUB_EVENT_NAME", "").strip() == "workflow_dispatch":
+        return False
     slot = slot or current_slot()
     return slot in _read_sent_slots(today)
 
