@@ -425,22 +425,32 @@ NIGHT_RUN_END_HOUR = 6            # lancé avant 06:00 = lancement de nuit
 NIGHT_WINDOW_END_HOUR = 8         # la nuit : matchs jusqu'à 08:00
 NIGHT_API_CALLS = 80              # appels SportAPI max pour un lancement de nuit
 NIGHT_RUN = False                 # fixé par main()
+RUN_START_HOUR = 8                # 6.9.3 : pas d'envoi auto avant 08:00 Paris
+RUN_END_HOUR = 22                 # 6.9.3 : pas d'envoi auto à partir de 22:00 Paris
+MAX_RUNS_PER_DAY = 2              # 6.9.3 : 2 créneaux max par jour (midi + soir)
 
-# 6.9.0 : 🎉 MÉGA FUN
+# 6.9.3 : 🎉 MÉGA FUN (solide : 4-5 sélections >= 50 %, sinon meilleur court)
 MEGA_ACTIF = True
 MEGA_TARGET_ODDS = 50.0
-MEGA_MAX_LEGS = 6
-MEGA_MIN_LEGS = 3
-MEGA_MIN_LEG_ODDS = 1.65
-MEGA_MAX_LEG_ODDS = 3.20          # pas de grosse cote au hasard
-MEGA_MIN_PROB = 0.38              # proba modèle minimum par sélection
-MEGA_MIN_FORM = 0.50              # la forme doit soutenir la sélection
-MEGA_POOL = 18
-# 6.9.0 : 🛡️ ULTRA SAFE (équipe +0,5 but uniquement)
+MEGA_MIN_LEGS = 4
+MEGA_MAX_LEGS = 5
+MEGA_MIN_LEG_ODDS = 2.20          # cote cible par sélection (value bookmaker)
+MEGA_MIN_FALLBACK_ODDS = 1.80     # cote min réelle en repli court solide
+MEGA_MIN_FAIR_ODDS = 1.75         # cote juste min si pas de cote bookmaker
+MEGA_MAX_LEG_ODDS = 3.50          # pas de grosse cote au hasard
+MEGA_MIN_PROB = 0.50              # proba modèle minimum par sélection
+MEGA_MIN_FORM = 0.60              # forme stricte sur les 5 derniers
+MEGA_POOL = 24
+# 6.9.3 : 🛡️ ULTRA SAFE (équipe +0,5 but uniquement, 4/5 forme + absences)
 SAFE_ACTIF = True
 SAFE_MAX_LEGS = 2
-SAFE_MIN_LEG_ODDS = 1.20          # cote estimée minimum par sélection
-SAFE_MIN_PROB = 0.72
+SAFE_MIN_LEG_ODDS = 1.20          # cote estimée / réelle minimum par sélection
+SAFE_MIN_PROB = 0.80
+SAFE_FORM_MIN_SCORED = 4          # au moins 4 matchs marqués sur 5
+SAFE_FORM_MIN_CONCEDED = 3        # adversaire a encaissé au moins 3 fois sur 5
+SAFE_ABSENCES_ACTIF = True        # absences activées uniquement pour l'Ultra safe
+SAFE_ABSENCE_MAX_CALLS = 20       # plafond d'appels SportAPI pour les absences du safe
+SAFE_ABSENCE_CANDIDATES = 6       # candidats max vérifiés pour le safe
 SAFE_MARKETS = ("home", "away")
 TICKET_KIND_LABELS = {"jour": "Jour", "mega": "Méga fun", "safe": "Ultra safe"}
 TICKET_TAGS_SINCE = (6, 9)        # colonne tickets remplie depuis 6.9.0
@@ -538,16 +548,17 @@ ODDS_SPORT_KEYS = [
 STATS_DAYS = 30
 SUMMARY_FILE = "data/bilan.csv"
 SENT_FILE = "data/dernier_envoi.txt"
-ONE_SEND_PER_DAY = False  # True = un seul envoi par jour (anti-doublon). False = tu peux lancer le bot plusieurs fois par jour
+ONE_SEND_PER_SLOT = True  # True = 1 envoi par créneau (midi / soir) et tickets figés dans la journée
 
 # TODO (non codé, endpoint inconnu dans ce code) :
 # - cotes bookmaker : publier seulement si proba modèle > 1 / cote
 # - blessures / compositions : baisser l'espérance de buts sans le buteur
 
-MAX_API_CALLS = 3000 if MODE_SANS_LIMITE else 350
+MAX_API_CALLS = 600 if MODE_SANS_LIMITE else 350
 MAX_SETTLE_DATES = 8
 PENDING_EXPIRY_DAYS = 7
-MODEL_VERSION = "6.9.2"
+FINISHED_STATUSES = {"FT", "AET", "PEN", "PENS", "AP", "AFTER_PEN", "AFTER_ET", "FINISHED"}
+MODEL_VERSION = "6.9.3"
 MIN_INTERVAL = 0.5
 MAX_RUNTIME_SECONDS = 1080 if MODE_SANS_LIMITE else 600
 TIMEOUT = 20
@@ -714,22 +725,49 @@ def send_chunk(chunk, attempts=3):
     raise RuntimeError("Telegram " + last)
 
 
-def already_sent(today):
-    """Évite le double envoi si le workflow est relancé le même jour."""
-    if not ONE_SEND_PER_DAY or os.getenv("FORCE_SEND", "").strip() == "1":
-        return False
+def current_slot(now=None):
+    """Créneau d'envoi (heure de Paris) : midi (08-15h59), soir (16-21h59), nuit."""
+    now = (now or datetime.now(PARIS)).astimezone(PARIS)
+    if RUN_START_HOUR <= now.hour < 16:
+        return "midi"
+    if 16 <= now.hour < RUN_END_HOUR:
+        return "soir"
+    return "nuit"
+
+
+def _read_sent_slots(today):
     try:
         with open(SENT_FILE, "r", encoding="utf-8") as file:
-            return file.read().strip() == today.isoformat()
+            raw = file.read().strip()
     except OSError:
+        return set()
+    day_iso = today.isoformat()
+    if ":" not in raw:
+        return set()
+    day_part, slots_part = raw.split(":", 1)
+    if day_part.strip() != day_iso:
+        return set()
+    return {s.strip() for s in slots_part.split(",") if s.strip()}
+
+
+def already_sent(today, slot=None):
+    """Évite le double envoi sur un même créneau (midi / soir)."""
+    if not ONE_SEND_PER_SLOT or os.getenv("FORCE_SEND", "").strip() == "1":
         return False
+    slot = slot or current_slot()
+    return slot in _read_sent_slots(today)
 
 
-def mark_sent(today):
+def mark_sent(today, slot=None):
     try:
         os.makedirs(os.path.dirname(SENT_FILE), exist_ok=True)
+        slot = slot or current_slot()
+        slots = _read_sent_slots(today)
+        slots.add(slot)
+        order = {"midi": 0, "soir": 1, "nuit": 2}
+        ordered = sorted(slots, key=lambda s: (order.get(s, 9), s))
         with open(SENT_FILE, "w", encoding="utf-8") as file:
-            file.write(today.isoformat())
+            file.write(f"{today.isoformat()}:{','.join(ordered)}")
     except OSError as exc:
         error(f"Marqueur d'envoi impossible : {type(exc).__name__} {exc}")
 
@@ -753,14 +791,14 @@ def retry_pause(response):
         return RETRY_PAUSE
 
 
-def api_get(endpoint):
+def api_get(endpoint, force_refresh=False):
     global CALLS, LAST_CALL, BLOCKED, FAILS, CACHE_HITS
 
-    if endpoint in CACHE:
+    if not force_refresh and endpoint in CACHE:
         return CACHE[endpoint]
 
     # 6.6.0 : cache disque (jour / permanent)
-    found, cached, etag = disk_lookup(endpoint)
+    found, cached, etag = (False, None, None) if force_refresh else disk_lookup(endpoint)
     if found and not is_fresh(endpoint):
         CACHE_HITS += 1
         CACHE[endpoint] = cached
@@ -834,7 +872,7 @@ def api_get(endpoint):
 
         if response.status_code >= 500 and attempt < MAX_RETRIES:
             error(f"{endpoint} : HTTP {response.status_code}, nouvel essai.")
-            time.sleep(2 * (attempt + 1))
+            time.sleep(3 * (attempt + 1))
             continue
 
         if not response.ok:
@@ -1057,6 +1095,10 @@ def init_budget(day=None):
                 # 6.9.0 : compteur de cotes par jour de Paris
                 "odds_paris_day": data.get("odds_paris_day"),
                 "odds_paris_calls": data.get("odds_paris_calls", 0)}
+    paris_day = paris_today().isoformat()
+    if data.get("paris_day") != paris_day:
+        data["paris_day"] = paris_day
+        data["paris_runs"] = 0
     USAGE.clear()
     USAGE.update(data)
     USAGE["calls_before_run"] = int(USAGE.get("calls", 0))
@@ -1069,11 +1111,13 @@ def init_budget(day=None):
     )
 
 
-def save_usage():
+def save_usage(count_run=True):
     if not USAGE:
         return
     USAGE["calls"] = int(USAGE.get("calls_before_run", 0)) + CALLS
-    USAGE["runs"] = int(USAGE.get("runs", 0)) + 1
+    if count_run:
+        USAGE["runs"] = int(USAGE.get("runs", 0)) + 1
+        USAGE["paris_runs"] = int(USAGE.get("paris_runs", 0)) + 1
     data = {k: v for k, v in USAGE.items() if k != "calls_before_run"}
     data.update({"quota_day": QUOTA.get("day"), "quota_month": QUOTA.get("month")})
     write_json(usage_path(), data)
@@ -1827,75 +1871,180 @@ def finish_legs(combo):
     return legs
 
 
+def mega_form_ok(result, candidate):
+    """6.9.3 : forme stricte sur les 5 derniers matchs pour le Méga fun."""
+    home_form = result.get("home_form")
+    away_form = result.get("away_form")
+    if not home_form or not away_form:
+        return False
+    if home_form["n"] < 4 or away_form["n"] < 4:
+        return False
+    if candidate.get("form", 0.0) < MEGA_MIN_FORM:
+        return False
+    market = candidate["market"]
+    if market == "over25":
+        return (home_form["o25"] + away_form["o25"]) / 2 >= 0.50 and home_form["o15"] >= 0.60 and away_form["o15"] >= 0.60
+    if market == "win_home":
+        return home_form["pts_rate"] >= 0.53 and home_form["loss_streak"] == 0
+    if market == "win_away":
+        return away_form["pts_rate"] >= 0.53 and away_form["loss_streak"] == 0
+    return True
+
+
 def build_mega(all_results, now):
-    """6.9.0 : 🎉 MÉGA FUN. Cote >= MEGA_TARGET_ODDS, MEGA_MAX_LEGS matchs
-    max, 1 sélection par match, chaque cote >= MEGA_MIN_LEG_ODDS. Parmi les
-    combinaisons qui atteignent la cible : la plus probable (produit des
-    probas modèle, puis meilleure note). Sinon : le combiné cohérent à la
-    plus grosse cote possible."""
-    pool = ticket_pool(
-        all_results, now,
-        lambda c: c["prob"] >= MEGA_MIN_PROB and c.get("form", 1.0) >= MEGA_MIN_FORM
-        and 1 / c["prob"] <= MEGA_MAX_LEG_ODDS * 1.25,
+    """6.9.3 : 🎉 MÉGA FUN solide : 4-5 sélections >= MEGA_MIN_PROB (50 %),
+    forme stricte, cotes cibles 2,20-3,50. Si la cote 50 n'est pas atteignable
+    avec des sélections solides, on publie le meilleur combiné court (4 jambes,
+    ou 3 si manque de matchs) sans empiler de paris faibles."""
+    raw_pool = []
+    for result in all_results:
+        fixture = result["fixture"]
+        if not ticket_window_ok(kickoff_of(fixture), now) or not ticket_league_ok(fixture):
+            continue
+        for candidate in result.get("candidates", []):
+            if candidate["prob"] >= MEGA_MIN_PROB and 1 / candidate["prob"] <= MEGA_MAX_LEG_ODDS * 1.25:
+                if mega_form_ok(result, candidate):
+                    raw_pool.append((result, dict(candidate)))
+    raw_pool.sort(key=lambda item: -item[1]["score"])
+
+    pool = price_pool(
+        raw_pool, MEGA_MIN_FALLBACK_ODDS, MEGA_MIN_FAIR_ODDS, MEGA_MAX_LEG_ODDS, "Méga fun"
     )
-    pool = price_pool(pool, MEGA_MIN_LEG_ODDS, MEGA_MIN_LEG_ODDS, MEGA_MAX_LEG_ODDS, "Méga fun")
-    per_match = Counter()
+    # 1 sélection par match
+    seen_fid = set()
     trimmed = []
     for item in pool:
         fid = str(item[0]["fixture"].get("id"))
-        if per_match[fid] >= TICKET_PER_MATCH:
+        if fid in seen_fid:
             continue
-        per_match[fid] += 1
+        seen_fid.add(fid)
         trimmed.append(item)
     trimmed = trimmed[:MEGA_POOL]
-    if len({str(r["fixture"].get("id")) for r, _ in trimmed}) < MEGA_MIN_LEGS:
+    if len(trimmed) < 3:
         return []
 
+    # 1) Essai d'atteindre 50 avec des sélections solides dans la zone cible (2,20-3,50)
+    high_value = [item for item in trimmed if leg_odds(item[1]) >= MEGA_MIN_LEG_ODDS - 1e-9]
     best = None
-    for size in range(MEGA_MIN_LEGS, MEGA_MAX_LEGS + 1):
-        for combo in itertools.combinations(trimmed, size):
-            if len({str(r["fixture"].get("id")) for r, _ in combo}) < size:
+    if len(high_value) >= MEGA_MIN_LEGS:
+        for size in range(MEGA_MIN_LEGS, MEGA_MAX_LEGS + 1):
+            if len(high_value) < size:
                 continue
-            total = 1.0
-            chance = 1.0
-            for _, c in combo:
-                total *= leg_odds(c)
-                chance *= c["prob"]
-            if total < MEGA_TARGET_ODDS:
-                continue
-            key = (chance, sum(c["score"] for _, c in combo) / size)
-            if best is None or key > best[0]:
-                best = (key, combo)
+            for combo in itertools.combinations(high_value, size):
+                total = 1.0
+                chance = 1.0
+                for _, c in combo:
+                    total *= leg_odds(c)
+                    chance *= c["prob"]
+                if total < MEGA_TARGET_ODDS:
+                    continue
+                key = (chance, sum(c["score"] for _, c in combo) / size)
+                if best is None or key > best[0]:
+                    best = (key, combo)
     if best is not None:
         return finish_legs(best[1])
 
-    # Cible impossible : meilleure sélection (plus grosse cote) par match
-    by_match = {}
-    for result, candidate in trimmed:
-        fid = str(result["fixture"].get("id"))
-        if fid not in by_match or leg_odds(candidate) > leg_odds(by_match[fid][1]):
-            by_match[fid] = (result, candidate)
-    combo = sorted(by_match.values(), key=lambda item: -leg_odds(item[1]))[:MEGA_MAX_LEGS]
-    return finish_legs(combo)
-
-
-def build_safe(all_results, now):
-    """6.9.0 : 🛡️ ULTRA SAFE. Équipe +0,5 but uniquement, SAFE_MAX_LEGS
-    matchs max : les équipes les plus sûres de marquer, cote estimée
-    >= SAFE_MIN_LEG_ODDS (pas de vraie cote pour ce marché)."""
-    pool = ticket_pool(
-        all_results, now,
-        lambda c: c["market"] in SAFE_MARKETS and c["prob"] >= SAFE_MIN_PROB
-        and 1 / c["prob"] >= SAFE_MIN_LEG_ODDS - 1e-9,
+    # 2) Sinon : meilleur combiné court solide (4 jambes, ou 3 si seulement 3 dispos)
+    short_size = min(MEGA_MIN_LEGS, len(trimmed))
+    ranked = sorted(
+        trimmed,
+        key=lambda item: (
+            1 if leg_odds(item[1]) >= MEGA_MIN_LEG_ODDS - 1e-9 else 0,
+            item[1]["prob"],
+            item[1]["score"],
+        ),
+        reverse=True,
     )
-    pool.sort(key=lambda item: (-item[1]["prob"], -item[1]["score"]))
+    return finish_legs(ranked[:short_size])
+
+
+def safe_form_ok(result, market):
+    """6.9.3 : forme 4/5 minimum de l'équipe qui doit marquer (et >= 3/5 encaissés en face)."""
+    home_form = result.get("home_form")
+    away_form = result.get("away_form")
+    if not home_form or not away_form:
+        return False
+    side = "home" if market == "home" else "away"
+    team = home_form if side == "home" else away_form
+    opp = away_form if side == "home" else home_form
+    if team["n"] < 4 or opp["n"] < 3:
+        return False
+    scored = round(team["scored"] * team["n"])
+    conceded = round(opp["conceded"] * opp["n"])
+    if scored < math.ceil(SAFE_FORM_MIN_SCORED * team["n"] / TICKET_FORM_N):
+        return False
+    if conceded < math.ceil(SAFE_FORM_MIN_CONCEDED * opp["n"] / TICKET_FORM_N):
+        return False
+    return True
+
+
+def _safe_absence_adjust(result, candidate, today):
+    """6.9.3 : vérifie les absences uniquement pour les meilleurs candidats Ultra safe."""
+    if not SAFE_ABSENCES_ACTIF or not today:
+        return candidate, True
+    if ABSENCE_STATE["calls"] >= SAFE_ABSENCE_MAX_CALLS or not budget_available(reserve=40):
+        return candidate, True
+    fixture = result["fixture"]
+    side = "home" if candidate["market"] == "home" else "away"
+    history = result.get("home_history") if side == "home" else result.get("away_history")
+    if not history:
+        return candidate, True
+    cut, notes = absence_of(
+        fixture, side, history, today, force=True, max_calls=SAFE_ABSENCE_MAX_CALLS
+    )
+    if cut <= 0 and not notes:
+        return candidate, True
+    hp = result.get("home_profile")
+    ap = result.get("away_profile")
+    prob = candidate["prob"]
+    if cut > 0 and hp and ap:
+        adj_h = dict(hp, gf=hp["gf"] * (1 - cut)) if side == "home" else hp
+        adj_a = dict(ap, gf=ap["gf"] * (1 - cut)) if side == "away" else ap
+        _, _, probs = estimate(adj_h, adj_a)
+        prob = probs.get(candidate["market"], prob)
+    if prob < SAFE_MIN_PROB or 1 / prob < SAFE_MIN_LEG_ODDS - 1e-9:
+        return candidate, False
+    updated = dict(candidate)
+    updated["prob"] = prob
+    updated["odds"] = 1 / prob
+    if notes:
+        updated["alerts"] = notes
+    return updated, True
+
+
+def build_safe(all_results, now, today=None):
+    """6.9.3 : 🛡️ ULTRA SAFE. Équipe +0,5 but uniquement, SAFE_MAX_LEGS
+    matchs max : proba >= 80 %, forme 4/5, cote >= 1,20 (sinon écarté),
+    vérification légère des absences dans la limite du quota."""
+    raw_pool = []
+    for result in all_results:
+        fixture = result["fixture"]
+        if not ticket_window_ok(kickoff_of(fixture), now) or not ticket_league_ok(fixture):
+            continue
+        for candidate in result.get("candidates", []):
+            if candidate["market"] not in SAFE_MARKETS:
+                continue
+            if candidate["prob"] < SAFE_MIN_PROB or 1 / candidate["prob"] < SAFE_MIN_LEG_ODDS - 1e-9:
+                continue
+            if not safe_form_ok(result, candidate["market"]):
+                continue
+            raw_pool.append((result, dict(candidate)))
+    raw_pool.sort(key=lambda item: (-item[1]["prob"], -item[1]["score"]))
+
     combo = []
     seen = set()
-    for result, candidate in pool:
+    checked = 0
+    for result, candidate in raw_pool:
         fid = str(result["fixture"].get("id"))
         if fid in seen:
             continue
         seen.add(fid)
+        if checked < SAFE_ABSENCE_CANDIDATES:
+            checked += 1
+            candidate, ok = _safe_absence_adjust(result, candidate, today)
+            if not ok:
+                REASONS["Ultra safe : écarté après absences"] += 1
+                continue
         candidate.update(odds=1 / candidate["prob"], real=False)
         combo.append((result, candidate))
         if len(combo) >= SAFE_MAX_LEGS:
@@ -2533,13 +2682,20 @@ def settle_previous_predictions(today):
     dead = set()
 
     for day in dates:
-        payload = api_get(f"fixtures/date/{day.isoformat()}")
+        endpoint = f"fixtures/date/{day.isoformat()}"
+        payload = api_get(endpoint, force_refresh=True)
+        if payload is None:
+            day_disk = read_json(day_cache_path(day), {})
+            cached_data = day_disk.get("data") if isinstance(day_disk.get("data"), dict) else {}
+            fallback = cached_data.get(endpoint)
+            if isinstance(fallback, dict):
+                payload = fallback
         for fixture in get_list(payload):
             if not isinstance(fixture, dict):
                 continue
             status = str(fixture.get("status") or "").upper()
             identifier = str(fixture.get("id"))
-            if status == "FT":
+            if status in FINISHED_STATUSES:
                 home = number(fixture.get("home_score"))
                 away = number(fixture.get("away_score"))
                 if home is not None and away is not None:
@@ -2809,6 +2965,12 @@ def write_summary_file(summary, today):
                 writer.writerow([today.isoformat(), label, market, s["n"],
                                  s["wins"], f"{s['hit']:.3f}",
                                  f"{s['pred']:.3f}", f"{s['roi']:.3f}"])
+        for tkind, s in sorted((summary.get("tickets") or {}).items()):
+            n = s.get("n") or 0
+            w = s.get("wins") or 0
+            if n:
+                writer.writerow([today.isoformat(), "ticket_combo", tkind, n,
+                                 w, f"{w / n:.3f}", "", ""])
         for bucket, s in summary["calibration"].items():
             writer.writerow([today.isoformat(), "calibration",
                              f"{bucket:.1f}-{bucket + 0.1:.1f}", s["n"], "",
@@ -3325,12 +3487,13 @@ def team_scorers(league_id, team_id):
     return rows[:ABSENCE_KEY_PLAYERS]
 
 
-def absence_of(fixture, side, history, today):
+def absence_of(fixture, side, history, today, force=False, max_calls=None):
     """6.9.0 : (baisse d'attaque, notes). SportAPI n'a pas de liste de
     blessés : indices tirés de la compo et des cartons du dernier match."""
-    if not ABSENCES_ACTIF or not ticket_league_ok(fixture):
+    if (not ABSENCES_ACTIF and not force) or not ticket_league_ok(fixture):
         return 0.0, []
-    if ABSENCE_STATE["calls"] >= ABSENCE_MAX_CALLS or not budget_available(reserve=30):
+    cap = max_calls if max_calls is not None else ABSENCE_MAX_CALLS
+    if ABSENCE_STATE["calls"] >= cap or not budget_available(reserve=30):
         return 0.0, []
     match = last_match(history, today)
     if match is None:
@@ -3507,6 +3670,8 @@ def analyse(fixture, today):
         "motivation": motivation,
         "home_history": home_history,
         "away_history": away_history,
+        "home_profile": home,
+        "away_profile": away,
     }
 
 
@@ -3605,7 +3770,8 @@ def ticket_lines(ticket):
     return lines
 
 
-def build_message(selected, partial, analysed, total, ticket=None, summary=None):
+def build_message(selected, partial, analysed, total, ticket=None, summary=None,
+                  mega=None, safe=None, frozen_kinds=None):
     lines = [
         "⚽ PRONOSTICS DU JOUR",
         datetime.now(PARIS).strftime("📅 %d/%m/%Y"),
@@ -3667,7 +3833,23 @@ def build_message(selected, partial, analysed, total, ticket=None, summary=None)
             "",
         ])
 
-    lines.extend(ticket_lines(ticket))
+    frozen_kinds = frozen_kinds or set()
+    t_lines = ticket_lines(ticket)
+    if "jour" in frozen_kinds and t_lines:
+        t_lines[0] = "🎟️ TICKET DU JOUR (figé)"
+    lines.extend(t_lines)
+    if MEGA_ACTIF and mega is not None:
+        m_title = "🎉 MÉGA FUN (figé)" if "mega" in frozen_kinds else "🎉 MÉGA FUN"
+        for block in extra_ticket_blocks(m_title, mega, MEGA_TARGET_ODDS):
+            lines.extend([block, ""])
+    if SAFE_ACTIF and safe is not None:
+        s_title = "🛡️ ULTRA SAFE (figé)" if "safe" in frozen_kinds else "🛡️ ULTRA SAFE"
+        for block in extra_ticket_blocks(
+            s_title, safe, None,
+            note=f"ℹ️ Cotes estimées : vérifie sur Stake ({fmt_odds(SAFE_MIN_LEG_ODDS)} min par sélection)",
+            empty="Aucune équipe assez sûre de marquer aujourd'hui.",
+        ):
+            lines.extend([block, ""])
     lines.extend(summary_lines(summary))
 
     lines.append(f"📈 {analysed}/{total} matchs analysés")
@@ -3841,11 +4023,13 @@ def extra_ticket_blocks(title, legs, target=None, note=None, empty="Pas assez de
             f"• {tg_labels(fixture).get(leg['market'], leg['market'])} :"
             f" {probability:.0%} · {odds}"
         )
+        for alert in (leg.get("alerts") or []):
+            lines.append(f"⚠️ {alert}")
         blocks.append("\n".join(lines))
     total = ticket_total(legs)
     estimate = ticket_estimated(legs)
     if target and total < target:
-        end = [f"💰 Cote {target:g} non atteinte (meilleur {fmt_short(total)}{', estim.' if estimate else ''})"]
+        end = [f"ℹ️ Cote {target:g} non atteinte avec sélections solides (meilleur {fmt_short(total)}{', estim.' if estimate else ''}) : combiné court retenu."]
     else:
         end = [f"💰 Cote totale : {fmt_short(total)}{' (estim.)' if estimate else ''}"]
     end.append(f"🎯 Chance estimée : {fmt_chance(ticket_chance(legs))}")
@@ -3856,14 +4040,17 @@ def extra_ticket_blocks(title, legs, target=None, note=None, empty="Pas assez de
 
 
 def build_light_message(selected, partial, ticket=None, summary=None, enrich=None, today=None,
-                        mega=None, safe=None):
+                        mega=None, safe=None, frozen_kinds=None):
     """Message Telegram (6.6.2) : présentation par heure et par match,
     sans forme / enjeu. Les blocs sont séparés par une ligne vide, ce qui
     permet de couper le message entre deux matchs."""
     enrich = enrich or {}
+    frozen_kinds = frozen_kinds or set()
     day = today or datetime.now(PARIS).date()
     title = "🌙 PRONOSTICS DE LA NUIT" if NIGHT_RUN else "⚽ PRONOSTICS DU JOUR"
-    ticket_title = "🎟️ TICKET DE NUIT" if NIGHT_RUN else "🎟️ TICKET DU JOUR"
+    ticket_title = "🎟️ TICKET DE LA NUIT" if NIGHT_RUN else "🎟️ TICKET DU JOUR"
+    if "jour" in frozen_kinds:
+        ticket_title += " (figé)"
     blocks = [f"{title}\n📅 {day.strftime('%d/%m/%Y')}"]
 
     ordered = sorted(selected, key=lambda r: (kickoff_of(r["fixture"]), -r["best"]))
@@ -3946,10 +4133,12 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
 
     # 6.9.0 : méga fun + ultra safe sous le ticket du jour
     if MEGA_ACTIF and mega is not None:
-        blocks.extend(extra_ticket_blocks("🎉 MÉGA FUN", mega, MEGA_TARGET_ODDS))
+        m_title = "🎉 MÉGA FUN (figé)" if "mega" in frozen_kinds else "🎉 MÉGA FUN"
+        blocks.extend(extra_ticket_blocks(m_title, mega, MEGA_TARGET_ODDS))
     if SAFE_ACTIF and safe is not None:
+        s_title = "🛡️ ULTRA SAFE (figé)" if "safe" in frozen_kinds else "🛡️ ULTRA SAFE"
         blocks.extend(extra_ticket_blocks(
-            "🛡️ ULTRA SAFE", safe, None,
+            s_title, safe, None,
             note=f"ℹ️ Cotes estimées : vérifie sur Stake ({fmt_odds(SAFE_MIN_LEG_ODDS)} min par sélection)",
             empty="Aucune équipe assez sûre de marquer aujourd'hui.",
         ))
@@ -3979,11 +4168,15 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
     return "\n\n".join(blocks)
 
 
-def write_fiches(selected, enrich, ticket, partial, analysed, total, summary, now):
+def write_fiches(selected, enrich, ticket, partial, analysed, total, summary, now,
+                 mega=None, safe=None, frozen_kinds=None):
     """Fiche complète (ancien message détaillé + infos par pick) dans
     data/fiches/ : tout le détail, sans alourdir Telegram."""
     try:
-        text = build_message(selected, partial, analysed, total, ticket, summary)
+        text = build_message(
+            selected, partial, analysed, total, ticket, summary,
+            mega=mega, safe=safe, frozen_kinds=frozen_kinds,
+        )
         extra = ["", "===== DÉTAIL PAR PICK ====="]
         for result in sorted(selected, key=lambda r: kickoff_of(r["fixture"])):
             fixture = result["fixture"]
@@ -4007,8 +4200,62 @@ def write_fiches(selected, enrich, ticket, partial, analysed, total, summary, no
         return None
 
 
-def write_journal(all_results, selected, today, ticket=(), market_odds=None, extra_tickets=None):
+def frozen_tickets_for_day(today):
+    """6.9.3 : tickets déjà publiés aujourd'hui dans le journal (figés pour la journée)."""
+    rows = read_predictions_file()
+    day_iso = today.isoformat()
+    frozen = {}
+    for row in rows:
+        if row.get("date") != day_iso or row.get("player"):
+            continue
+        for kind in ticket_kinds(row):
+            frozen.setdefault(kind, []).append(row)
+    return frozen
+
+
+def legs_from_frozen_rows(rows):
+    """Reconstruit des pseudo-jambes lisibles à partir des lignes figées du journal."""
+    legs = []
+    for row in rows:
+        parts = str(row.get("match") or "").split(" - ", 1)
+        home_team = parts[0].strip() if parts else "Equipe"
+        away_team = parts[1].strip() if len(parts) > 1 else "Equipe"
+        try:
+            d = datetime.fromisoformat(str(row.get("date"))).date()
+        except (ValueError, TypeError):
+            d = paris_today()
+        try:
+            hh, mm = str(row.get("kickoff") or "12:00").split(":", 1)
+            dt = datetime(d.year, d.month, d.day, int(hh), int(mm), tzinfo=PARIS)
+        except (ValueError, TypeError):
+            dt = datetime(d.year, d.month, d.day, 12, 0, tzinfo=PARIS)
+        kickoff_utc = dt.astimezone(timezone.utc).isoformat()
+        raw_prob = number(row.get("probability"))
+        prob = min(max(raw_prob, 0.01), 0.99) if raw_prob is not None and raw_prob > 0 else 0.5
+        price = parse_odds(row.get("odds_market"))
+        legs.append({
+            "result": {
+                "fixture": {
+                    "id": row.get("fixture_id"),
+                    "home_team": home_team,
+                    "away_team": away_team,
+                    "league_name": row.get("league") or "",
+                    "kickoff_utc": kickoff_utc,
+                }
+            },
+            "market": row.get("market"),
+            "prob": prob,
+            "odds": price if price else 1 / prob,
+            "real": bool(price),
+            "_frozen": True,
+        })
+    legs.sort(key=lambda leg: kickoff_of(leg["result"]["fixture"]) or datetime.max.replace(tzinfo=PARIS))
+    return legs
+
+
+def write_journal(all_results, selected, today, ticket=(), market_odds=None, extra_tickets=None, frozen_kinds=None):
     rows = read_predictions()
+    frozen_kinds = set(frozen_kinds or ())
     known = {
         (r["date"], r["fixture_id"], r["market"], r["player"])
         for r in rows
@@ -4018,26 +4265,36 @@ def write_journal(all_results, selected, today, ticket=(), market_odds=None, ext
         for r in selected for m, _ in shown_picks(r)
     }
 
-    ticket_keys = {
-        (str(leg["result"]["fixture"].get("id")), leg["market"])
-        for leg in ticket
-    }
-
-    # 6.9.0 : tags de tickets ; une relance du jour remplace les tickets du
-    # même type (on garde le dernier envoyé)
+    ticket_keys = set()
     tags = {}
-    kinds = {"jour"} | set((extra_tickets or {}).keys())
-    for kind, legs in [("jour", ticket)] + list((extra_tickets or {}).items()):
+    all_items = ([] if "jour" in frozen_kinds else [("jour", ticket)])
+    for k, legs in (extra_tickets or {}).items():
+        if k not in frozen_kinds:
+            all_items.append((k, legs))
+    for kind, legs in all_items:
         for leg in legs or []:
             key = (str(leg["result"]["fixture"].get("id")), leg["market"])
             tags.setdefault(key, set()).add(kind)
+            ticket_keys.add(key)
+
     day_iso = today.isoformat()
     for row in rows:
-        if row.get("date") != day_iso:
+        if row.get("date") != day_iso or row.get("player"):
             continue
-        old = [t for t in str(row.get("tickets") or "").split(";") if t and t not in kinds]
-        new = tags.get((str(row.get("fixture_id")), row.get("market")), set()) if not row.get("player") else set()
-        row["tickets"] = ";".join(sorted(set(old) | new))
+        key = (str(row.get("fixture_id")), row.get("market"))
+        # 6.9.3 : on fige les tags déjà publiés dans la journée ; on ajoute seulement les nouveaux
+        old = {t for t in str(row.get("tickets") or "").split(";") if t}
+        new = tags.get(key, set())
+        if old or new:
+            row["tickets"] = ";".join(sorted(old | new))
+        # 6.9.3 : met à jour published (0 -> 2 ou 1) et odds_market sur les lignes déjà loguées
+        cur_pub = str(row.get("published") or "0")
+        if key in published:
+            row["published"] = "1"
+        elif key in ticket_keys and cur_pub != "1":
+            row["published"] = "2"
+        if not row.get("odds_market") and market_odds and key in market_odds and market_odds[key]:
+            row["odds_market"] = f"{market_odds[key]:.2f}"
 
     for result in all_results:
         fixture = result["fixture"]
@@ -4113,22 +4370,27 @@ def main():
 
     now = datetime.now(PARIS)
     today = now.date()
-    NIGHT_RUN = is_night_run(now)
+    is_manual = (
+        os.getenv("FORCE_SEND", "").strip() == "1"
+        or os.getenv("GITHUB_EVENT_NAME", "").strip() == "workflow_dispatch"
+    )
+    NIGHT_RUN = is_night_run(now) and (NUIT_ACTIVE or is_manual)
     if NIGHT_RUN:
         print(f"MODE NUIT : matchs jusqu'à {NIGHT_WINDOW_END_HOUR:02d}:00", flush=True)
 
     # 6.6.0 : cache disque + budget du jour
     load_disk_cache(today)
     init_budget()
+    did_send = False
     try:
-        run(now, today)
+        did_send = bool(run(now, today, is_manual=is_manual))
     finally:
         save_disk_cache()
-        save_usage()
+        save_usage(count_run=did_send)
         print(f"APPELS API : {CALLS} (cache : {CACHE_HITS}) · quota {QUOTA}", flush=True)
 
 
-def run(now, today):
+def run(now, today, is_manual=False):
     global PARTIAL
 
     try:
@@ -4136,9 +4398,24 @@ def run(now, today):
     except Exception as exc:
         error(f"Verification du journal impossible : {type(exc).__name__} {exc}")
 
-    if already_sent(today):
-        print("Message deja envoye aujourd'hui (FORCE_SEND=1 pour forcer).", flush=True)
-        return
+    slot = current_slot(now)
+    if not NUIT_ACTIVE and not is_manual and (now.hour < RUN_START_HOUR or now.hour >= RUN_END_HOUR):
+        print(
+            f"HORS CRENEAU ({now.strftime('%H:%M')} Paris) : analyse et envoi Telegram ignores (journal verifie).",
+            flush=True,
+        )
+        return False
+
+    if not is_manual and int(USAGE.get("paris_runs", 0)) >= MAX_RUNS_PER_DAY:
+        print(
+            f"Plafond de {MAX_RUNS_PER_DAY} lancements/jour atteint (FORCE_SEND=1 pour forcer).",
+            flush=True,
+        )
+        return False
+
+    if already_sent(today, slot):
+        print(f"Message deja envoye pour le creneau {slot} (FORCE_SEND=1 pour forcer).", flush=True)
+        return False
 
     payload = api_get(f"fixtures/date/{today.isoformat()}")
     if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
@@ -4255,33 +4532,47 @@ def run(now, today):
         r["best"] = max(p for _, p in r["high_picks"])
         selected.append(r)
 
-    ticket = []
-    try:
-        ticket = build_ticket(all_results, publication_time)
-        for leg in ticket:
-            try:
-                leg["standing"] = standing_text(leg["result"]["fixture"])
-            except Exception:
-                leg["standing"] = ""
-    except Exception as exc:
-        ticket = []
-        error(f"Ticket impossible : {type(exc).__name__} {exc}")
+    frozen = frozen_tickets_for_day(today)
+    frozen_kinds = set(frozen.keys())
 
-    # 6.9.0 : méga fun + ultra safe (mêmes ligues / fenêtre, budget de cotes
-    # du jour : les ligues déjà lues sont en cache)
+    if "jour" in frozen_kinds:
+        ticket = legs_from_frozen_rows(frozen["jour"])
+        print("TICKET DU JOUR : déjà publié aujourd'hui (figé).", flush=True)
+    else:
+        ticket = []
+        try:
+            ticket = build_ticket(all_results, publication_time)
+            for leg in ticket:
+                try:
+                    leg["standing"] = standing_text(leg["result"]["fixture"])
+                except Exception:
+                    leg["standing"] = ""
+        except Exception as exc:
+            ticket = []
+            error(f"Ticket impossible : {type(exc).__name__} {exc}")
+
+    # 6.9.3 : méga fun + ultra safe (figés dès leur 1re publication du jour)
     mega = safe = None
     if MEGA_ACTIF:
-        try:
-            mega = build_mega(all_results, publication_time)
-        except Exception as exc:
-            mega = []
-            error(f"Méga fun impossible : {type(exc).__name__} {exc}")
+        if "mega" in frozen_kinds:
+            mega = legs_from_frozen_rows(frozen["mega"])
+            print("MÉGA FUN : déjà publié aujourd'hui (figé).", flush=True)
+        else:
+            try:
+                mega = build_mega(all_results, publication_time)
+            except Exception as exc:
+                mega = []
+                error(f"Méga fun impossible : {type(exc).__name__} {exc}")
     if SAFE_ACTIF:
-        try:
-            safe = build_safe(all_results, publication_time)
-        except Exception as exc:
-            safe = []
-            error(f"Ultra safe impossible : {type(exc).__name__} {exc}")
+        if "safe" in frozen_kinds:
+            safe = legs_from_frozen_rows(frozen["safe"])
+            print("ULTRA SAFE : déjà publié aujourd'hui (figé).", flush=True)
+        else:
+            try:
+                safe = build_safe(all_results, publication_time, today=today)
+            except Exception as exc:
+                safe = []
+                error(f"Ultra safe impossible : {type(exc).__name__} {exc}")
     print(f"ABSENCES : {ABSENCE_STATE}", flush=True)
 
     # 6.6.0 : infos par pick publié (H2H, buteur, cartons, cotes)
@@ -4304,10 +4595,11 @@ def run(now, today):
     enrich["__ticket_odds__"] = ticket_odds
 
     # 6.8.0 : vraies cotes connues -> journal (ROI réel dans le bilan)
-    market_odds = dict(ticket_odds)
-    for leg in (mega or []):
-        if leg.get("real"):
-            market_odds[(str(leg["result"]["fixture"].get("id")), leg["market"])] = leg["odds"]
+    market_odds = dict(ticket_odds) if "jour" not in frozen_kinds else {}
+    if "mega" not in frozen_kinds:
+        for leg in (mega or []):
+            if leg.get("real"):
+                market_odds[(str(leg["result"]["fixture"].get("id")), leg["market"])] = leg["odds"]
     for fid, info in enrich.items():
         if fid.startswith("__") or not isinstance(info, dict):
             continue
@@ -4316,11 +4608,15 @@ def run(now, today):
 
     try:
         extra_tickets = {}
-        if mega is not None:
+        if mega is not None and "mega" not in frozen_kinds:
             extra_tickets["mega"] = mega
-        if safe is not None:
+        if safe is not None and "safe" not in frozen_kinds:
             extra_tickets["safe"] = safe
-        write_journal(all_results, selected, today, ticket, market_odds, extra_tickets)
+        write_journal(
+            all_results, selected, today,
+            () if "jour" in frozen_kinds else ticket,
+            market_odds, extra_tickets, frozen_kinds=frozen_kinds,
+        )
     except Exception as exc:
         error(f"Ecriture du journal impossible : {type(exc).__name__} {exc}")
 
@@ -4343,13 +4639,17 @@ def run(now, today):
     print("ERREURS :", ERRORS, flush=True)
 
     fiche = write_fiches(
-        selected, enrich, ticket, PARTIAL, analysed, len(eligible), summary, now
+        selected, enrich, ticket, PARTIAL, analysed, len(eligible), summary, now,
+        mega=mega, safe=safe, frozen_kinds=frozen_kinds,
     )
     if fiche:
         print("FICHE :", fiche, flush=True)
 
-    send_message(build_light_message(selected, PARTIAL, ticket, summary, enrich, today, mega, safe))
-    mark_sent(today)
+    send_message(build_light_message(
+        selected, PARTIAL, ticket, summary, enrich, today, mega, safe, frozen_kinds=frozen_kinds
+    ))
+    mark_sent(today, slot)
+    return True
 
 
 if __name__ == "__main__":
