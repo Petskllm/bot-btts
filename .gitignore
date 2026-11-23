@@ -1,0 +1,14 @@
+# Données temporaires et caches API
+/data/cache/
+/data/*.tmp
+/data/sot_stats_cache.json
+
+# Fichiers Python locaux
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Environnements locaux
+.venv/
+venv/
+.env

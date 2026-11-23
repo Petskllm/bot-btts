@@ -3046,8 +3046,8 @@ def journal_summary(rows, today, days=STATS_DAYS):
     """Bilan des lignes réglées (gagne / perdu) sur les `days` derniers jours.
 
     - par marché, pronostics publiés (1) et ticket (2) séparés : réussite,
-      proba moyenne annoncée, ROI pour une mise de 1 à la cote jouée
-      (odds_taken) si remplie, sinon à la cote min affichée
+      proba moyenne annoncée, ROI réel pour une mise de 1 quand
+      odds_taken ou odds_market est disponible (jamais de cote estimée)
     - calibration de TOUTES les lignes journalisées par tranche de 10 %
     - score de Brier (0 = parfait, 0,25 = pile ou face)
     """
@@ -3090,26 +3090,28 @@ def journal_summary(rows, today, days=STATS_DAYS):
         if row.get("market") in REMOVED_MARKETS:
             continue
 
-        # cote jouée, sinon vraie cote marché enregistrée, sinon cote min
+        # ROI uniquement sur une cote réelle ; le taux de réussite reste
+        # calculable même quand la cote n'a pas été enregistrée.
         odds = parse_odds(row.get("odds_taken")) or parse_odds(row.get("odds_market"))
-        if odds is None:
-            odds = min_odds(probability)
-        else:
+        if odds is not None:
             real_odds += 1
             if published == "1":
                 real_published += 1
         group = groups["publie" if published == "1" else "ticket"]
-        entry = group.setdefault(row.get("market"), [0, 0, 0.0, 0.0])
+        entry = group.setdefault(row.get("market"), [0, 0, 0.0, 0.0, 0])
         entry[0] += 1
         entry[1] += won
-        entry[2] += (odds - 1) if won else -1
         entry[3] += probability
+        if odds is not None:
+            entry[2] += (odds - 1) if won else -1
+            entry[4] += 1
 
     def finish(group):
         return {
-            m: {"n": n, "wins": w, "hit": w / n, "roi": profit / n,
-                "profit": profit, "pred": p / n}
-            for m, (n, w, profit, p) in group.items()
+            m: {"n": n, "wins": w, "hit": w / n,
+                "roi": profit / odds_n if odds_n else None,
+                "profit": profit, "real_odds_n": odds_n, "pred": p / n}
+            for m, (n, w, profit, p, odds_n) in group.items()
         }
 
     return {
@@ -3134,19 +3136,24 @@ def summary_lines(summary):
     lines = [f"📒 BILAN {STATS_DAYS} JOURS (pronos publiés, mise 1)"]
     total_n = total_w = 0
     total_profit = 0.0
+    total_real_odds = 0
     ordered = sorted(summary["markets"].items(), key=lambda i: -i[1]["n"])
     for market, s in ordered:
         total_n += s["n"]
         total_w += s["wins"]
         total_profit += s["profit"]
+        total_real_odds += s.get("real_odds_n", 0)
+        roi = "n/a" if s["roi"] is None else f"{s['roi']:+.0%}"
         lines.append(
             f"• {MARKET_SHORT.get(market, market)} : {s['wins']}/{s['n']}"
             f" ({s['hit']:.0%}, annoncé {s['pred']:.0%})"
-            f" · ROI {s['roi']:+.0%}"
+            f" · ROI réel {roi}"
         )
+    total_roi = total_profit / total_real_odds if total_real_odds else None
+    total_roi_text = "n/a" if total_roi is None else f"{total_roi:+.0%}"
     lines.append(
         f"Total : {total_w}/{total_n} ({total_w / total_n:.0%})"
-        f" · ROI {total_profit / total_n:+.0%}"
+        f" · ROI réel {total_roi_text} ({total_real_odds} cotes)"
     )
     if tickets_line(summary):
         lines.append(tickets_line(summary))
@@ -3156,8 +3163,8 @@ def summary_lines(summary):
         )
     if not summary.get("real_odds"):
         lines.append(
-            "ℹ️ ROI calculé à la cote min : note tes vraies cotes dans la "
-            "colonne odds_taken pour le ROI réel."
+            "ℹ️ ROI réel indisponible : renseigne les cotes dans odds_taken "
+            "ou conserve odds_market pour les marchés concernés."
         )
     if total_n < 30:
         lines.append(f"⚠️ {total_n} paris seulement : échantillon trop petit.")
@@ -3178,7 +3185,8 @@ def write_summary_file(summary, today):
             for market, s in sorted(summary[kind].items()):
                 writer.writerow([today.isoformat(), label, market, s["n"],
                                  s["wins"], f"{s['hit']:.3f}",
-                                 f"{s['pred']:.3f}", f"{s['roi']:.3f}"])
+                                 f"{s['pred']:.3f}",
+                                 "" if s["roi"] is None else f"{s['roi']:.3f}"])
         for tkind, s in sorted((summary.get("tickets") or {}).items()):
             n = s.get("n") or 0
             w = s.get("wins") or 0
@@ -3199,9 +3207,10 @@ def print_summary(summary):
     print("\n===== BILAN JOURNAL =====", flush=True)
     for kind in ("markets", "ticket_markets"):
         for market, s in summary[kind].items():
+            roi = "n/a" if s["roi"] is None else f"{s['roi']:+.3f}"
             print(
                 f"{kind} {market}: {s['wins']}/{s['n']} hit={s['hit']:.2f}"
-                f" pred={s['pred']:.2f} roi={s['roi']:+.3f}",
+                f" pred={s['pred']:.2f} roi={roi}",
                 flush=True,
             )
     for bucket, s in summary["calibration"].items():
