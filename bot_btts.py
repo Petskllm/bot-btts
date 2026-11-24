@@ -324,6 +324,7 @@ LOSING_STREAK_MAX = 2    # 2 défaites d'affilée -> pas de victoire sèche
 DRY_STREAK_MAX = 2       # 2 matchs sans marquer -> pas de "+0,5 but"
 FORM_MIN_RATE = 0.40     # +1,5 / +2,5 : au moins 40 % sur les 2 équipes
 BTTS_FORM_MIN_RATE = 0.60  # BTTS exige au moins 60 % récent en moyenne
+BTTS_TICKET_MIN_PROB = 0.60  # pas de BTTS faible dans les tickets fun
 
 # ---- Cote minimale par jambe : refus sous 1,20, marge de sécurité 1,25 ----
 MIN_LEG_ODDS = 1.25
@@ -1748,6 +1749,8 @@ def ticket_candidates(probabilities, extra, home_form, away_form, motivation=Non
     for market, form_rate in form.items():
         p = prob.get(market)
         if p is None or market in blocked or market in NOT_PROPOSED:
+            continue
+        if market == "btts" and p < BTTS_TICKET_MIN_PROB:
             continue
         score = (1 - TICKET_FORM_WEIGHT) * p + TICKET_FORM_WEIGHT * form_rate
         score += motivation_adjust(market, motivation)
