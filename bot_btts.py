@@ -319,7 +319,8 @@ FORM_MIN_SCORED = 3      # l'équipe a marqué dans au moins 3 des 5 derniers
 FORM_MIN_CONCEDED = 3    # l'adversaire a encaissé dans au moins 3 des 5
 LOSING_STREAK_MAX = 2    # 2 défaites d'affilée -> pas de victoire sèche
 DRY_STREAK_MAX = 2       # 2 matchs sans marquer -> pas de "+0,5 but"
-FORM_MIN_RATE = 0.40     # BTTS / +1,5 / +2,5 : au moins 40 % sur les 2 équipes
+FORM_MIN_RATE = 0.40     # +1,5 / +2,5 : au moins 40 % sur les 2 équipes
+BTTS_FORM_MIN_RATE = 0.60  # BTTS exige au moins 60 % récent en moyenne
 
 # ---- Cote minimale par jambe : refus sous 1,20, marge de sécurité 1,25 ----
 MIN_LEG_ODDS = 1.25
@@ -348,7 +349,7 @@ NON_LEAGUE_PATTERN = re.compile(
 # 6.5.0 : bonus de CLASSEMENT (pas de probabilité) selon ton bilan 30 jours
 MARKET_RANK_BONUS = {"home": 0.03, "away": 0.01}
 # 6.5.0 : marchés calculés et journalisés mais jamais proposés
-NOT_PROPOSED = {"btts", "home15", "away15"}
+NOT_PROPOSED = {"home15", "away15"}
 # 6.8.1 : marchés sans vraie cote sur The Odds API gratuite -> plus proposés
 REMOVED_MARKETS = {"home15", "away15"}
 
@@ -1704,7 +1705,7 @@ def blocked_markets(home_form, away_form):
     # BTTS : les deux équipes doivent pouvoir marquer
     if "home" in blocked or "away" in blocked:
         blocked["btts"] = blocked.get("home") or blocked.get("away")
-    elif (home_form["btts"] + away_form["btts"]) / 2 < FORM_MIN_RATE:
+    elif (home_form["btts"] + away_form["btts"]) / 2 < BTTS_FORM_MIN_RATE:
         blocked["btts"] = "peu de BTTS sur les 5 derniers"
 
     if (home_form["o15"] + away_form["o15"]) / 2 < FORM_MIN_RATE + 0.2:
