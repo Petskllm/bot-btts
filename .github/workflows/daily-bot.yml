@@ -6,6 +6,12 @@ on:
     - cron: "0 11 * * *"
     - cron: "0 19 * * *"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Analyser sans envoyer Telegram"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -37,6 +43,8 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           API_KEY: ${{ secrets.API_KEY }}
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
         run: python -u bot_btts.py
 
       - name: Calculer le ROI réel par marché

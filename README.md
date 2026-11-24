@@ -31,6 +31,8 @@ cotes réelles optionnelles via [The Odds API](https://the-odds-api.com).
 - Une clé **SportAPI.ai**
 - Un **bot Telegram** (token + chat_id du canal/chat cible)
 - *(Optionnel)* Une clé **The Odds API** pour les cotes réelles
+- *(Optionnel)* `API_FOOTBALL_KEY` pour vérifier les matchs et la couverture
+  d'une seconde source documentée.
 
 ## Installation
 
@@ -38,3 +40,10 @@ cotes réelles optionnelles via [The Odds API](https://the-odds-api.com).
 git clone https://github.com/Petskllm/bot-btts.git
 cd bot-btts
 pip install requests
+```
+
+Le mode `DRY_RUN=1` analyse et affiche le message sans l'envoyer sur Telegram.
+La validation API-Football reste informative au début : elle compare les
+matchs éligibles sans remplacer les probabilités SportAPI.ai. Les données ne
+seront utilisées dans les décisions qu'après comparaison de la couverture et
+des résultats réels par marché.

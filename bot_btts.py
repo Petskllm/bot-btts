@@ -12,6 +12,8 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import requests
+from api_football_btts import format_report as format_api_football_report
+from api_football_btts import validate_fixtures as validate_api_football_fixtures
 
 # ============================================================
 # BOT FOOTBALL — SPORTAPI — VERSION 6.9.2
@@ -255,6 +257,7 @@ import requests
 TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
 CHAT_ID = os.getenv("CHAT_ID", "").strip()
 API_KEY = os.getenv("API_KEY", "").strip()
+DRY_RUN = os.getenv("DRY_RUN", "0").strip().lower() in {"1", "true", "yes"}
 
 BASE_URL = "https://sportapi.ai/api"
 PARIS = ZoneInfo("Europe/Paris")
@@ -664,6 +667,10 @@ TELEGRAM_CHUNK = 4000  # limite Telegram 4096, avec marge
 
 
 def send_message(text):
+    if DRY_RUN:
+        print("DRY_RUN : aucun message Telegram envoyé", flush=True)
+        print(text, flush=True)
+        return
     if not TOKEN or not CHAT_ID:
         raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
 
@@ -4604,7 +4611,7 @@ def write_journal(all_results, selected, today, ticket=(), market_odds=None, ext
 def main():
     global PARTIAL, NIGHT_RUN
 
-    if not TOKEN or not CHAT_ID:
+    if not DRY_RUN and (not TOKEN or not CHAT_ID):
         raise RuntimeError("TELEGRAM_TOKEN ou CHAT_ID absent.")
     if not API_KEY:
         send_message("❌ Secret API_KEY absent.")
@@ -4707,6 +4714,8 @@ def run(now, today, is_manual=False):
         eligible.append(fixture)
 
     eligible = prioritise(eligible)
+    api_football_report = validate_api_football_fixtures(eligible, today)
+    print(format_api_football_report(api_football_report), flush=True)
 
     results = []
     all_results = []
