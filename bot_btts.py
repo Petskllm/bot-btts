@@ -279,8 +279,8 @@ SOT_ACTIF = False         # 6.9.2 : tirs cadrés abandonnés (2 requêtes / matc
 MAX_MATCHES = 500 if MODE_SANS_LIMITE else 15
 
 TICKET_LEGS = 4
-TICKET_MIN_PROB = 0.50
-TICKET_MAX_PROB = 0.72
+TICKET_MIN_PROB = 0.55       # 4 jambes permettent réellement de viser une cote ~10
+TICKET_MAX_PROB = 0.75
 TICKET_TARGET_ODDS = 10.0
 TICKET_FORM_N = 5
 TICKET_POOL = 24
@@ -441,11 +441,11 @@ MEGA_ACTIF = True
 MEGA_TARGET_ODDS = 50.0
 MEGA_MIN_LEGS = 4
 MEGA_MAX_LEGS = 5
-MEGA_MIN_LEG_ODDS = 2.20          # cote cible par sélection (value bookmaker)
+MEGA_MIN_LEG_ODDS = 2.00          # cote minimale pour construire une cote proche de 50
 MEGA_MIN_FALLBACK_ODDS = 1.80     # cote min réelle en repli court solide
 MEGA_MIN_FAIR_ODDS = 1.75         # cote juste min si pas de cote bookmaker
-MEGA_MAX_LEG_ODDS = 3.50          # pas de grosse cote au hasard
-MEGA_MIN_PROB = 0.50              # proba modèle minimum par sélection
+MEGA_MAX_LEG_ODDS = 3.00          # plafond : pas de grosse cote au hasard
+MEGA_MIN_PROB = 0.55              # proba modèle minimum par sélection
 MEGA_MIN_FORM = 0.60              # forme stricte sur les 5 derniers
 MEGA_POOL = 24
 # 6.9.5 : 🛡️ ULTRA SAFE désactivé (plus construit, plus affiché, plus d'appels absences)
@@ -1922,7 +1922,17 @@ def build_ticket(all_results, now):
                 for _, c in combo:
                     total *= leg_odds(c)
                 mean_score = sum(c["score"] for _, c in combo) / size
-                key = (size == TICKET_LEGS, total >= TICKET_TARGET_ODDS, size, mean_score)
+                chance = math.prod(c["prob"] for _, c in combo)
+                # La cote cible est nécessaire pour obtenir le rendement
+                # demandé, mais la priorité est la probabilité cumulée de
+                # réussite. La proximité de 10 ne sert qu'à départager.
+                key = (
+                    size == TICKET_LEGS,
+                    total >= TICKET_TARGET_ODDS,
+                    chance,
+                    -abs(math.log(total / TICKET_TARGET_ODDS)),
+                    mean_score,
+                )
                 if best is None or key > best[0]:
                     best = (key, combo)
     if not best:
@@ -1999,7 +2009,7 @@ def mega_form_ok(result, candidate):
 
 
 def build_mega(all_results, now, exclude_ids=None):
-    """6.9.5 : 🎉 MÉGA FUN solide : 4-5 sélections >= MEGA_MIN_PROB (50 %),
+    """6.9.5 : 🎉 MÉGA FUN solide : 4-5 sélections >= MEGA_MIN_PROB (55 %),
     forme stricte, cotes cibles 2,20-3,50, matchs distincts du ticket du jour,
     tous dans une fenêtre de TICKET_SLOT_HOURS heures. Si la cote 50 n'est
     pas atteignable avec des sélections solides, on publie le meilleur
@@ -2053,7 +2063,14 @@ def build_mega(all_results, now, exclude_ids=None):
                     chance *= c["prob"]
                 if total < MEGA_TARGET_ODDS:
                     continue
-                key = (chance, sum(c["score"] for _, c in combo) / size)
+                # Parmi les combinaisons atteignant 50, choisir celle dont la
+                # probabilité cumulée est la plus élevée. La proximité de 50
+                # ne sert qu'à départager les probabilités proches.
+                key = (
+                    chance,
+                    -abs(math.log(total / MEGA_TARGET_ODDS)),
+                    sum(c["score"] for _, c in combo) / size,
+                )
                 if best is None or key > best[0]:
                     best = (key, combo)
     if best is not None:
