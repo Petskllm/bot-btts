@@ -42,7 +42,7 @@ cd bot-btts
 pip install requests
 ```
 
-Le mode `DRY_RUN=1` analyse et affiche le message sans l'envoyer sur Telegram.
+Le mode `DRY_RUN=1` analyse et affiche le message sans l'envoyer sur Telegram. Les lancements manuels GitHub Actions utilisent ce mode par défaut ; les deux exécutions planifiées quotidiennes restent actives et publient comme auparavant.
 La validation API-Football reste informative au début : elle compare les
 matchs éligibles sans remplacer les probabilités SportAPI.ai. Les données ne
 seront utilisées dans les décisions qu'après comparaison de la couverture et
