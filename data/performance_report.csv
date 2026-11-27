@@ -1,11 +1,11 @@
 type;market;settled;wins;hit_rate;real_odds_n;profit_1u;roi_real;warning
-published;away;243;191;0.786008;0;0.0000;;echantillon_cotes_reelles_insuffisant
+published;away;265;206;0.777358;0;0.0000;;echantillon_cotes_reelles_insuffisant
 published;btts;8;3;0.375000;0;0.0000;;echantillon_cotes_reelles_insuffisant
 published;buteur;86;31;0.360465;0;0.0000;;echantillon_cotes_reelles_insuffisant
-published;home;326;278;0.852761;0;0.0000;;echantillon_cotes_reelles_insuffisant
+published;home;351;299;0.851852;0;0.0000;;echantillon_cotes_reelles_insuffisant
 published;home15;12;7;0.583333;0;0.0000;;echantillon_cotes_reelles_insuffisant
-published;over15;382;296;0.774869;0;0.0000;;echantillon_cotes_reelles_insuffisant
-published;over25;90;55;0.611111;43;-6.4200;-0.149302;ROI_negatif
+published;over15;411;321;0.781022;0;0.0000;;echantillon_cotes_reelles_insuffisant
+published;over25;109;68;0.623853;59;-4.4700;-0.075763;ROI_negatif
 published;sot_away;5;3;0.600000;0;0.0000;;echantillon_cotes_reelles_insuffisant
 published;sot_home;5;4;0.800000;0;0.0000;;echantillon_cotes_reelles_insuffisant
 published;win_away;4;3;0.750000;1;-1.0000;-1.000000;echantillon_cotes_reelles_insuffisant
