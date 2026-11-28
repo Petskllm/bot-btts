@@ -514,6 +514,7 @@ TICKET_LEAGUE_EXCLUDE = (     # jamais dans le ticket, quelle que soit la ligne
     r"women|feminin|\bu ?\d\d\b|youth|junior|reserve|amateur|futsal"
     r"|beach|esoccer|\bii\b|highland|lowland|national league n"
     r"|national league s|national league north|national league south"
+    r"|cymru premier|national league"
 )
 COUNTRY_WORDS = {
     "England": ("england", "english"),

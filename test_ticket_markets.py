@@ -9,6 +9,12 @@ class TicketMarketTests(unittest.TestCase):
         self.assertFalse(bot_btts.ticket_market_allowed({"market": "over25"}))
         self.assertTrue(bot_btts.ticket_market_allowed({"market": "over15"}))
 
+    def test_cymru_and_national_league_are_excluded(self):
+        for league in ("Cymru Premier", "National League N / S", "National League North"):
+            with self.subTest(league=league):
+                fixture = {"league_name": league, "league_id": None}
+                self.assertFalse(bot_btts.ticket_league_ok(fixture))
+
     def test_only_normal_predictions_and_dayfun_are_active(self):
         self.assertFalse(bot_btts.TICKET_ACTIF)
         self.assertFalse(bot_btts.MEGA_ACTIF)
