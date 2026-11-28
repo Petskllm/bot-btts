@@ -469,11 +469,11 @@ DAYFUN_HARD_MIN = 4               # moins de 4 sélections : pas de ticket, just
 DAYFUN_MIN_PROB = 0.70
 DAYFUN_MIN_LEG_ODDS = 1.20
 DAYFUN_MARKETS = ("home", "away", "over15")
-DAYFUN_EXTRA_MARKETS = ("over25", "btts")
+DAYFUN_EXTRA_MARKETS = ("btts",)
 DAYFUN_BOOST_MIN_PROB = 0.55
 DAYFUN_BOOST_MIN_ODDS = 1.55         # autour de 1,70 : inclut les +2,5 à ~62 %
 DAYFUN_BOOST_MAX_ODDS = 2.20
-DAYFUN_BOOST_MARKETS = ("over25", "win_home", "win_away")
+DAYFUN_BOOST_MARKETS = ("win_home", "win_away")
 DAYFUN_TARGET_ODDS = 40.0         # vise 40-60 ; on publie quand même le réel si c'est en dessous
 TICKET_KIND_LABELS = {
     "jour": "Jour", "mega": "Méga fun", "dayfun": "Fun journée", "safe": "Ultra safe",
@@ -481,6 +481,13 @@ TICKET_KIND_LABELS = {
 TICKET_TAGS_SINCE = (6, 9)        # colonne tickets remplie depuis 6.9.0
 # 6.9.0 : marchés que The Odds API gratuite couvre (sinon : aucun appel)
 REAL_ODDS_MARKETS = {"over15", "over25", "win_home", "win_away"}
+# 6.9.7 : over25 reste suivi en pronostic simple, mais est retire de tous les
+# tickets apres un ROI negatif sur les cotes reelles disponibles.
+TICKET_EXCLUDED_MARKETS = {"over25"}
+
+def ticket_market_allowed(candidate):
+    """Marchés autorisés dans les tickets, distincts des pronostics simples."""
+    return candidate.get("market") not in TICKET_EXCLUDED_MARKETS
 
 # 6.9.0 : fatigue (calendrier déjà chargé, 0 appel en plus)
 FATIGUE_ACTIF = True
@@ -1888,6 +1895,8 @@ def build_ticket(all_results, now):
         if not ticket_league_ok(result["fixture"]):
             continue
         for candidate in result.get("candidates", []):
+            if not ticket_market_allowed(candidate):
+                continue
             if TICKET_MIN_PROB <= candidate["prob"] <= TICKET_MAX_PROB:
                 pool.append((result, dict(candidate)))
 
@@ -2023,6 +2032,8 @@ def build_mega(all_results, now, exclude_ids=None):
         if not ticket_window_ok(kickoff_of(fixture), now) or not ticket_league_ok(fixture):
             continue
         for candidate in result.get("candidates", []):
+            if not ticket_market_allowed(candidate):
+                continue
             if candidate["prob"] >= MEGA_MIN_PROB and 1 / candidate["prob"] <= MEGA_MAX_LEG_ODDS * 1.25:
                 if mega_form_ok(result, candidate):
                     raw_pool.append((result, dict(candidate)))
