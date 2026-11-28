@@ -465,17 +465,17 @@ SAFE_MARKETS = ("home", "away")
 DAYFUN_ACTIF = True
 DAYFUN_MAX_LEGS = 10
 DAYFUN_SOLID_LEGS = 7             # sélections solides (>= 70 %, équipe +0,5 / +1,5)
-DAYFUN_BOOST_LEGS = 3             # sélections plus payantes (cote 1,70-2,20, >= 55 %)
+DAYFUN_BOOST_LEGS = 3             # au plus 3 sélections valeur entre 61 % et 70 %
 DAYFUN_MIN_LEGS = 6               # en dessous : ticket plus court, ou rien si < DAYFUN_HARD_MIN
 DAYFUN_HARD_MIN = 4               # moins de 4 sélections : pas de ticket, juste une note
 DAYFUN_MIN_PROB = 0.70
 DAYFUN_MIN_LEG_ODDS = MIN_LEG_ODDS
 DAYFUN_MARKETS = ("home", "away", "over15")
 DAYFUN_EXTRA_MARKETS = ("btts",)
-DAYFUN_BOOST_MIN_PROB = 0.55
-DAYFUN_BOOST_MIN_ODDS = 1.55         # autour de 1,70 : inclut les +2,5 à ~62 %
+DAYFUN_BOOST_MIN_PROB = 0.61
+DAYFUN_BOOST_MIN_ODDS = 1.43         # cote juste minimale à 70 % ; 1,64 à 61 %
 DAYFUN_BOOST_MAX_ODDS = 2.20
-DAYFUN_BOOST_MARKETS = ("win_home", "win_away")
+DAYFUN_BOOST_MARKETS = ("home", "away", "over15", "btts", "win_home", "win_away")
 DAYFUN_TARGET_ODDS = 40.0         # vise 40-60 ; on publie quand même le réel si c'est en dessous
 TICKET_KIND_LABELS = {
     "jour": "Jour", "mega": "Méga fun", "dayfun": "Fun journée", "safe": "Ultra safe",
@@ -2216,7 +2216,7 @@ def build_safe(all_results, now, today=None):
 
 
 def dayfun_boost_ok(result, candidate):
-    """6.9.6 : jambe boost du fun journée, appuyée par la forme (même filtre que le méga fun)."""
+    """6.9.9 : sélection valeur 61–70 %, cote juste utile et forme confirmée."""
     if candidate.get("market") not in DAYFUN_BOOST_MARKETS:
         return False
     prob = candidate.get("prob") or 0.0

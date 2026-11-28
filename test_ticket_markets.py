@@ -21,6 +21,13 @@ class TicketMarketTests(unittest.TestCase):
         self.assertFalse(bot_btts.SAFE_ACTIF)
         self.assertTrue(bot_btts.DAYFUN_ACTIF)
 
+    def test_dayfun_value_band_is_limited_and_form_based(self):
+        self.assertEqual(bot_btts.DAYFUN_BOOST_MIN_PROB, 0.61)
+        self.assertEqual(bot_btts.DAYFUN_BOOST_MAX_ODDS, 2.20)
+        self.assertEqual(bot_btts.DAYFUN_BOOST_LEGS, 3)
+        self.assertIn("win_home", bot_btts.DAYFUN_BOOST_MARKETS)
+        self.assertNotIn("over25", bot_btts.DAYFUN_BOOST_MARKETS)
+
     def test_all_ticket_families_reject_low_odds(self):
         self.assertEqual(bot_btts.MIN_LEG_ODDS, 1.25)
         self.assertEqual(bot_btts.TICKET_MIN_LEG_ODDS, 1.25)
