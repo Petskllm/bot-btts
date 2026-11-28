@@ -9,6 +9,12 @@ class TicketMarketTests(unittest.TestCase):
         self.assertFalse(bot_btts.ticket_market_allowed({"market": "over25"}))
         self.assertTrue(bot_btts.ticket_market_allowed({"market": "over15"}))
 
+    def test_only_normal_predictions_and_dayfun_are_active(self):
+        self.assertFalse(bot_btts.TICKET_ACTIF)
+        self.assertFalse(bot_btts.MEGA_ACTIF)
+        self.assertFalse(bot_btts.SAFE_ACTIF)
+        self.assertTrue(bot_btts.DAYFUN_ACTIF)
+
     def test_all_ticket_families_reject_low_odds(self):
         self.assertEqual(bot_btts.MIN_LEG_ODDS, 1.25)
         self.assertEqual(bot_btts.TICKET_MIN_LEG_ODDS, 1.25)

@@ -278,6 +278,8 @@ MODE_SANS_LIMITE = True   # 6.9.2 : voir l'en-tête (quota réel seulement)
 SOT_ACTIF = False         # 6.9.2 : tirs cadrés abandonnés (2 requêtes / match)
 MAX_MATCHES = 500 if MODE_SANS_LIMITE else 15
 
+# 6.9.9 : sortie simplifiée — pronostics normaux + Fun journée uniquement.
+TICKET_ACTIF = False
 TICKET_LEGS = 4
 TICKET_MIN_PROB = 0.55       # 4 jambes permettent réellement de viser une cote ~10
 TICKET_MAX_PROB = 0.75
@@ -437,7 +439,7 @@ KICKOFF_MARGIN_MINUTES = 10       # 6.9.4 : ignore un match déjà commencé ou 
 TICKET_SLOT_HOURS = 3             # 6.9.5 : ticket du jour / méga fun dans une fenêtre de 3 h
 
 # 6.9.3 : 🎉 MÉGA FUN (solide : 4-5 sélections >= 50 %, sinon meilleur court)
-MEGA_ACTIF = True
+MEGA_ACTIF = False
 MEGA_TARGET_ODDS = 50.0
 MEGA_MIN_LEGS = 4
 MEGA_MAX_LEGS = 5
@@ -4096,10 +4098,11 @@ def build_message(selected, partial, analysed, total, ticket=None, summary=None,
         ])
 
     frozen_kinds = frozen_kinds or set()
-    t_lines = ticket_lines(ticket)
-    if "jour" in frozen_kinds and t_lines:
-        t_lines[0] = "🎟️ TICKET DU JOUR (figé)"
-    lines.extend(t_lines)
+    if TICKET_ACTIF:
+        t_lines = ticket_lines(ticket)
+        if "jour" in frozen_kinds and t_lines:
+            t_lines[0] = "🎟️ TICKET DU JOUR (figé)"
+        lines.extend(t_lines)
     if MEGA_ACTIF and mega is not None:
         m_title = "🎉 MÉGA FUN (figé)" if "mega" in frozen_kinds else "🎉 MÉGA FUN"
         for block in extra_ticket_blocks(m_title, mega, MEGA_TARGET_ODDS):
@@ -4405,7 +4408,7 @@ def build_light_message(selected, partial, ticket=None, summary=None, enrich=Non
                 f"💰 Cote {TICKET_TARGET_ODDS:g} non atteinte"
                 f" (meilleur {fmt_short(total)}{', estim.' if estimate else ''})"
             )
-    else:
+    elif TICKET_ACTIF:
         blocks.append(f"{ticket_title}\nPas assez de matchs exploitables.")
 
     # 6.9.0 : méga fun + ultra safe sous le ticket du jour
@@ -4821,7 +4824,11 @@ def run(now, today, is_manual=False):
     frozen = frozen_tickets_for_day(today)
     frozen_kinds = set(frozen.keys())
 
-    if "jour" in frozen_kinds:
+    if not TICKET_ACTIF:
+        frozen.pop("jour", None)
+        frozen_kinds.discard("jour")
+        ticket = []
+    elif "jour" in frozen_kinds:
         ticket = legs_from_frozen_rows(frozen["jour"])
         print("TICKET DU JOUR : déjà publié aujourd'hui (figé).", flush=True)
     else:
