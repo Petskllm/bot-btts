@@ -15,6 +15,11 @@ class TicketMarketTests(unittest.TestCase):
         self.assertEqual(bot_btts.SAFE_MIN_LEG_ODDS, 1.25)
         self.assertEqual(bot_btts.DAYFUN_MIN_LEG_ODDS, 1.25)
 
+    def test_low_real_odds_are_marked_unplayable_in_messages(self):
+        self.assertIn("ne pas jouer", bot_btts.odds_text(0.80, 1.15))
+        self.assertIn("ne pas jouer", bot_btts.tg_odds(0.80, 1.15))
+        self.assertIn("value", bot_btts.tg_odds(0.80, 1.30))
+
     def test_dayfun_no_longer_uses_over25_as_solid_or_boost(self):
         self.assertNotIn("over25", bot_btts.DAYFUN_EXTRA_MARKETS)
         self.assertNotIn("over25", bot_btts.DAYFUN_BOOST_MARKETS)

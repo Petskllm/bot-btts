@@ -4215,6 +4215,8 @@ def odds_text(probability, price):
     floor = min_odds(probability)
     if price:
         text = f"cote {fmt_odds(price)}"
+        if floor is not None and price < floor - 1e-9:
+            return f"{text} ⛔ sous le minimum {fmt_odds(floor)} — ne pas jouer"
         if floor is not None and price > floor:
             text += " ✅ value"
         return text
@@ -4243,6 +4245,8 @@ def tg_odds(probability, price):
     if price:
         text = f"💰 cote {fmt_odds(price)}"
         floor = min_odds(probability)
+        if floor is not None and price < floor - 1e-9:
+            return f"{text} ⛔ sous le minimum {fmt_odds(floor)} — ne pas jouer"
         if floor is not None and price > floor:
             text += " ✅ value"
         return text
