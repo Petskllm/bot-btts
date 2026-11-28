@@ -2,7 +2,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from performance_report import Stats, add_row, is_published, parse_odds, pct, write_report
+from performance_report import (
+    Stats,
+    add_row,
+    is_published,
+    parse_odds,
+    pct,
+    report_group,
+    write_report,
+)
 
 
 class PerformanceReportTests(unittest.TestCase):
@@ -58,7 +66,33 @@ class PerformanceReportTests(unittest.TestCase):
             content.splitlines(),
             [
                 "type;market;settled;wins;hit_rate;real_odds_n;profit_1u;roi_real;warning",
-                "published;over15;2;1;0.500000;2;0.0000;0.000000;echantillon_cotes_reelles_insuffisant",
+                "published;over15;1;1;1.000000;1;1.0000;1.000000;echantillon_cotes_reelles_insuffisant",
+                "ticket;over15;1;0;0.000000;1;-1.0000;-1.000000;echantillon_cotes_reelles_insuffisant",
+            ],
+        )
+
+    def test_report_separates_tickets_and_ignores_retired_markets(self):
+        self.assertEqual(report_group({"published": "1", "market": "home"}), "published")
+        self.assertEqual(report_group({"published": "2", "market": "win_home"}), "ticket")
+        self.assertIsNone(report_group({"published": "1", "market": "btts"}))
+        self.assertIsNone(report_group({"published": "2", "market": "home15"}))
+
+        rows = [
+            {"published": "1", "market": "home", "result": "won", "odds_market": "2"},
+            {"published": "2", "market": "win_home", "result": "lost", "odds_market": "3"},
+            {"published": "1", "market": "btts", "result": "won", "odds_market": "4"},
+            {"published": "2", "market": "home15", "result": "won", "odds_market": "5"},
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "reports" / "summary.csv"
+            write_report(output, rows)
+            content = output.read_text(encoding="utf-8")
+        self.assertEqual(
+            content.splitlines(),
+            [
+                "type;market;settled;wins;hit_rate;real_odds_n;profit_1u;roi_real;warning",
+                "published;home;1;1;1.000000;1;1.0000;1.000000;echantillon_cotes_reelles_insuffisant",
+                "ticket;win_home;1;0;0.000000;1;-1.0000;-1.000000;echantillon_cotes_reelles_insuffisant",
             ],
         )
 
