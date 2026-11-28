@@ -464,16 +464,17 @@ SAFE_MARKETS = ("home", "away")
 # 6.9.6 : 🎯 FUN JOURNÉE mixte (jusqu'à 7 solides + 3 boosts, toute la journée)
 DAYFUN_ACTIF = True
 DAYFUN_MAX_LEGS = 10
-DAYFUN_SOLID_LEGS = 8             # sélections solides (>= 70 %, équipe +0,5 / +1,5)
+DAYFUN_SOLID_LEGS = 8             # sélections principales (61–66,7 %, cote juste >= 1,50)
 DAYFUN_BOOST_LEGS = 2             # au plus 2 sélections valeur entre 61 % et 70 %
 DAYFUN_MIN_LEGS = 6               # en dessous : ticket plus court, ou rien si < DAYFUN_HARD_MIN
 DAYFUN_HARD_MIN = 4               # moins de 4 sélections : pas de ticket, juste une note
-DAYFUN_MIN_PROB = 0.70
-DAYFUN_MIN_LEG_ODDS = MIN_LEG_ODDS
+DAYFUN_MIN_PROB = 0.61
+DAYFUN_MIN_LEG_ODDS = 1.50
 DAYFUN_MARKETS = ("home", "away", "over15")
+DAYFUN_MAX_PROB = 1 / DAYFUN_MIN_LEG_ODDS
 DAYFUN_EXTRA_MARKETS = ("btts",)
 DAYFUN_BOOST_MIN_PROB = 0.61
-DAYFUN_BOOST_MIN_ODDS = 1.43         # cote juste minimale à 70 % ; 1,64 à 61 %
+DAYFUN_BOOST_MIN_ODDS = 1.50         # cote juste minimale de chaque jambe
 DAYFUN_BOOST_MAX_ODDS = 2.20
 DAYFUN_BOOST_MARKETS = ("home", "over15")
 DAYFUN_TARGET_ODDS = 30.0         # cote cible minimale du combiné journée
@@ -2263,7 +2264,8 @@ def build_dayfun(all_results, now, exclude_ids=None):
         for candidate in result.get("candidates", []):
             market = candidate["market"]
             prob = candidate["prob"]
-            if market in allowed_solid and prob >= DAYFUN_MIN_PROB and 1 / prob >= DAYFUN_MIN_LEG_ODDS - 1e-9:
+            if (market in allowed_solid and DAYFUN_MIN_PROB <= prob <= DAYFUN_MAX_PROB
+                    and 1 / prob >= DAYFUN_MIN_LEG_ODDS - 1e-9):
                 key = (0 if market in pref else 1, pref.get(market, 9), -1 / prob, -candidate.get("score", 0))
                 if best_solid_key is None or key < best_solid_key:
                     best_solid_key = key
