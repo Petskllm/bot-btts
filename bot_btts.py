@@ -464,8 +464,8 @@ SAFE_MARKETS = ("home", "away")
 # 6.9.6 : 🎯 FUN JOURNÉE mixte (jusqu'à 7 solides + 3 boosts, toute la journée)
 DAYFUN_ACTIF = True
 DAYFUN_MAX_LEGS = 10
-DAYFUN_SOLID_LEGS = 7             # sélections solides (>= 70 %, équipe +0,5 / +1,5)
-DAYFUN_BOOST_LEGS = 3             # au plus 3 sélections valeur entre 61 % et 70 %
+DAYFUN_SOLID_LEGS = 8             # sélections solides (>= 70 %, équipe +0,5 / +1,5)
+DAYFUN_BOOST_LEGS = 2             # au plus 2 sélections valeur entre 61 % et 70 %
 DAYFUN_MIN_LEGS = 6               # en dessous : ticket plus court, ou rien si < DAYFUN_HARD_MIN
 DAYFUN_HARD_MIN = 4               # moins de 4 sélections : pas de ticket, juste une note
 DAYFUN_MIN_PROB = 0.70
@@ -475,7 +475,7 @@ DAYFUN_EXTRA_MARKETS = ("btts",)
 DAYFUN_BOOST_MIN_PROB = 0.61
 DAYFUN_BOOST_MIN_ODDS = 1.43         # cote juste minimale à 70 % ; 1,64 à 61 %
 DAYFUN_BOOST_MAX_ODDS = 2.20
-DAYFUN_BOOST_MARKETS = ("home", "away", "over15", "btts", "win_home", "win_away")
+DAYFUN_BOOST_MARKETS = ("home", "over15")
 DAYFUN_TARGET_ODDS = 40.0         # vise 40-60 ; on publie quand même le réel si c'est en dessous
 TICKET_KIND_LABELS = {
     "jour": "Jour", "mega": "Méga fun", "dayfun": "Fun journée", "safe": "Ultra safe",
