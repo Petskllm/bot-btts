@@ -2305,11 +2305,9 @@ def build_dayfun(all_results, now, exclude_ids=None):
         picked.append((result, candidate))
     if len(picked) < DAYFUN_HARD_MIN:
         return []
-    legs = finish_legs(picked)
-    if ticket_fair(legs) < DAYFUN_TARGET_ODDS:
-        REASONS["Fun journée : cote cible non atteinte"] += 1
-        return []
-    return legs
+    # 30 est une cible préférée, pas un blocage : on publie quand même
+    # le meilleur combiné disponible si la journée offre moins de valeur.
+    return finish_legs(picked)
 
 
 def ticket_chance(legs):
