@@ -422,7 +422,7 @@ TICKET_LEAGUES = [
 ]
 TICKET_LEAGUE_IDS = set()     # ids SportAPI toujours acceptés (ex. {39, 140})
 PRONOS_LIGUES_AUTORISEES = True   # 6.8.0 : True = pronos aussi limités à cette liste
-TICKET_MIN_LEG_ODDS = 1.20        # 6.8.0 : vraie cote minimum par jambe du ticket
+TICKET_MIN_LEG_ODDS = MIN_LEG_ODDS  # 6.9.8 : aucune vraie cote sous 1,25 dans un ticket
 TICKET_EARLIEST_HOUR = 8          # 6.8.0 : pas de match avant 08:00 dans le ticket
 # 6.8.1 : mode nuit (lancement entre 00:00 et NIGHT_RUN_END_HOUR, Paris)
 NUIT_ACTIVE = False               # False = pas de lancement de nuit programmé (relance manuelle possible)
@@ -451,7 +451,7 @@ MEGA_POOL = 24
 # 6.9.5 : 🛡️ ULTRA SAFE désactivé (plus construit, plus affiché, plus d'appels absences)
 SAFE_ACTIF = False
 SAFE_MAX_LEGS = 2
-SAFE_MIN_LEG_ODDS = 1.20
+SAFE_MIN_LEG_ODDS = MIN_LEG_ODDS
 SAFE_MIN_PROB = 0.80
 SAFE_FORM_MIN_SCORED = 4
 SAFE_FORM_MIN_CONCEDED = 3
@@ -467,7 +467,7 @@ DAYFUN_BOOST_LEGS = 3             # sélections plus payantes (cote 1,70-2,20, >
 DAYFUN_MIN_LEGS = 6               # en dessous : ticket plus court, ou rien si < DAYFUN_HARD_MIN
 DAYFUN_HARD_MIN = 4               # moins de 4 sélections : pas de ticket, juste une note
 DAYFUN_MIN_PROB = 0.70
-DAYFUN_MIN_LEG_ODDS = 1.20
+DAYFUN_MIN_LEG_ODDS = MIN_LEG_ODDS
 DAYFUN_MARKETS = ("home", "away", "over15")
 DAYFUN_EXTRA_MARKETS = ("btts",)
 DAYFUN_BOOST_MIN_PROB = 0.55
