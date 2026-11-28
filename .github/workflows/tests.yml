@@ -1,0 +1,33 @@
+name: Tests Python
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les dépendances
+        run: python -m pip install -r requirements.txt
+
+      - name: Vérifier la syntaxe
+        run: python -m compileall -q .
+
+      - name: Exécuter les tests hors ligne
+        run: python -m unittest discover -v

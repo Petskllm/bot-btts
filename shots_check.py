@@ -143,5 +143,6 @@ def main():
     print("\n".join(L))
 
 
-main()
-print("FIN DU SCRIPT")
+if __name__ == "__main__":
+    main()
+    print("FIN DU SCRIPT")
