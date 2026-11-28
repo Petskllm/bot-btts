@@ -476,7 +476,7 @@ DAYFUN_BOOST_MIN_PROB = 0.61
 DAYFUN_BOOST_MIN_ODDS = 1.43         # cote juste minimale à 70 % ; 1,64 à 61 %
 DAYFUN_BOOST_MAX_ODDS = 2.20
 DAYFUN_BOOST_MARKETS = ("home", "over15")
-DAYFUN_TARGET_ODDS = 40.0         # vise 40-60 ; on publie quand même le réel si c'est en dessous
+DAYFUN_TARGET_ODDS = 30.0         # cote cible minimale du combiné journée
 TICKET_KIND_LABELS = {
     "jour": "Jour", "mega": "Méga fun", "dayfun": "Fun journée", "safe": "Ultra safe",
 }

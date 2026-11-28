@@ -21,6 +21,9 @@ class TicketMarketTests(unittest.TestCase):
         self.assertFalse(bot_btts.SAFE_ACTIF)
         self.assertTrue(bot_btts.DAYFUN_ACTIF)
 
+    def test_dayfun_target_odds_is_30(self):
+        self.assertEqual(bot_btts.DAYFUN_TARGET_ODDS, 30.0)
+
     def test_dayfun_value_band_is_limited_and_form_based(self):
         self.assertEqual(bot_btts.DAYFUN_BOOST_MIN_PROB, 0.61)
         self.assertEqual(bot_btts.DAYFUN_BOOST_MAX_ODDS, 2.20)
